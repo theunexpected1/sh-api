@@ -1,0 +1,6 @@
+li.booked label{
+    background-color: #1d950c;
+}
+li.reserved label{
+    background-color: #393adf;
+}

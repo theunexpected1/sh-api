@@ -1,0 +1,60 @@
+<div class="container-fluid pb-0">
+        <div class="row wrapper multi-form has-shadow">
+                <div class="col-sm-12">
+                        <ul class="d-flex justify-content-around list-unstyled fw-700 mb-0">
+                                <% 
+                                        if(typeof(current_page) == 'undefined'){ 
+                                                var current_page = ''
+                                        } 
+                                 %>
+                                <li class="active <% if(current_page=='basic-info'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'basicinfo')){ %>
+                                                /admin/properties/edit/<%=property_id%>
+                             <% } %>">Basic Info</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'rooms')){ %>
+                        active 
+                     <% } %> <% if(current_page=='rooms-info'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'rooms')||_.contains(completed, 'basicinfo')){ %>
+                                                /admin/rooms/<%=property_id%>
+                         <% } %>">Rooms Info</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'photos')){ %>
+                        active 
+                     <% } %> <% if(current_page=='photos'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'photos')|| _.contains(completed, 'rooms')){ %>
+                                                /admin/photos/<%=property_id%>
+                         <% } %>">Photos</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'price')){ %>
+                        active 
+                     <% } %> <% if(current_page=='pricing'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'price')||_.contains(completed, 'photos')){ %>
+                                                /admin/pricing/<%=property_id%>
+                         <% } %>">Price</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'policies')){ %>
+                        active 
+                     <% } %> <% if(current_page=='policies'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'policies')||_.contains(completed, 'price')){ %>
+                                                /admin/policies/<%=property_id%>
+                         <% } %>">Policies</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'payment')){ %>
+                        active 
+                     <% } %> <% if(current_page=='payment'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'payment')||_.contains(completed, 'policies')){ %>
+                                                /admin/payments/<%=property_id%>
+                         <% } %>">Payment</a>
+                                </li>
+                                <li class="<% if(_.contains(completed, 'nearby')){ %>
+                                active 
+                             <% } %> <% if(current_page=='nearby'){ %>current<% } %>">
+                                        <a href="<% if(_.contains(completed, 'payment')||_.contains(completed, 'nearby')){ %>
+                                                /admin/nearby/<%=property_id%>
+                                <% } %>">Nearby</a>
+                                </li>
+                        </ul>
+                </div>
+        </div>
+</div>

@@ -1,0 +1,156 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item" aria-current="page">
+                            <a href="/admin/generalsettings">General Settings</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Promo Codes</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 px-4">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-left" style="overflow-x:auto">
+                    <table class="table table-hover" style="overflow-x:scroll;">
+                        <thead class="mt-5">
+                            <tr>
+                                <th>Promo Code</th>
+                                <th>Discount(%)</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                                <% promocodes.forEach(promocode=>{ %>
+                                    <tr>
+                                        <td style="width: 50%" class="d-flex align-items-center col-10">
+                                            <%=promocode.code%>
+                                        </td>
+                                        <td style="width: 40%">
+                                            <%=promocode.discount%>
+                                        </td>
+                                        <td style="width: 10%" class="col-2">
+                                            <a id="show-panel" data-toggle="modal" data-target=".bd-example-modal-lg" data-whatever="@mdo">
+                                                <i class="icon-edit"></i>
+                                            </a>
+                                        </td>
+                                    </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="newModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit Promo Code</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newPromoCodeForm" enctype="multipart/form-data">
+                            <div class="row wrapper mt-4 mb-5 bg-white align-items-center">
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Promo Code</label>
+                                        <div class="col-sm-9">
+                                            <input name="promocode" type="text" class="form-control border-secondary" placeholder="Enter Promo Code" value="<%=promocodes[0].code%>" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Discount(%)</label>
+                                        <div class="col-sm-9">
+                                            <input name="discount" type="text" class="form-control border-secondary" placeholder="Enter Discount" value="<%=promocodes[0].discount%>" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                    <div class="header-buttons d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">Save</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $("#imageUpload").on('change', function () {
+                readURL(this, 1);
+            });
+            $("#newPromoCodeForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    promocode: {
+                        required: true
+                    },
+                    discount: {
+                        required: true
+                    }
+                },
+                messages: {
+                    promocode: {
+                        required: "Promo Code is required",
+                    },
+                    discount: {
+                        required: "Discount is required",
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    var form = document.getElementById('newPromoCodeForm');
+                    var data = $(form).serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: "/admin/promocodes",
+                        data: data,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.status == 1) {
+                                // if (data.message) {
+                                //     $.confirm({
+                                //         title: 'Success!',
+                                //         content: data.message,
+                                //         buttons: {
+                                //             ok: function () {
+                                //                 document.getElementById("newPromoCodeForm").reset();
+                                //                 window.location.reload();
+                                //             }
+                                //         }
+                                //     });
+                                //     document.getElementById("newPromoCodeForm").reset();
+                                // }
+                                window.location.reload();
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

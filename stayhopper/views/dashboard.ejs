@@ -1,0 +1,143 @@
+<%-include('./shared/header.ejs',{active:'dashboard'})%>
+<div class="content-inner">
+    <!-- Dashboard Counts Section-->
+    <section class="dashboard-counts no-padding-bottom pt-0">
+        <div class="container-fluid">
+            <div class="row justify-content-around">
+                <!-- Item -->
+                <div class="col-xl-5 col-sm-6 bg-white dashboard-itm has-shadow">
+                    <div class="item-header d-flex justify-content-between align-items-stretch pt-3 pb-3 bg-secondary text-white pl-4 pr-4" id="dropdownMenuButton"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <!-- <span class="selected-admin">Select Hotel Owner Name</span> -->
+                        <!-- <i class="fa fa-chevron-down"></i> -->
+                    </div>
+                    <!-- <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item select-admin" data-id="" href="#">--All Users--</a> 
+                        <% hoteladmins.forEach((admin)=>{ %>
+                            <a class="dropdown-item select-admin" data-id="<%=admin._id%>" href="#"><%=admin.legal_name%></a> 
+                        <% }); %>
+                    </div> -->
+                    <div class="item d-flex align-items-center">
+                        <div class="icon sh-icon-booking bg-primary-gradient"></div>
+                        <div class="title text-secondary">
+                            <div class="title-heading">Today's Bookings
+                                <span class="totalBookings"><%=totalBookings%> Bookings</span>
+                            </div>
+                            <!-- <div class="progress">
+                        <div role="progressbar" style="width: 25%; height: 4px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-violet"></div>
+                      </div> -->
+                        </div>
+                        <!-- <div class="number">
+                            <strong>
+                                <i class="fa fa-chevron-right"></i>
+                            </strong>
+                        </div> -->
+                    </div>
+                </div>
+                <!-- Item -->
+                <div class="col-xl-5 col-sm-6 bg-white dashboard-itm has-shadow">
+                    <div class="item-header d-flex justify-content-between align-items-stretch pt-3 pb-3 bg-secondary text-white pl-4 pr-4" id="dropdownMenuButton"
+                        data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                        <!-- <span class="selected-admin-all">Select Hotel Owner Name</span>
+                        <i class="fa fa-chevron-down"></i> -->
+                    </div>
+                    <!-- <div class="dropdown-menu" aria-labelledby="dropdownMenuButton">
+                        <a class="dropdown-item select-admin-all" data-id="" href="#">--All Users--</a> 
+                        <% hoteladmins.forEach((admin)=>{ %>
+                            <a class="dropdown-item select-admin-all" data-id="<%=admin._id%>" href="#"><%=admin.legal_name%></a> 
+                        <% }); %>
+                    </div> -->
+                    <div class="item d-flex align-items-center">
+                        <div class="icon sh-icon-view-booking bg-primary-gradient"></div>
+                        <div class="title text-secondary">
+                            <div class="title-heading">All Bookings
+                                <span class="totalBookings-all"><%=totalBookings_all%> Bookings</span>
+                                <input type="text" class="dateselect mt-1 hidden" required="required" />
+                            </div>
+                            <div class="date">
+                                <!--     <input data-provide="datepicker" required="required"> -->
+                                <span>Choose Date
+                                    <i class="fa fa-calendar"></i>
+                                </span>
+                            </div>
+                            <!-- <div class="progress">
+                        <div role="progressbar" style="width: 25%; height: 4px;" aria-valuenow="25" aria-valuemin="0" aria-valuemax="100" class="progress-bar bg-violet"></div>
+                      </div> -->
+                        </div>
+                        <!-- <div class="number">
+                            <strong>
+                                <i class="fa fa-chevron-right"></i>
+                            </strong>
+                        </div> -->
+                    </div>
+                </div>
+            </div>
+            <!-- Charts Section-->
+            <section class="charts">
+                <div class="container-fluid">
+                    <div class="row">
+                        <!-- Line Charts-->
+                        <div class="col-lg-12">
+                            <div class="bar-chart-example card">
+                                <div class="card-close">
+                                    <div class="dropdown">
+                                        <button type="button" id="closeCard6" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false" class="dropdown-toggle">
+                                            <i class="fa fa-ellipsis-v"></i>
+                                        </button>
+                                        <div aria-labelledby="closeCard6" class="dropdown-menu dropdown-menu-right has-shadow">
+                                            <a href="#" class="dropdown-item remove">
+                                                <i class="fa fa-times"></i>Close</a>
+                                            <a href="#" class="dropdown-item edit">
+                                                <i class="fa fa-gear"></i>Edit</a>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="card-header d-flex align-items-center">
+                                    <h3 class="h4">Bar Chart Example</h3>
+                                </div>
+                                <div class="card-body">
+                                    <canvas id="barChartExample"></canvas>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        </div>
+    </section>
+    <script type="text/javascript">
+        $('.select-admin').on('click',function(){
+            var id = $(this).data('id');
+            var user = $(this).html();
+            $('.selected-admin').html(user);
+            $.ajax({
+                url:'/dashboard/bookingscount/today',
+                type:'get',
+                dataType:'json',
+                data:{id:id},
+                async:false,
+                success:function(data){
+                    $('.totalBookings').html(data.totalBookings+" Bookings")
+                }
+            })
+        });
+        $('.select-admin-all').on('click',function(){
+            var id = $(this).data('id');
+            var user = $(this).html();
+            $('.selected-admin-all').html(user);
+            $.ajax({
+                url:'/dashboard/bookingscount/all',
+                type:'get',
+                dataType:'json',
+                data:{id:id},
+                async:false,
+                success:function(data){
+                    $('.totalBookings-all').html(data.totalBookings+" Bookings")
+                }
+            })
+        });
+    </script>
+    <script src="/public/vendor/chart.js/Chart.min.js"></script>
+    <script src="/public/js/charts-home.js"></script>
+    <script src="/public/js/charts-custom.js"></script>
+    <%-include('./shared/footer.ejs')%>

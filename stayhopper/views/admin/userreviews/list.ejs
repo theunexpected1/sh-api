@@ -1,0 +1,155 @@
+<%-include('../shared/header.ejs',{active:'userreviews',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item" aria-current="page">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Property Ratings</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row wrapper justify-content-center mt-0 mb-0 pt-4 bg-white pb-2 px-4">
+                <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-left" style="overflow-x:auto">
+                    <table class="table table-hover" style="overflow-x:scroll;">
+                        <thead class="mt-5">
+                            <tr>
+                                <th>Property Name</th>
+                                <th>Booking Conf. Number</th>
+                                <th>User Name</th>
+                                <th>Contact Number</th>
+                                <th>User Ratings</th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% userreviews.forEach((userreview) => { %>
+                                <tr>
+                                    <td><%=userreview.property.name%></td>
+                                    <td><%=userreview.booking_id%></td>
+                                    <td><%if(userreview.user){%><%=userreview.user.name%><%}%></td>
+                                    <td><%if(userreview.user){%><%=userreview.user.mobile%><%}%></td>
+                                    <td><%if(userreview){%><%=userreview.value%><%}%>/10</td>
+                                    <td>
+                                            <div class="fw-700">Approve</div>
+                                            <button type="button" data-id="<%=userreview._id%>" class="btn-approved btn btn-sm btn-toggle <% if(userreview.approved==true){%>active<%} %> mr-md-4"
+                                                data-toggle="button" aria-pressed="true" autocomplete="off">
+                                                <div class="handle"></div>
+                                            </button>
+                                    </td>
+                                </tr>
+                            <% }) %>
+                        </tbody>
+                    </table>
+                </div>
+                <%- include('../shared/pagination') %>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="newPropertyRating" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+            aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Create New Property Rating</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newPropertyRatingForm">
+                            <div class="row wrapper mt-4 mb-5 bg-white align-items-center">
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Property Rating</label>
+                                        <div class="col-sm-9">
+                                            <input name="property_rating" type="text" class="form-control border-secondary" placeholder="Enter Property Rating" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Rating Value</label>
+                                        <div class="col-sm-9">
+                                            <input name="property_rating_value" type="number" class="form-control border-secondary" placeholder="Enter Rating Value" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                    <div class="header-buttons d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">SAVE</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Edit Property Rating</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editPropertyRatingForm">
+                            <div class="row wrapper mt-4 mb-5 bg-white align-items-center">
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Property Rating</label>
+                                        <div class="col-sm-9">
+                                            <input type="hidden" name="id">
+                                            <input name="property_rating" type="text" class="form-control border-secondary" placeholder="Enter Property Rating" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Rating Value</label>
+                                        <div class="col-sm-9">
+                                            <input name="property_rating_value" type="number" class="form-control border-secondary" placeholder="Enter Rating Value" style="width: 80%;">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                    <div class="header-buttons d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">SAVE</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <%-include('../shared/footer.ejs')%>
+
+<script>
+    $('.btn-approved').on('click', function () {
+        var id = $(this).data('id');
+            $.ajax({
+                url: '/admin/userreviews/approved',
+                data:{id},
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    // $.confirm({
+                    //     title: 'Success!',
+                    //     content: data.message,
+                    //     buttons: {
+                    //         ok: function () {
+                    //         }
+                    //     }
+                    // });
+                }
+            });
+        });
+</script>

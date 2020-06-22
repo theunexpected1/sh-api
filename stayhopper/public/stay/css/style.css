@@ -1,0 +1,22 @@
+#loginForm label.error{
+    top: 3rem !important;
+    font-size: 12px !important;
+    color: #ad5664 !important;
+}
+label.error{
+    color: #E9001C;
+    font-size: 12px;
+}
+.extra-bed{
+    display: none;
+}
+.extra-bed.active{
+    display: block !important;
+}
+
+.pager li {
+    margin-right:.5rem;
+}
+.make_featured{
+    cursor: pointer;
+}

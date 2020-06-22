@@ -1,0 +1,71 @@
+@font-face {
+  font-family: 'stayhopper';
+  src:  url('../fonts/stayhopper.eot?ew2k3v');
+  src:  url('../fonts/stayhopper.eot?ew2k3v#iefix') format('embedded-opentype'),
+    url('../fonts/stayhopper.ttf?ew2k3v') format('truetype'),
+    url('../fonts/stayhopper.woff?ew2k3v') format('woff'),
+    url('../fonts/stayhopper.svg?ew2k3v#stayhopper') format('svg');
+  font-weight: normal;
+  font-style: normal;
+}
+
+[class^="icon-"], [class*=" icon-"] {
+  /* use !important to prevent issues with browser extensions that change fonts */
+  font-family: 'stayhopper' !important;
+  speak: none;
+  font-style: normal;
+  font-weight: normal;
+  font-variant: normal;
+  text-transform: none;
+  line-height: 1;
+
+  /* Better Font Rendering =========== */
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.icon-map-pin:before {
+  content: "\e90d";
+}
+.icon-location:before {
+  content: "\e90c";
+}
+.icon-bar-menu:before {
+  content: "\e90b";
+}
+.icon-left:before {
+  content: "\e90a";
+}
+.icon-chevron:before {
+  content: "\e909";
+}
+.icon-back:before {
+  content: "\e907";
+}
+.icon-open:before {
+  content: "\e908";
+}
+.icon-telephone-keypad-with-ten-keys:before {
+  content: "\e900";
+}
+.icon-clock:before {
+  content: "\e901";
+}
+.icon-date:before {
+  content: "\e902";
+}
+.icon-search:before {
+  content: "\e903";
+}
+.icon-plus:before {
+  content: "\e904";
+}
+.icon-checked:before {
+  content: "\e905";
+}
+.icon-inr:before {
+  content: "\e906";
+}
+.icon-rupee:before {
+  content: "\e906";
+}

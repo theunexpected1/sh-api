@@ -1,0 +1,224 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Hotel Management</a>
+                    </li>
+                    <li class="breadcrumb-item" aria-current="page">
+                        <a href="/admin/properties">Properties</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">View</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row wrapper mt-4 mb-5 bg-white has-shadow boxSizing viewPage">
+            <div class="col-sm-6 mb-2 mb-md-0">
+                <div class="fs-26 d-flex align-items-center">
+                    <%=property.name%>
+                    <% 
+                        let rating_value = null;
+                        if(property.rating){
+                            rating_value = property.rating.value;
+                            console.log({rating_value});
+                        } 
+                    %>
+                    <div class="star-rating ml-md-4">
+                        <input <% if(rating_value==5){ %>checked<%}%> type="radio" id="5-stars" name="rating" value="5" disabled />
+                        <label for="5-stars" class="star">&#9733;</label>
+                        <input <% if(rating_value==4){ %>checked<%}%> type="radio" id="4-stars" name="rating" value="4" disabled />
+                        <label for="4-stars" class="star">&#9733;</label>
+                        <input <% if(rating_value==3){ %>checked<%}%> type="radio" id="3-stars" name="rating" value="3" disabled />
+                        <label for="3-stars" class="star">&#9733;</label>
+                        <input <% if(rating_value==2){ %>checked<%}%> type="radio" id="2-stars" name="rating" value="2" disabled />
+                        <label for="2-stars" class="star">&#9733;</label>
+                        <input <% if(rating_value==1){ %>checked<%}%> type="radio" id="1-star" name="rating" value="1" disabled />
+                        <label for="1-star" class="star">&#9733;</label>
+                    </div>
+                </div>
+                <div class="mb-3">
+                    <i class="sh-icon-map font-md"></i>
+                    <%=property.contactinfo.location%>,
+                    <%=property.contactinfo.zip%>
+                </div>
+            </div>
+
+            <div class="col-sm-6 mb-2 mb-md-0 d-flex justify-content-end align-items-center">
+                <div class="fw-700">Publish</div>
+                <button type="button" class="btn-publish btn btn-sm btn-toggle <% if(property.published==true){%>active<%} %> mr-md-4"
+                    data-toggle="button" aria-pressed="true" autocomplete="off">
+                    <div class="handle"></div>
+                </button>
+                <div class="fw-700">Approve</div>
+                <button type="button" class="btn-approved btn btn-sm btn-toggle <% if(property.approved==true){%>active<%} %> mr-md-4"
+                    data-toggle="button" aria-pressed="true" autocomplete="off">
+                    <div class="handle"></div>
+                </button>
+                <a href="/admin/properties/edit/<%=property._id%>"><button type="button" class="d-flex justify-content-center align-items-start btn btn-sm btn-outline-primary">Edit
+                        Property</button></a>
+            </div>
+
+            <div class="col-sm-12">
+                <div class="mt-4 mb-3 fw-700 fs-18 text-secondary">Photos</div>
+            </div>
+
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-1 mb-2 px-0">
+                <div class="row image--grid mx-0">
+                    <% 
+                            if(typeof(property.images)!='undefined'){
+                            property.images.forEach((image)=>{ %>
+                    <div class="col-sm-4 image--grid--item">
+                        <img src="/<%=image%>" class="img-fluid" alt="image-grid">
+                    </div>
+                    <% }); }%>
+                </div>
+            </div>
+
+            <div class="col-sm-12 mb-4">
+                <div class="fw-700 fs-18 text-secondary">Room details</div>
+                <div class="mt-2 mb-2">Number of types of rooms :
+                    <span>
+                        <% if(typeof(property.rooms)!='undefined'){ %>
+                        <%=property.rooms.length%>
+                        <% }%>
+                    </span>
+                </div>
+            </div>
+
+
+            <% 
+                property.rooms.forEach((room)=>{
+                price = room.price;    
+                %>
+            <div class="col-lg-9 col-md-9 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left mt-2">
+                <dl class="listView">
+                    <dt>Room type</dt>
+                    <dd>
+                        <h3><%=room.room_type.name%></h3>
+                    </dd>
+                    <dt>Maximum occupancy</dt>
+                    <dd>
+                        <%=room.number_guests%> Person</dd>
+                    <dt>Price Per Hour</dt>
+                    <dd>
+                        <table class="table table-sm table-bordered">
+                            <thead>
+                                <tr>
+                                    <%if(_.contains(property.timeslots,3)){ %>
+                                    <th scope="col">3H</th>
+                                    <% }if(_.contains(property.timeslots,6)){ %>
+                                    <th scope="col">6H</th>
+                                    <% }if(_.contains(property.timeslots,12)){ %>
+                                    <th scope="col">12H</th>
+                                    <% }if(_.contains(property.timeslots,24)){ %>
+                                    <th scope="col">24H</th>
+                                    <% } %>
+                                </tr>
+                            </thead>
+                            <% if(price){ %>
+                                <tbody>
+                                    <tr>
+                                        <%if(_.contains(property.timeslots,3)){ %>
+                                        <td>
+                                            <%=price.h3%> AED</td>
+                                        <% }if(_.contains(property.timeslots,6)){ %>
+                                        <td>
+                                            <%=price.h6%> AED</td>
+                                        <% }if(_.contains(property.timeslots,12)){ %>
+                                        <td>
+                                            <%=price.h12%> AED</td>
+                                        <% }if(_.contains(property.timeslots,24)){ %>
+                                        <td>
+                                            <%=price.h24%> AED
+                                        </td>
+                                        <% } %>
+                                    </tr>
+                                </tbody>
+                            <% } %>
+                        </table>
+                    </dd>
+                    <dt>Room size</dt>
+                    <dd>
+                        <%=room.room_size%>
+                    </dd>
+                </dl>
+            </div>
+            <div class="col-sm-12 mb-2 amenities">
+                <div>Amenities</div>
+                <ul class="list-unstyled d-flex justify-content-between align-items-start align-items-md-center flex-column flex-wrap flex-md-row mt-1">
+                    <% if(room.services){
+                                room.services.forEach((service)=>{
+                            %>
+                    <div class="form-check flex-4 form-check-inline checkbox checkbox-primary">
+                        <input class="form-check-input" id="checkbox2" type="checkbox" checked disabled>
+                        <label for="checkbox2">
+                            <%= service.name %>
+                        </label>
+                    </div>
+                    <%       
+                                });
+                            } 
+                            %>
+                </ul>
+            </div>
+            <%    
+                }); 
+                %>
+
+            <div class="col-sm-12">
+                <div class="form-header fw-700 fs-18 border-bottom text-secondary mb-3">Policies and payments</div>
+                <% property.policies.forEach((policy)=>{ %>
+                <div class="mt-0 fw-400 policies">
+                    <%=policy.name%>
+                    </span>
+                </div>
+                <% }); %>
+            </div>
+        </div>
+        <!-- row end -->
+    </div>
+    <script type="text/javascript">
+        $('.btn-publish').on('click', function () {
+            $.ajax({
+                url: '/admin/properties/published',
+                data: { id: '<%=property._id%>' },
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    // $.confirm({
+                    //     title: 'Success!',
+                    //     content: data.message,
+                    //     buttons: {
+                    //         ok: function () {
+                    //         }
+                    //     }
+                    // });
+                }
+            });
+        });
+        $('.btn-approved').on('click', function () {
+            $.ajax({
+                url: '/admin/properties/approved',
+                data: { id: '<%=property._id%>' },
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    // $.confirm({
+                    //     title: 'Success!',
+                    //     content: data.message,
+                    //     buttons: {
+                    //         ok: function () {
+                    //         }
+                    //     }
+                    // });
+                }
+            });
+        });
+    </script>
+    <%-include('../shared/footer.ejs')%>

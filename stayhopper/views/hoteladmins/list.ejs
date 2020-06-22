@@ -1,0 +1,66 @@
+<%-include('../shared/header.ejs',{active:'hoteladmin',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Hotel Admin Management</li>
+                    </ol>
+                </nav>
+                <div class="header-buttons d-flex">
+                    <a href="/properties/new" ><button type="button" class="btn btn-primary mr-md-4">
+                        <i class="icon-plus-circle"></i> Add New </button></a>
+                </div>
+            </div>
+        </header>
+
+        <div class="container-fluid">
+            <% hoteladmins.forEach((admin)=>{ %>
+                <div class="row wrapper property-list justify-content-center align-items-center mt-4 has-shadow">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-12 property-list-items d-flex justify-content-around flex-column flex-md-row flex-nowrap">
+                        <dl>
+                            <dt>Name</dt>
+                            <dd><%=admin.legal_name%></dd>
+                        </dl>
+                        <dl>
+                            <dt>Email</dt>
+                            <dd><%=admin.email%></dd>
+                        </dl>
+                        <dl>
+                            <dt>Mobile</dt>
+                            <dd><%=admin.mobile%></dd>
+                        </dl>
+                        <dl>
+                            <dt>No: Properties</dt>
+                            <dd><%=admin.properties.length%> Property</dd>
+                        </dl>
+                        <dl>
+                            <dt>Rating</dt>
+                            <dd>
+                                <div class="star-rating hotel-ratings">
+                                    <%
+                                    var checked = ""; 
+                                    for(var i=5; i>0 ; i--){ 
+                                        checked = "";
+                                        if(admin.rating == i){
+                                            checked = "checked"
+                                        }
+                                        %>
+                                        <input type="radio" id="<%=i%>-stars" name="rating" value="<%=i%>" <%=checked%>/>
+                                        <label for="<%=i%>-stars" class="star">&#9733;</label>
+                                    <% } %>
+                                </div>
+                            </dd>
+                        </dl>
+                        <dl class="d-flex align-items-center">
+                            <a href="/hoteladmins/<%=admin._id%>" class="btn btn-square btn-secondary">View</a>
+                        </dl>
+                    </div>
+                </div>
+                <% }); %>
+        </div>
+        <%-include('../shared/footer.ejs')%>

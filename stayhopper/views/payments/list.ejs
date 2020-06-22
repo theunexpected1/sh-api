@@ -1,0 +1,333 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#">Properties</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Payment</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <%-include('../shared/property_crump.ejs',{current_page:'payment'})%>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 pl-4">
+                <div class="col-sm-12">
+                    <div class="form-header mt-2">
+                        Payee Details
+                    </div>
+                </div>
+                <form class="form-horizontal" id="paymentForm" action="javascript:;">
+                    <div class="col-sm-12 mt-4 px-0">
+                        <div class="form-section">
+                            <div class="ml-3 mr-4 pr-3">
+                                <div class="row clearfix mb-4">
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="first_name" class="col-sm-4 col-form-label">A/C Holder Name</label>
+                                            <div class="col-sm-8">
+                                                <input type="hidden" name="property_id" value="<%=property._id%>">
+                                                <input type="text" class="form-control form-control-sm" id="number_of_rooms" name="account_name" value="<%=payment.name%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="last_name" class="col-sm-4 col-form-label">Country</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="country">
+                                                    <option value="">--Select Country--</option>
+                                                    <% 
+                                                        if(countries){
+                                                            countries.forEach((country)=>{
+                                                    %>
+                                                        <option value="<%=country._id%>" <% if(payment.country)if(country._id== payment.country.toString()){ %>selected
+                                                            <% } %>>
+                                                                <%=country.country%>
+                                                        </option>
+                                                        <%            
+                                                            })
+                                                        }    
+                                                    %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Your Bank Name</label>
+                                            <div class="col-sm-8">
+                                                <input class="form-control form-control-sm" name="bank" value="<%=payment.bank%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Bank Branch Address</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="branch" value="<%=payment.branch%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Account Number</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="account_no" value="<%=payment.account_no%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Bank IFSC Code</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="ifsc" value="<%=payment.ifsc%>">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-12">
+                        <div class="form-header">
+                            Payment
+                        </div>
+                    </div>
+                    <div class="col-sm-12 mt-4">
+                        <div class="form-section">
+                            <div class="mr-4 ml-0">
+                                <div class="row clearfix mb-4">
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="first_name" class="col-sm-4 col-form-label">Select Currency</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="currency">
+                                                    <%
+                                                        if(currencies){
+                                                            currencies.forEach((currency)=>{
+                                                    %>
+                                                        <option value="<%=currency._id%>" <% if(payment.currency)if(currency._id == payment.currency.toString()){ %>selected
+                                                            <% } %> >
+                                                                <%=currency.code%>
+                                                        </option>
+                                                        <%            
+                                                            });
+                                                        }
+                                                    %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">VAT Number</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="tax" value="<% if(payment){%><%=payment.tax%><%}%>">
+                                            </div>
+                                        </div>
+                                    </div>
+
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">VAT</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="excluding_vat" value="<% if(payment.excluding_vat){%><%=payment.excluding_vat%><%}else{%><%=vat%><%}%>" placeholder="Enter VAT" readonly>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Tourism fee</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="tourism_fee" value="<% if(payment){%><%=payment.tourism_fee%><%}%>" placeholder="Enter tourism Fee">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Municipality fee</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="muncipality_fee" value="<% if(payment){%><%=payment.muncipality_fee%><%}%>" placeholder="Enter muncipality Fee">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Property service charge</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="service_charge" value="<% if(payment){%><%=payment.service_charge%><%}%>" placeholder="Enter service charge">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-sm-10 d-flex justify-content-center d-block mx-auto pt-0 pb-4 pr-5">
+                        <button type="submit" class="col-sm-4 btn btn-block btn-primary loginBtn saveBtn mb-2">
+                            <%if(payment){%>Update<%}else{%>Save<%}%>
+                        </button>
+                    </div>
+                </form>
+            </div>
+        </div>
+        <script>
+            $.validator.addMethod("noHTML", function(value, element){
+                if(this.optional(element) || /<\/?[^>]+(>|$)/g.test(value)){
+                    return false;
+                } else {
+                    return true;
+                }
+            },"HTML tags are Not allowed.");
+            $.validator.addMethod("alphabetsnspace", function(value, element) {
+                return this.optional(element) || /^[a-zA-Z ]*$/.test(value);
+            });
+            $.validator.addMethod("alphanumeric", function(value, element) {
+                return this.optional(element) || /^[\w.]+$/i.test(value);
+            }, "Letters, numbers, and underscores only please");
+            $("#paymentForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    account_name: {
+                        required: true,
+                        minlength: 2,
+                        maxlength:50,
+                        alphabetsnspace: true,
+                        noHTML:true
+                    },
+                    country: {
+                        required: true,
+                        noHTML:true
+                    },
+                    bank: {
+                        required: true,
+                        noHTML:true
+                    },
+                    branch: {
+                        required: true,
+                        noHTML:true
+                    },
+                    account_no: {
+                        required: true,
+                        number: true,
+                        maxlength: 15,
+                        noHTML:true
+                    },
+                    ifsc: {
+                        required: true,
+                        alphanumeric:true,
+                        noHTML:true
+                    },
+                    currency: {
+                        required: true,
+                        noHTML:true
+                    },
+                    excluding_vat: {
+                        required: true
+                    },
+                    tourism_fee: {
+                        required: true
+                    },
+                    muncipality_fee: {
+                        required: true,
+                    },
+                    service_charge: {
+                        required: true
+                    }
+                },
+                messages: {
+                    account_name: {
+                        required: "Account name must be required",
+                        minlength: "Account name must be atleast 2 characters long",
+                        maxlength: "Account name must be less than 50 characters long",
+                        alphabetsnspace: "Account name must not contain special characters and numbers"
+                    },
+                    country: {
+                        required: "Country must be required",
+                    },
+                    bank: {
+                        required: "Bank name must be required"
+                    },
+                    branch: {
+                        required: "Branch details must be required"
+                    },
+                    account_no: {
+                        required: "Account number must be required",
+                        number: "Account number must be numeric",
+                        maxlength:"Account number must be maximum 15 characters long"
+                    },
+                    ifsc: {
+                        required: "IFSC Code must be required",
+                        alphanumeric:"IFSC Code must contains alphabets and numbers"
+                    },
+                    currency: {
+                        required: "Currency must required"
+                    },
+                    excluding_vat: {
+                        required:"Excluding VAT must be required"
+                    },
+                    tourism_fee: {
+                        required:"Tourism Fee must be required"
+                    },
+                    muncipality_fee: {
+                        required:"Muncipality Fee must be required"
+                    },
+                    service_charge: {
+                        required:"Service Charge must be required"
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    var form = document.getElementById('paymentForm');
+                    var data = $(form).serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: "/payments",
+                        data: data,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    // $.confirm({
+                                    //     title: 'Success!',
+                                    //     content: data.message,
+                                    //     buttons: {
+                                    //         ok: function () {
+                                    //             window.location.reload();
+                                    //         }
+                                    //     }
+                                    // });
+                                    window.location.href="/nearby/<%=property._id%>";
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        console.log(data.errors[i]);
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

@@ -1,0 +1,222 @@
+<%-include('../shared/header.ejs',{active:'availability',parent:'hotels-management'})%>
+<link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/select2-bootstrap-theme/0.1.0-beta.10/select2-bootstrap.css" />
+<script src="https://cdnjs.cloudflare.com/ajax/libs/select2/4.0.6-rc.0/js/select2.min.js"></script>
+ <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap-select/1.8.1/css/bootstrap-select.css">
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Availability</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <form class="inline" id="filterForm">
+                <div class="row wrapper mt-1 mb-0 pt-4 bg-white pb-2 px-4">
+                    <div class="col-lg-3 col-md-3 col-sm-4 col-12 mb-2 mb-md-0">
+                        <div class="form-group company-name">
+                            <select name="company" class="form-control form-control-sm border-secondary" id="">
+                                <option value="">-Owner-</option>
+                                <% companies.forEach((cmp)=>{ %>
+                                    <option value="<%=cmp._id%>" <% if(cmp._id.toString()==company){%>selected
+                                        <%}%>>
+                                            <%=cmp.contact_person%>(<%=cmp.legal_name%>)
+                                    </option>
+                                    <% });%>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-3 col-md-3 col-sm-4 col-12 mb-2 mb-md-0">
+                        <div class="form-group property-name">
+                            <select name="property" class="form-control form-control-sm border-secondary" id="">
+                                <option value="">-Property-</option>
+                                <% properties.forEach((prop)=>{ %>
+                                    <option value="<%=prop._id%>" <% if(prop._id.toString()==property){%>selected
+                                        <%}%>>
+                                            <%=prop.name%>
+                                    </option>
+                                    <% });%>
+                            </select>
+                        </div>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-8 col-12">
+                        <div class="form-group">
+                            <input name="date" type="text" value="<%=date%>" class="form-control form-control-sm border-secondary datepicker" required="required"
+                                placeholder="Select Date &#xe927;" style="text-indent:0.65em" readonly/>
+                        </div>
+                        <!-- <div class="date"></div> -->
+                    </div>
+                    <div class="col-lg-4 col-md-4 col-sm-8 col-12 text-right">
+                            <% if(property){ %>
+                                <div class="btn-group editBtnGroup" role="group">
+                                        <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                          Edit Slots
+                                        </button>
+                                        <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                            <a class="dropdown-item bulkEdit" data-property="<%=property%>">Block Slots</a>   
+                                            <a class="dropdown-item unblockSlots" data-property="<%=property%>">Unblock Slots</a>                                   
+                                        </div>
+                                </div>
+                            <% } %>
+                        <button type="submit" class="btn btn-sm btn-secondary px-3">SEARCH</button>
+                    </div>
+                </div>
+            </form>
+            <% 
+                if(typeof(rooms) != 'undefined' && rooms){ 
+                    rooms.forEach((room)=>{
+                %>
+                <div class="row wrapper room-information justify-content-center align-items-center bg-white has-shadow text-secondary mt-4 mb-4 px-4">
+                    <div class="col-lg-9 col-md-8 col-sm-12 col-12 room-information-items d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center">
+                        <dl>
+                            <dt>Room Type</dt>
+                            <dd>
+                                <%=room.room_type.name%>
+                                    <% if(room.custom_name){%>
+                                        <%="("+room.custom_name+")"%>
+                                            <%}else{%>
+                                                <%="("+room.room_name.name+")"%>
+                                                    <%}%>
+                            </dd>
+                        </dl>
+                        <dl>
+                            <dt>No: Rooms</dt>
+                            <dd>
+                                <% if(room.number_rooms){%>
+                                    <%=room.number_rooms%>
+                                        <%}else{%>
+                                            <%=0%>
+                                                <%}%> Rooms</dd>
+                        </dl>
+                        <dl>
+                            <dt>No of Bookings</dt>
+                            <dd><%=room.total_bookings%></dd>
+                        </dl>
+                    </div>
+                    <div class="col-lg-3 col-md-4 col-sm-12 col-12 room-information-items d-flex justify-content-end align-items-center flex-column flex-md-row flex-nowrap text-center">
+                        <dl>
+                            <a href="/admin/availability/<%=room._id%>?date=<%=date%>" class="btn btn-secondary px-3">VIEW</a>
+                        <dl>
+                    </div>
+                </div>
+                <% 
+                    });
+                 }else{ %>
+                    <h4>No Room details! Please apply all filters</h4>
+                    <% } %>
+        </div>
+        <!-- container -->
+        <div class="modal fade" id="bulkEditModal">
+            <div class="modal-dialog">
+                <div class="modal-content bulkeditContent">            
+                                 
+                </div>
+            </div>
+        </div>
+        <script>
+            $('.bulkEdit').on('click',function(){
+                var property = $(this).data('property')
+                $.ajax({
+                    url:'/admin/availability/bulkedit',
+                    data:{property},
+                    type:'post',
+                    success:function(data){
+                       $('.bulkeditContent').html(data);
+                       $('#bulkEditModal').modal('toggle');
+                    //    $('#room').select2({
+                    //         theme: "bootstrap"
+                    //     });
+                    }
+                })
+            });
+
+            $('.unblockSlots').on('click',function(){
+                var property = $(this).data('property')
+                $.ajax({
+                    url:'/admin/availability/bulkunblock',
+                    data:{property},
+                    type:'post',
+                    success:function(data){
+                       $('.bulkeditContent').html(data);
+                       $('#bulkEditModal').modal('toggle');
+                    }
+                })
+            });
+            $('.datepicker').datepicker({
+                startDate: '0d',
+                format: 'yyyy-mm-dd',
+                autoclose: true
+            });
+            $('select[name="company"]').on('change', function () {
+                var company = $(this).val();
+                $.ajax({
+                    url: "/admin/availability/property/company",
+                    data: { company: company },
+                    type: 'post',
+                    dataType: 'json',
+                    async: false,
+                    success: function (data) {
+                        if (data.status == 1) {
+                            var html = '<option value="">-Property-</option>';
+                            $.each(data.properties, function (key, value) {
+                                html += '<option value=' + value._id + '>' + value.name + '</option>'
+                            });
+                            $('select[name="property"]').html(html);
+                            $('.editBtnGroup').hide();
+                        }
+                    }
+                });
+            });
+            $('select[name="property"]').on('change', function () {
+                var property = $(this).val();
+                $.ajax({
+                    url: "/admin/availability/company/property",
+                    data: { property: property },
+                    type: 'post',
+                    dataType: 'json',
+                    async: false,
+                    success: function (data) {
+                        if (data.status == 1) {
+                            $('select[name="company"]').val(data.company._id);
+                            $('.editBtnGroup').hide();
+                        }
+                    }
+                });
+            });
+        </script>
+        <script>
+            $("#filterForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    company: {
+                        required: true,
+                    },
+                    property: {
+                        required: true,
+                    },
+                    date: {
+                        required: true
+                    }
+                },
+                messages: {
+                    company: {
+                        required: "Company required"
+                    },
+                    property: {
+                        required: "Property required"
+                    },
+                    date: {
+                        required: "Date required"
+                    }
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

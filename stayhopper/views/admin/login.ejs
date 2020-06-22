@@ -1,0 +1,273 @@
+<!DOCTYPE html>
+<html>
+
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge">
+    <meta name="google-site-verification" content="yJTFp0mCo4smve618f5WeQkYp89xZczaOlTS6bXYMNY" />
+    <title>Stayhopper Extranet</title>
+    <meta name="description" content="">
+    <meta name="viewport" content="width=device-width, initial-scale=1, shrink-to-fit=no">
+    <meta name="robots" content="all,follow">
+    <link rel="stylesheet" href="https://maxcdn.bootstrapcdn.com/bootstrap/4.0.0/css/bootstrap.min.css" integrity="sha384-Gn5384xqQ1aoWXA+058RXPxPg6fy4IWvTNh0E263XmFcJlSAwiGgFAW/dAiS6JXm"
+        crossorigin="anonymous">
+    <link rel="stylesheet" href="/public/vendor/font-awesome/css/font-awesome.min.css">
+    <link rel="stylesheet" href="/public/css/fontastic.css">
+    <link rel="stylesheet" href="https://fonts.googleapis.com/css?family=Poppins:300,400,700">
+    <link rel="stylesheet" href="/public/css/style.default.css" id="theme-stylesheet">
+    <link rel="stylesheet" href="/public/css/custom.css">
+    <link rel="shortcut icon" href="/public/img/favicon.ico">
+    <link rel="stylesheet" href="/public/stay/plugins/toastr/toastr.css">
+    <link rel="stylesheet" href="/public/stay/css/style.css">
+</head>
+
+<body>
+    <header class="header">
+        <nav class="navbar pt-3 pb-3 loginPagePanel">
+            <div class="container-fluid">
+                <div class="navbar-holder d-flex align-items-center">
+                    <a href="" class="logoRedWhite">Stayhopper</a>
+                    <h3 class="ml-3 mt-2 subHead">Extranet</h3>
+                </div>
+            </div>
+        </nav>
+    </header>
+    <div class="page login-page">
+        <div class="container d-flex align-items-center mt-5 pt-5">
+            <div class="form-holder align-self-center">
+                <div class="row justify-content-center">
+                    <!-- Logo & Information Panel-->
+                    <div class="col-lg-5">
+                        <div class="info d-flex align-items-start">
+                            <div class="content d-block mx-auto">
+                                <h3>Sign in to Extranet and manage your property</h3>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Form Panel    -->
+                <div class="row justify-content-center">
+                    <div class="col-lg-5 bg-white loginForm active">
+                        <div class="form d-flex align-items-start pt-4 mt-1">
+                            <div class="content">
+                                <form method="post" autocomplete="off" id="loginForm">
+                                    <div class="form-group">
+                                        <input type="text" name="username" required class="input-material" placeholder="Username">
+                                    </div>
+                                    <div class="form-group mb-5">
+                                        <input type="password" name="password" required class="input-material"
+                                            placeholder="Password">
+                                    </div>
+                                    <button class="btn btn-block btn-primary loginBtn mt-4 mb-3">Login</button>
+                                    <a class="toggleForgotPassword">Forgot Password</a>
+                                </form>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-5 bg-white forgotPasswordForm">
+                        <div class="form d-flex align-items-start pt-4 mt-1">
+                            <div class="content">
+                                <form method="post" autocomplete="off" id="forgotPasswordForm">
+                                    <div class="form-group">
+                                        <input required type="email" name="email" required class="input-material"
+                                            placeholder="Email Address">
+                                    </div>
+                                    <button class="btn btn-block btn-primary loginBtn mt-4 mb-3 sendBtn">Send</button>
+                                    <a class="toggleLogin">Back to login</a>
+                                </form>
+                                <br>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+                <!-- Terms    -->
+                <div class="row justify-content-center terms">
+                    <div class="col-lg-5">
+                        <p class="text-center mt-4">
+                            By logging in, you accept our <a href="//stayhopper.com/extranetTerms.html" target="_blank">Terms of Use</a>, and <a href="//stayhopper.com/privacy.html"
+                                target="_blank">Privacy &amp; Cookies Statement</a>.
+                        </p>
+                    </div>
+                </div>
+                <div class="row justify-content-center mt-5 pt-5 informations">
+                    <div class="col-lg-4">
+                        <div class="item d-flex justify-content-between pl-3">
+                            <div class="d-flex">
+                                <div class="title">
+                                    <h5>Keep your login details confidential.</h5>
+                                    <p>Because you have access to sensitive guest information, we ask that you please
+                                        keep your username and password strictly confidential.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="item d-flex justify-content-between pl-3">
+                            <div class="d-flex">
+                                <div class="title">
+                                    <h5>Access our site securely.</h5>
+                                    <p>Regardless if you're using Chrome, Firefox, Internet Explorer or any other
+                                        browser, your URL should always read https://extranet.stayhopper.com.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="col-lg-4">
+                        <div class="item d-flex justify-content-between pl-3">
+                            <div class="d-flex">
+                                <div class="title">
+                                    <h5>A reminder</h5>
+                                    <p>Stayhopper will never request your username and/or password by email or over the
+                                        phone or ask you to download an attachment to log in to your account. Should
+                                        this occur, please contact us immediately.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    <!-- JavaScript files-->
+    <script src="/public/vendor/jquery/jquery.min.js"></script>
+    <script src="/public/vendor/popper.js/umd/popper.min.js">
+
+    </script>
+    <script src="/public/vendor/bootstrap/js/bootstrap.min.js"></script>
+    <script src="/public/stay/plugins/jquery.validate.min.js"></script>
+    <script src="/public/stay/plugins/toastr/toastr.min.js"></script>
+    <script>
+        toastr.options = {
+            "closeButton": true,
+            "debug": false,
+            "newestOnTop": false,
+            "progressBar": false,
+            "positionClass": "toast-top-right",
+            "preventDuplicates": true,
+            "onclick": null,
+            "showDuration": "3000",
+            "hideDuration": "1000",
+            "timeOut": "5000",
+            "extendedTimeOut": "1000",
+            "showEasing": "swing",
+            "hideEasing": "linear",
+            "showMethod": "fadeIn",
+            "hideMethod": "fadeOut"
+        }
+    </script>
+    <script>
+        $('.toggleForgotPassword').on('click', function () {
+            $('.loginForm').removeClass('active');
+            $('.forgotPasswordForm').addClass('active');
+        });
+        $('.toggleLogin').on('click', function () {
+            $('.forgotPasswordForm').removeClass('active');
+            $('.loginForm').addClass('active');
+        });
+        $.validator.addMethod(
+        "noHTML",
+        function(value, element) {
+          if (this.optional(element) || /<\/?[^>]+(>|$)/g.test(value)) {
+            return false;
+          } else {
+            return true;
+          }
+        },
+        "HTML tags are Not allowed."
+        );
+        $("#forgotPasswordForm").validate({
+            normalizer: function (value) {
+                return $.trim(value);
+            },
+            rules: {
+                email: {
+                    required: true,
+                    noHTML:true
+                }
+            },
+            messages: {
+                email: {
+                    required: 'Email is required',
+                    noHTML: "HTML tags are Not allowed."
+                }
+            },
+            submitHandler: function (form) {
+                $('.sendBtn').html('Sending..');
+                $.ajax({
+                    type: "POST",
+                    url: "/admin/login/resetpassword",
+                    data: $(form).serialize(),
+                    dataType: 'json',
+                    async: false,
+                    success: function (data) {
+                        if (data.status == 1) {
+                            if (data.message) {
+                                toastr["success"](data.message);
+                            }
+                            $('.toggleLogin').click();
+                        } else {
+                            if (data.message) {
+                                toastr["error"](data.message);
+                            }
+                        }
+                        $('.sendBtn').html('Send');
+                    },
+                    error: function(){
+                        $('.sendBtn').html('Send');
+                    }
+                });
+                return false;
+            }
+        });
+
+        $("#loginForm").validate({
+            normalizer: function (value) {
+                return $.trim(value);
+            },
+            rules: {
+                username: {
+                    required: true,
+                    noHTML:true
+                },
+                password: {
+                    required: true
+                }
+            },
+            messages: {
+                username: {
+                    required:'Username is required',
+                    noHTML:'HTML tags are Not allowed.'
+                },
+                password: {
+                    required: 'Password is required'
+                }
+            },
+            submitHandler: function (form) {
+                $.ajax({
+                    type: "POST",
+                    url: "/admin/login/check",
+                    data: $(form).serialize(),
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.status == 1) {
+                            window.location.href = "/admin/dashboard";
+                        } else {
+                            if (data.errors) {
+                                $.each(data.errors, function (key, message) {
+                                    toastr["error"](message);
+                                });
+                            }
+                            if (data.message) {
+                                toastr["error"](data.message);
+                            }
+                        }
+                    }
+                });
+                return false;
+            }
+        });
+    </script>
+</body>
+
+</html>

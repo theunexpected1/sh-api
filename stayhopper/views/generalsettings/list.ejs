@@ -1,0 +1,122 @@
+<%-include('../shared/header.ejs',{active:'',parent:'settings'})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item active fw-700" aria-current="page">General Settings</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+    <div class="container">
+        <div class="row general--settings justify-content-center wrapper mt-4 mb-0 text-secondary">
+            <a href="/propertytypes" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Property Type
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/propertyratings" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Property Rating
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/roomnames" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Room Name
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/roomtypes" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Room Type
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/bedtypes" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Bed Type
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/no_guests" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Number of Guests
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/no_beds" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Number of Beds
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <!-- <a href="/no_extrabeds" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Number of Extra Beds
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/slot_cleaning" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Slot for Cleaning
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a> -->
+            <a href="/countries" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Country
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/cities" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>City
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/services" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Amenites and Services
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/policylist" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Policy
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/terms" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Terms
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/currencies" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Currency
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <!-- <a href="/taxes" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Tax Type
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a> -->
+            <a href="/terms_conditions" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Terms and Conditions
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/faq" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>FAQ
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/notifications" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Notifications
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <a href="/promocodes" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Promo Codes
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a>
+            <!-- <a href="/commissions" class="col-lg-5 col-md-6 col-sm-6 col-12 room-information-items bg-white has-shadow d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap pt-4 pb-4 text-center">
+                <div>Commission Setting
+                    <i class="icon-chevron-right font-lg"></i>
+                </div>
+            </a> -->
+        </div>
+    </div>
+    <%-include('../shared/footer.ejs')%>

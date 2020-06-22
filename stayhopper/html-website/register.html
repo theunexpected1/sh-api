@@ -1,0 +1,610 @@
+<!DOCTYPE html>
+<html lang="en-US">
+
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+        <title>Hotels by the Hour, Book your stay for a few hours (day/night) - Stayhopper UAE</title>
+        <meta name="author" content="Stayhopper">
+        <meta name="application-name" content="Stayhopper.com">
+        <meta name="apple-mobile-web-app-capable" content="yes">
+        <link rel="canonical" href="http://www.stayhopper.com/" />
+        <meta name="description" content="UAE's first Microstay: Pay only for the hours you stay! Introducing Microstay with Stayhoppers. Discover a World of Choice from our wide range of Hotels spread across 7 Emirates" />
+        <meta name="keywords" content="stayhopper, microstays, stay hopper, hotel hours, hotels by the hour, by the hour, save, booking, hotels, hotels in dubai, hotels in sharjah, hotels in abu dhabi, hotel room for a few hours, hotel rooms, during the day, microstay, micro-stays" />
+        <meta name="title" content="Hotels by the Hour, Book your stay for a few hours (day/night) - Stayhopper UAE" />
+
+        <!-- Stylesheets -->
+        <link rel="stylesheet" href="bootstrap/bootstrap.css">
+        <link rel="stylesheet" href="css/misc.css">
+        <link rel="stylesheet" href="css/stayhopper_custom.css">
+        <link rel="stylesheet" href="css/fonts.css">
+        <link rel="stylesheet" href="css/time.css">
+
+        <!-- JavaScripts -->
+        <script src="js/jquery-1.10.2.min.js"></script>
+        <script src="js/jquery-migrate-1.2.1.min.js"></script>
+        <link rel="shortcut icon" href="images/favicon.ico" type="image/x-icon" />
+
+<meta name="theme-color" content="#0b1548"> 
+    </head>
+
+    <body>
+        <div class="responsive_menu">
+            <ul class="main_menu">
+                <li><a href="register.html">Are you a hotelier?</a></li>
+                <li><a href="about.html">About us</a></li>
+                <li><a href="faq.html">FAQ</a></li>
+            </ul> <!-- /.main_menu -->
+        </div> <!-- /.responsive_menu -->
+
+        <header class="site-header clearfix">
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12">
+                        <div class="d-flex d-mobile-flex align-items-center justify-content-between">
+                            <!-- This one in here is responsive menu for tablet and mobiles -->
+                            <div class="responsive-navigation visible-sm visible-xs">
+                                <a href="#nogo" class="menu-toggle-btn">
+                                    <i class="icon-bar-menu"></i>
+                                </a>
+                            </div> <!-- /responsive_navigation -->
+                            <div class="navbar-brand pull-left logo qw">
+                                <a href="index.html">
+                                    <img src="images/includes/logo.png" alt="stayhopper" class="img-responsive">
+                                </a>
+                            </div> <!-- /.logo -->
+
+                            <div class="main-navigation">
+                                <nav class="main-nav visible-md visible-lg">
+                                    <ul class="sf-menu">
+                                        <li><a href="register.html">Are you a hotelier?</a></li>
+                                        <li><a href="about.html">About us</a></li>
+                                        <li><a href="faq.html">FAQ</a></li>
+                                    </ul> <!-- /.sf-menu -->
+                                </nav> <!-- /.main-nav -->
+
+
+                            </div> <!-- /.main-navigation -->
+                            <div class="nav-address d-flex align-items-center">
+                                <div class="text-md-right lh-1-5 hidden-xs">
+                                    <p class="mb-0 d-block">Call Us Now</p>
+                                    <p class="mb-0"><a href="tel:+97144070533">+971 (4) 407 0533</a></p>
+                                </div>
+                                <div class="ml-md-3-4 kas hidden-xs">
+                                    <button type="button" class="btn btn-primary btn-lg border-radius-0 text-uppercase">HELP</button>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                    <!-- /.col-md-12 -->
+                </div> <!-- /.row -->
+            </div> <!-- /.container -->
+        </header> <!-- /.site-header -->
+
+        <section id="homeIntr" class="parallax first-widget">
+            <div class="parallax-overlay">
+                <div class="row property-wrapper d-flex justify-content-center">
+                    <div class="col-md-12">
+                        <div class="property-wrapper-image">
+                            <img src="images/includes/register_wrapper.jpg" class="img-responsive">
+                        </div>
+                        <div class="property-wrapper-heading text-md-left">
+                            <h2><span>Hello Partners!</span><br>List your property <br>on Stayhopper today!</h2>
+                            <p>List your villa, apartment or hotel on our platform to boost your hotel sales today!</p>
+                        </div>
+
+                        <div class="cqw">
+                            <div class="cwq">
+                                <h3 class="text-sh-blue">REGISTER YOUR PROPERTY</h3>
+                            </div>
+                            <form id="register_form">
+							<div class="info-msg"></div>
+                                <div class="form-element form-input">
+                                    <input name="name" id="ctrl1" class="form-element-field" placeholder="Please enter your name" type="text"
+                                           required />
+                                    <div class="form-element-bar"></div>
+                                    <label class="form-element-label" for="ctrl1">Name</label>
+                                </div>
+								<div class="form-element form-input mt-0">
+                                        <input name="email_address" id="ctrl2" class="form-element-field" placeholder="Please enter your email" type="email"
+                                               required />
+                                        <div class="form-element-bar"></div>
+                                        <label class="form-element-label" for="ctrl2">Email</label>
+                                    </div>
+									<div class="form-element form-input mt-0">
+                                        <input name="phone_number" id="ctrl3" class="form-element-field" placeholder="Please enter your phone" type="text"
+                                               required />
+                                        <div class="form-element-bar"></div>
+                                        <label class="form-element-label" for="ctrl3">Phone</label>
+                                    </div>
+									<div class="form-element form-input mt-0">
+                                        <input name="hotel_name" id="ctrl4" class="form-element-field" placeholder="Please enter your hotel name" type="text"
+                                               required />
+                                        <div class="form-element-bar"></div>
+                                        <label class="form-element-label" for="ctrl4">Name of the Hotel</label>
+                                    </div>
+									<div class="form-element form-input mt-0">
+                                        <input name="city" id="ctrl5" class="form-element-field" placeholder="Please enter your city" type="text"
+                                               required />
+                                        <div class="form-element-bar"></div>
+                                        <label class="form-element-label" for="ctrl5">City</label>
+                                    </div>
+
+                                <div class="bgr"><button type="submit" class="btn btn-primary btn-block submit-btn" id="regr-btn">REQUEST CALLBACK</button></div>
+                            </form>
+                        </div>
+
+
+
+                    </div> <!-- /.col-md-12 -->
+                </div> <!-- /.row -->
+            </div> <!-- /.parallax-overlay -->
+        </section>
+
+        <section class="register-services">
+            <div class="container">
+                    <div class="">
+                    </div>
+                <div class="d-flex justify-content-center">
+                    <div class="col-sm-9 col-md-10 col-xs-12">
+                        <div class="row">
+                            <div class="col-sm-12">
+<h1 class="text-dark text-center">Why host on Stayhopper?</h1>
+                                <div class="col-md-4 col-sm-4">
+                                    <div class="gn">
+                                        <div class="gn">
+                                            <h3 class="service-title">You are in control!</h3>
+                                            <p>Our platform gives you the flexibility to showcase the rooms you want, highlight the peak
+                                                season, schedule the opening and closing time slots.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-4">
+                                    <div class="gn">
+                                        <div class="gn">
+                                            <h3 class="service-title">We’re here to support!</h3>
+                                            <p>We are in it together; the support will be mutual, and our team is here to assist you 24/7. We
+                                                strive towards having happy customers and partners.</p>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="col-md-4 col-sm-4">
+                                    <div class="gn">
+                                        <div class="gn">
+                                            <h3 class="service-title">Give your revenue a boost!</h3>
+                                            <p>Enjoy an incremental revenue and boost in sales by using the empty rooms during the day.</p>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div> <!-- row -->
+
+            </div>
+        </section> <!-- /.services -->
+
+        <section id="homeIntroe" class="services">
+            <div class="container">
+                <div class="row d-flex justify-content-center">
+                    <div class="col-md-9 jqws col-lg-9 col-sm-10 co-xs-12 gal-item bmw">
+                        <div class="row text-left reg-works-wrapper">
+                            <div class="col-sm-12 text-center mb-5">
+                                <h1 class="text-dark">
+                                    How does it work?
+                                </h1>
+                                <p>A reservation platform to book stays by the hours. Built for the convenience of travellers<br> and to
+                                    book the incremental revenue of the stay providers.</p>
+                            </div>
+
+                            <div class="col-md-6 col-sm-4 works-wrapper">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_5.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0">List your property on Stayhopper. All your empty rooms can be sold several times
+                                        in the same day in packages of 3, 6, 12 and 24 hours depending on the needs and availability of your hotel.</h3>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5 col-md-offset-1 col-sm-4 works-wrapper">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_6.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0">Build your time slot around the housekeeping schedule and get ready to welcome
+                                        the guests to experience your property</h3>
+                                </div>
+                            </div>
+
+                            <div class="clearfix"></div>
+
+                            <div class="col-md-6 col-sm-4 works-wrapper mt-md-8 mb-5">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_7.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0">Choose the room type and the amenities like swimming pool, spa services etc. you
+                                        would like to provide the guests</h3>
+                                </div>
+                            </div>
+
+                            <div class="col-md-5 col-sm-4 col-md-offset-1 works-wrapper mt-md-8 mb-5">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_8.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0">Enjoy your incremental revenue by optimizing the use of the hotel rooms. Get
+                                        paid at the reservation desk by the guests.</h3>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 col-sm-4">
+                                <div class="gng">
+                                    <h4>Still have questions? Call us <a href="tel:+97144070533"><span> +971 (4) 407 0533</span></a></h4>
+                                </div>
+                            </div>
+                        </div><!-- row -->
+                    </div>
+                </div>
+            </div> <!-- /.container -->
+        </section> <!-- /.services -->
+
+        <section class="sh-sec-5">
+            <div class="container ld">
+                <div class="row">
+                    <div class="col-md-10 dl">
+                        <h1 class="text-dark">Pricing & Commission</h1>
+                        <p>We understand Revenue management is your utmost priority without compromising on the services you
+                            offer. Our solution and backend services will provide you just that! Here’s a list of benefits:</p>
+                        <ul>
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Revenue Management and insights</h2>
+                            </li>
+
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Efficient managing your room inventory</h2>
+                            </li>
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Welcome loyal new customers</h2>
+                            </li>
+
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Encourage same day bookings</h2>
+                            </li>
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Control your rate and sell amenities for a surcharge</h2>
+                            </li>
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> Take benefit of our Marketing Expertise</h2>
+                            </li>
+                            <li>
+                                <h2><i class="icon-checked" aria-hidden="true"></i> 24/7 Customer Support</h2>
+                            </li>
+                        </ul>
+                        <h5>There are more…let’s join forces and work together! Reach out to us for more details</h5>
+                    </div>
+
+                    <div class="col-md-6 ddl hidden">
+                        <div class="row">
+                            <div class="col-md-12 pl-0">
+                                <h1>Discover How Much You Can Earn</h1>
+                            </div>
+
+                            <div class="col-md-12 jfd">
+                                <div class="row">
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <p>
+                                            Enter your price per night
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <button>
+                                            1000
+                                        </button>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 jfd">
+                                <div class="row">
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <p>
+                                            Price guests pay per night
+                                        </p>
+                                    </div>
+
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <h6>
+                                            <i class="icon-inr" aria-hidden="true"></i>
+                                            1000
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 jfd">
+                                <div class="row">
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <p>
+                                            Commission included in price guests pay
+                                        </p>
+                                    </div>
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <h6>
+                                            <i class="icon-inr" aria-hidden="true"></i>
+                                            1000
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 jfd">
+                                <div class="row">
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <p>
+                                            What you'll earn per night
+                                        </p>
+                                    </div>
+
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <h6>
+                                            <i class="icon-inr" aria-hidden="true"></i>
+                                            1000
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-12 jfd">
+                                <div class="row">
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <p class="text-uppercase">
+                                            Your earning potential per month
+                                        </p>
+                                    </div>
+
+                                    <div class="col-md-6 col-xs-6 pto">
+                                        <h6>
+                                            <i class="icon-inr" aria-hidden="true"></i>
+                                            1000
+                                        </h6>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </section>
+        <!-- /.services -->
+
+        <section>
+            <div class="container">
+                <div class="row">
+                    <div class="col-md-12 jqws col-lg-12 col-sm-12 co-xs-12 gal-item bmw">
+                        <h1 class="text-dark">Get ready to welcome!</h1>
+                        <p>
+                            Stayhopper is for all kind of travellers.
+                        </p>
+                    </div>
+                </div>
+            </div> <!-- /.container -->
+        </section>
+
+
+        <section id="homeIntror" class=" services">
+            <div class="container">
+                <div class="row hyu d-flex d-mobile-flex justify-content-center">
+                    <div class="col-sm-10 col-xs-10">
+                        <div class="row types-of-guests">
+                            <div class="works-wrapper column bnm">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_9.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0 text-uppercase fs-18">Frequent Business Travellers</h3>
+                                    <p class="mb-0">They are looking for a stay close to their Business Meetings to
+                                        freshen up and have some official work done.</p>
+                                </div>
+                            </div>
+                            <div class="works-wrapper column bnm">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_10.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0 text-uppercase fs-18">Experience Seekers</h3>
+                                    <p class="mb-0">Not all luxury hotels are affordable, experience seekers are looking to enjoy
+                                        the property on a budget.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-md-10 works-wrapper column bnm">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_11.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0 text-uppercase fs-18">Transit or Overnight Stay</h3>
+                                    <p class="mb-0">Travellers with a tight travel schedule who are looking to catch up on
+                                        some sleep through their stay overnight.</p>
+                                </div>
+                            </div>
+
+                            <div class="mt-md-10 works-wrapper column bnm">
+                                <div class="works-icon">
+                                    <img src="images/assets/ic_12.png" class="img-responsive">
+                                </div>
+                                <div class="gng">
+                                    <h3 class="service-title mt-0 text-uppercase fs-18">loyal guests</h3>
+                                    <p class="mb-0">May include families and couples who are on the go to explore the Emirate
+                                        and the adventure spots nearby.</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+
+                </div>
+            </div> <!-- /.container -->
+        </section>
+
+        <section class="ftf" style="overflow-x:auto;">
+            <div class="col-md-12 jqws col-lg-12 col-sm-12 co-xs-12 gal-item">
+                <h1 class="text-dark">What’s in it for you?</h1>
+                <p>Microstay is a new and unique concept that will disrupt the standard hotel booking market. <br>Partner
+                    with us and enjoy the perks of it.</p>
+            </div>
+
+            <div class="container">
+                <table class="table">
+                    <thead>
+                        <tr class="text-center">
+                            <th></th>
+                            <th scope="col">Stayhopper.com</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">24/7 property support <span>by phone/chat and
+                                    daily local team support</span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">No service fees <span>for guests making a reservation</span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">Sell your rooms <span>several times in a day</span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">New customer acquisition <span></span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">Cross-sell services and amenities. <span></span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+                        <tr class="text-center">
+                            <td data-label="Account" class="text-left">Free Marketing and advertising <span></span></td>
+                            <td data-label="Due Date"><span class="icon-checked text-success"></span></td>
+                        </tr>
+
+                    </tbody>
+                </table>
+            </div>
+        </section>
+
+        <section class="parallax">
+            <div class="parallax-overlayt">
+                <div class="container">
+                    <!-- /.row -->
+                    <div class="row ">
+                        <div class="col-md-12 kij">
+                            <h1>Frequently asked questions</h1>
+                        </div>
+
+                        <div class="col-md-6 kij">
+                            <h2> What will happen after I sign up?</h2>
+                            <p>After you’ve registered your property, we will review your information to make sure we have everything we
+                                need. You’ll then receive an email with login details for your Extranet. This is where you’ll go to update your
+                                availability and prices. After that you’ll receive instructions on how to set your property live on Stayhopper
+                                Mobile App and Web site.</p>
+                        </div>
+                        <div class="col-md-6 kij">
+                            <h2>Open and close your property when you want?</h2>
+                            <p>We give you the freedom to open or close your property on our site whenever you want. With no lock-in
+                                contracts, you're in control of your property. Your peace of mind is our top priority.</p>
+                        </div>
+                    </div> <!-- /.row -->
+                </div> <!-- /.container -->
+            </div> <!-- /.parallax-overlay -->
+        </section>
+
+        <footer>
+            <div class="footer" id="footer">
+                <div class="container">
+                    <div class="row footer-widgets">
+                <div class="col-lg-4 col-md-4 col-sm-6 col-xs-12">
+                    <h3> SUBSCRIBE TO NEWSLETTER </h3>
+                    <ul>
+                        <li>
+                            <form id="subscribe_form" onsubmit="return false;" class="subscribe">
+                                <div class="block d-flex d-mobile-flex rq">
+
+                                    <input name="email_address" type="email" class="form-control mb-2 mr-sm-2 mb-sm-0" id="search"
+                                           placeholder="Enter your email address here">
+                                    <!-- Search Button -->
+                                    <button type="submit" class="btn btn-main submit-btn">Subscribe</button>
+
+                                </div>
+                            </form>
+                            <div class="info-msg"></div>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-lg-2 col-md-offset-1 col-md-2 col-sm-6 col-xs-12">
+                    <h3> STAY CONNECTED </h3>
+                    <ul>
+                        <li> <a href="https://www.facebook.com/Stayhopper/">Facebook </a> </li>
+                        <li> <a href="https://www.instagram.com/Stayhopper/"> Instagram </a> </li>
+                        <li> <a href="https://twitter.com/Stayhopper"> Twitter </a> </li>
+                        <li> <a href="https://www.youtube.com/channel/UCrjfNVSQ1bXrp3mQNpGp0Ew?view_as=subscriber">
+                                Youtube </a> </li>
+                    </ul>
+                </div>
+                <div class="col-lg-2  col-md-2 col-sm-4 col-xs-12">
+                    <h3> About Stayhopper</h3>
+                    <ul>
+                        <li> <a href="about.html"> About us </a> </li>
+                        <li> <a href="career.html"> Join our team </a> </li>
+                        <li> <a href="register.html"> Register your property </a> </li>
+                        <li> <a href="contact.html"> Contact us </a> </li>
+                    </ul>
+                </div>
+                <div class="col-lg-2 col-md-2 col-sm-4 col-xs-12">
+                    <h3> help &amp; Terms</h3>
+                    <ul>
+                        <li> <a href="faq.html"> FAQ </a> </li>
+                        <li> <a href="privacy.html"> Privacy policy </a> </li>
+                        <li> <a href="terms.html"> Terms of use </a> </li>
+                    </ul>
+                </div>
+            </div>
+
+                    <div class="row">
+                        <div class="col-lg-8  col-md-8 col-sm-12 col-xs-12 uq hidden-xs">
+                            <img src="images/includes/logo.png" alt="stayhopper">
+                            <p>Stayhopper is a new booking platform that offers customers to book hotel rooms by the hour and gives the
+                                flexibility to choose the time of check-in. Customers can choose from 3, 6, 12 or 24 hours to book their stay,
+                                thereby providing more flexibility and generate more revenue for hotels. We also support hotels to compete
+                                against new business models that rent out private properties.</p>
+                        </div>
+
+                        <div class="col-lg-4  col-md-4 col-sm-12 col-xs-12 uqu">
+					        <ul class="payments">
+					            <li><img src="images/Visa.gif"></li>
+					            <li><img src="images/Master.gif"></li>
+					            <li><img src="images/Amex.gif"></li>
+					        </ul>			
+                            <span class="text-center d-block">© Stayhopper. All rights reserved.</span>
+                        </div>
+                    </div>
+
+
+                    <!--/.row-->
+                </div>
+                <!--/.container-->
+            </div>
+            <!--/.footer-->
+        </footer>
+        <!-- Scripts -->
+        <script src="js/min/plugins.min.js"></script>
+        <script src="js/min/medigo-custom.min.js"></script>
+        <script src="js/jquery.validate.min.js"></script>
+        <script src="js/src.js"></script>
+    </body>
+
+</html>

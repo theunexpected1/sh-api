@@ -1,0 +1,62 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#">Properties</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#">Pricing</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">List</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <%-include('../shared/property_crump.ejs',{current_page:'pricing'})%>
+
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 pl-4">
+                <div class="col-sm-12">
+                    <div class="form-header">
+                        Price Details
+                    </div>
+                </div>
+            </div>
+
+            <% rooms.forEach((room)=>{ %>
+                <div class="row wrapper bg-white price--details justify-content-center align-items-center text-secondary mt-0 mb-0 px-4">
+                    <div class="col-lg-5 col-md-5 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                        <!-- <dl>
+                            <dt>Room Price / Slot :</dt>
+                            <dd><%=room.price%> AED</dd>
+                        </dl> -->
+                        <dl>
+                            <dt>Type</dt>
+                            <dd>
+                                <%=room.display_name+" ("+room.room_type.name+")"%>
+                            </dd>
+                        </dl>
+                    </div>
+                    <div class="col-lg-7 col-md-7 col-sm-12 col-12 room-information-items d-flex justify-content-end align-items-center flex-column flex-md-row flex-nowrap text-center">
+                        <dl>
+                            <a href="/admin/pricing/edit/<%=room._id%>" class="btn btn-square pl-4 pr-4 btn-secondary">EDIT</a>
+                            <dl>
+                    </div>
+                </div>
+                <% }); %>
+                <% if(_.contains(completed, 'price') && ! _.contains(completed, 'policies')){ %>
+                    <div class="col-sm-4 d-flex justify-content-center d-block mx-auto pt-4 pb-4">
+                        <a href="/admin/policies/<%=property_id%>">
+                            <button class="btn btn-block btn-primary loginBtn saveBtn px-4">Save &amp; Continue</button>
+                        </a>
+                    </div>
+                    <% } %>
+        </div>
+        <%-include('../shared/footer.ejs')%>

@@ -1,0 +1,587 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="javascript:;">Hotel Management</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="/properties">Properties</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">New</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+    <%-include('../shared/property_crump.ejs')%>
+    <div class="container-fluid">
+            <form class="form-horizontal bg-white" action="/properties" method="POST" enctype="multipart/form-data" id="propertyForm">
+        <div class="row wrapper mt-0 mb-0 pt-4 pb-2 pl-4">
+            <div class="col-sm-12">
+                <div class="form-header mt-2">
+                    Basic Information
+                </div>
+            </div>
+
+                <div class="col-sm-12">
+                    <div class="form-section">
+                        <div class="mx-4">
+                            <div class="row">
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Property Name*</label>
+                                        <div class="col-sm-8">
+                                            <input type="hidden" name="admin_id" value="<%=admin_id%>">
+                                            <input type="text" class="form-control" name="name">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Legal Name*</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" name="legal_name1">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Property Type*</label>
+                                        <div class="col-sm-8">
+                                            <select name="type" class="form-control">
+                                                <option value="">--Property Type--</option>
+                                                <% property_types.forEach((type)=>{ %>
+                                                <option value="<%=type._id%>">
+                                                    <%=type.name%>
+                                                </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Property Rating*</label>
+                                        <div class="col-sm-8">
+                                            <select name="rating" class="form-control">
+                                                <option value="">--Property Rating--</option>
+                                                <% property_rating.forEach((type)=>{ %>
+                                                <option value="<%=type._id%>">
+                                                    <%=type.name%>
+                                                </option>
+                                                <% }); %>
+                                            </select>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Property Description</label>
+                                        <div class="col-sm-8">
+                                            <textarea class="form-control" name="description" cols="3" rows="3"></textarea>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Required Time Slots*</label>
+                                        <div class="col-sm-8">
+                                            <div class="btn-group hide-checkbox timeSlots" data-toggle="buttons">
+                                                <label for="timeslot1" class="btn btn-secondary-2 btn-checkbox active">
+                                                    <input id="timeslot1" value="3" name="timeslots[]" type="checkbox"
+                                                        checked> 3H
+                                                </label>
+                                                <label for="timeslot2" class="btn btn-secondary-2 btn-checkbox active">
+                                                    <input id="timeslot2" value="6" name="timeslots[]" type="checkbox"
+                                                        checked> 6H
+                                                </label>
+                                                <label for="timeslot3" class="btn btn-secondary-2 btn-checkbox active">
+                                                    <input id="timeslot3" value="12" name="timeslots[]" type="checkbox"
+                                                        checked> 12H
+                                                </label>
+                                                <label for="timeslot4" class="btn btn-secondary-2 btn-checkbox active">
+                                                    <input id="timeslot4" value="24" name="timeslots[]" type="checkbox"
+                                                        checked> 24H
+                                                </label>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12">
+                    <div class="form-header">
+                        Contact Information
+                    </div>
+                </div>
+
+
+                <div class="col-sm-12">
+                    <div class="form-section">
+                        <div class="container-fluid">
+                                <div class="row">
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label for="contact_name" class="col-sm-4 col-form-label">Contact Person*</label>
+                                                <div class="col-sm-8">
+                                                    <input type="hidden" name="company_id" value="<%=admin_det._id%>">
+                                                    <input type="text" class="form-control" name="contact_person" value="<%=admin_det.contact_person%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label for="legal_name" class="col-sm-4 col-form-label">Designation*</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="legal_name" value="<%=admin_det.legal_name%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label for="select_country" class="col-sm-4 col-form-label">Select Country*</label>
+                                                <div class="col-sm-8">
+                                                    <select class="custom-select" name="country">
+                                                        <option value="">--Country--</option>
+                                                        <% countries.forEach((country)=>{ %>
+                                                            <option value="<%=country._id%>" <% if(country._id.toString() == admin_det.country){%>selected
+                                                                <%}%>>
+                                                                    <%=country.country%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label for="select_city" class="col-sm-4 col-form-label">Select City*</label>
+                                                <div class="col-sm-8">
+                                                    <select name="city" class="form-control">
+                                                        <option value="">--City--</option>
+                                                        <% cities.forEach(city=>{ %>
+                                                            <option value="<%=city._id%>" <% if(city._id.toString() == admin_det.city){ %> selected
+                                                                <% } %>>
+                                                                    <%=city.name%>
+                                                            </option>
+                                                            <% }); %>
+                                                    </select>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Address 1</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="address_1" value="<%=admin_det.address_1%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Address 2</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="address_2" value="<%=admin_det.address_2%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <!-- <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Location</label>
+                                                <div class="col-sm-8">
+                                                    <input type="hidden" name="latlng" value="<%=admin_det.latlng.join(',')%>">
+                                                    <input type="text" class="form-control placepicker" name="location" value="<%=admin_det.location%>">
+                                                </div>
+                                            </div>
+                                        </div> -->
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Postal Number</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="zip" value="<%=admin_det.zip%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Email Address*</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="email" value="<%=admin_det.email%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Mobile Number*</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="mobile" value="<%=admin_det.mobile%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Land Number</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="land_phone" value="<%=admin_det.land_phone%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                            <div class="row">
+                                                <label class="col-sm-4 col-form-label">Alt. Land Number</label>
+                                                <div class="col-sm-8">
+                                                    <input type="text" class="form-control" name="alt_land_phone[]" value="<%=admin_det.alt_land_phone[0]%>">
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div class="form-group form-group-sm col-sm-6">
+                                                <div class="row">
+                                                    <label class="col-sm-4 col-form-label">Location</label>
+                                                    <div class="col-sm-8">
+                                                        <input id="lat" type="hidden" name="lat" value="">
+                                                        <input id="lng" type="hidden" name="lng" value="">
+                                                        <input id="location" type="text" class="form-control placepicker" name="location" value="">
+                                                    </div>
+                                                </div>
+                                        </div>
+                                        <div class="col-sm-12" id="map" style="width: 400px; height: 300px;"></div>
+                                    </div>
+                        </div>
+                    </div>
+                </div>
+            </div>
+
+                <div class="col-sm-12">
+                    <div class="form-section">
+                        <div class="container-fluid">
+                            <div class="row">
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Trade Licence No*</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control" name="trade_licence_number">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label class="col-sm-4 col-form-label">Licence Validity*</label>
+                                        <div class="col-sm-8">
+                                            <input type="text" class="form-control datepicker" name="trade_licence_validity"
+                                                readonly>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label for="trade_licence" class="col-sm-4 col-form-label">Upload Trade Licence</label>
+                                        <div class="col-sm-8">
+                                            <div class="input-file-container">
+                                                <input class="input-file" id="my-file" type="file" name="trade_licence_attachment">
+                                                <label tabindex="0" for="my-file" class="input-file-trigger">Select a
+                                                    file...</label>
+                                            </div>
+                                            <p class="file-return text-left"></p>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="form-group form-group-sm col-sm-6">
+                                    <div class="row">
+                                        <label for="upload_passport" class="col-sm-4 col-form-label">Owner Passport
+                                            Copy</label>
+                                        <div class="col-sm-8">
+                                            <form action="#">
+                                                <div class="input-file-container">
+                                                    <input class="input-file input-file2" id="my-file" type="file" name="passport_attachment">
+                                                    <label tabindex="0" for="my-file" class="input-file-trigger">Select
+                                                        a file...</label>
+                                                </div>
+                                                <p class="file-return file-return2 text-left"></p>
+                                            </form>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                    </div>
+                    <div class="col-sm-4 d-flex justify-content-center d-block mx-auto pt-3 pb-4">
+                            <button class="btn btn-block btn-primary loginBtn saveBtn">Save & Continue</button>
+                        </div>
+                </div>
+        </form>
+    </div>
+
+
+</div>
+<!-- container -->
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jquery-locationpicker/0.1.12/locationpicker.jquery.js"></script>
+<script src='https://maps.googleapis.com/maps/api/js?language=en&libraries=places&key=AIzaSyDf4pG0suPTM9_c9j4cUiRoWCtkzJJzH2c'></script>
+<script src="/public/stay/plugins/placepicker/jquery.placepicker.min.js"></script>
+<script>
+    $.validator.addMethod("noHTML", function(value, element){
+                if(this.optional(element) || /<\/?[^>]+(>|$)/g.test(value)){
+                    return false;
+                } else {
+                    return true;
+                }
+    }, "HTML tags are Not allowed.");
+    $('#map').locationpicker({
+            location: {
+                latitude: 25.2048,
+                longitude: 55.2708
+            },
+            zoom: 15,
+            locationName: "Dubai",
+            enableAutocomplete: true,
+            enableReverseGeocode: true,
+            radius: 0,
+            inputBinding: {
+                latitudeInput: $('#lat'),
+                longitudeInput: $('#lng'),
+                locationNameInput: $('#location')
+            },    
+            onchanged: function (currentLocation, radius, isMarkerDropped) {
+                var addressComponents = $(this).locationpicker('map').location.addressComponents;
+                console.log(currentLocation);  //latlon  
+                updateControls(addressComponents); //Data
+            }
+        });
+        function updateControls(addressComponents) {
+            console.log(addressComponents); 
+        }
+
+    document.querySelector("html").classList.add('js');
+    var fileInput = document.querySelector(".input-file");
+    var fileInput2 = document.querySelector(".input-file2");
+    var button = document.querySelector(".input-file-trigger");
+    var the_return = document.querySelector(".file-return");
+    var the_return2 = document.querySelector(".file-return2");
+    button.addEventListener("keydown", function (event) {
+        if (event.keyCode == 13 || event.keyCode == 32) {
+            fileInput.focus();
+        }
+    });
+    button.addEventListener("click", function (event) {
+        fileInput.focus();
+        return false;
+    });
+    fileInput.addEventListener("change", function (event) {
+        the_return.innerHTML = this.files[0].name;
+    });
+    fileInput2.addEventListener("change", function (event) {
+        the_return2.innerHTML = this.files[0].name;
+    });
+</script>
+<script>
+    // $(document).ready(function () {
+    //     var mapPlacepicker = $(".placepicker").placepicker({
+    //         placeChanged: function (place) {
+    //             $('input[name="latlng"]').val(this.getLocation().latitude + "," + this.getLocation().longitude);
+    //         }
+    //     });
+    // });
+    $(".placepicker").on('change', function () {
+        if (!$('input[name="lat"]').val() || !$('input[name="lng"]').val()) {
+            $(this).val("");
+        }
+    });
+    $('.datepicker').datepicker({
+        startDate: "today",
+        format: 'mm-dd-yyyy',
+        autoclose: true,
+        todayHighlight: true
+    });
+    $.validator.addMethod("alphabetsnspace", function (value, element) {
+        return this.optional(element) || /^[a-zA-Z ]*$/.test(value);
+    });
+    $.validator.addMethod("alphanumeric", function (value, element) {
+        return this.optional(element) || /^[\w.]+$/i.test(value);
+    }, "Letters, numbers, and underscores only please");
+    $("#propertyForm").validate({
+        normalizer: function (value) {
+            return $.trim(value);
+        },
+        rules: {
+            name: {
+                required: true,
+                alphabetsnspace: true,
+                minlength: 3,
+                noHTML:true
+            },
+            type: {
+                required: true,
+                noHTML:true
+            },
+            rating: {
+                required: true,
+                noHTML:true
+            },
+            type: {
+                required: true,
+                noHTML:true
+            },
+            contact_person: {
+                required: true,
+                alphabetsnspace: true,
+                maxlength: 50,
+                noHTML:true
+            },
+            legal_name: {
+                required: true,
+                alphabetsnspace: true,
+                maxlength: 50
+            },
+            legal_name1: {
+                required: true,
+                alphabetsnspace: true,
+                maxlength: 50
+            },
+            country: {
+                required: true,
+                noHTML:true
+            },
+            city: {
+                required: true,
+                noHTML:true
+            },
+            email: {
+                required: true,
+                email: true,
+                noHTML:true
+            },
+            mobile: {
+                required: true,
+                alphanumeric: true,
+                minlength: 10,
+                noHTML:true
+            },
+            trade_licence_number: {
+                required: true,
+                noHTML:true
+            },
+            trade_licence_validity: {
+                required: true,
+                noHTML:true
+            },
+            location: {
+                required: true,
+                noHTML:true
+            },
+            zip: {
+                maxlength: 10,
+                alphanumeric: true
+            }
+        },
+        messages: {
+            name: {
+                required: "Property name must be required",
+                minlength: "Property name must be atleast 3 characters",
+                alphabetsnspace: "Property name must be alphabet only"
+            },
+            type: {
+                required: "Property Type must be required",
+            },
+            rating: {
+                required: "Property Rating must be required",
+            },
+            contact_person: {
+                required: "Contact Person must be required",
+                alphabetsnspace: "Contact Person must be alphabet only",
+                maxlength: "Contact Person must be than 50 characters length"
+            },
+            legal_name: {
+                required: "Designation must be required",
+                alphabetsnspace: "Designation must be alphabet only",
+                maxlength: "Designation must be less than 50 characters length"
+            },
+            legal_name1: {
+                required: "Legal Name must be required",
+                alphabetsnspace: "Legal Name must be alphabet only",
+                maxlength: "Legal Name must be less than 50 characters length"
+            },
+            country: {
+                required: "Country must be required",
+            },
+            city: {
+                required: "City must be required",
+            },
+            email: {
+                required: "Email must be required",
+                email: "Not a valid email address"
+            },
+            mobile: {
+                required: "Mobile Number must be required",
+                alphanumeric: "Mobile Number must not contain special characters",
+                maxlength: "Mobile Number must be less than 10 characters",
+            },
+            trade_licence_number: {
+                required: "Trade Lisence number must be required",
+            },
+            trade_licence_validity: {
+                required: "Trade Lisence Validity must be required",
+            },
+            location: {
+                required: "Location must be required"
+            },
+            zip: {
+                maxlength: 'Postal Code must be less than 10 characters length',
+                numeric: 'Postal Code must be numeric'
+            }
+        },
+        submitHandler: function (form) {
+            $('.saveBtn').prop('disabled', true);
+            var form = document.getElementById('propertyForm');
+            var data = new FormData(form);
+            $.ajax({
+                type: "POST",
+                url: "/hoteladmins/addproperty",
+                data: data,
+                dataType: 'json',
+                processData: false,
+                contentType: false,
+                cache: false,
+                success: function (data) {
+                    if (data.status == 1) {
+                        if (data.message) {
+                            // $.confirm({
+                            //     title: 'Success!',
+                            //     content: data.message,
+                            //     buttons: {
+                            //         ok: function () {
+                            //             document.getElementById("propertyForm").reset();
+                            //             window.location.href = "/rooms/" + data.id;
+                            //         }
+                            //     }
+                            // });
+                            window.location.href = "/rooms/" + data.id;
+                        }
+                    } else {
+                        if (data.errors) {
+                            for (i = 0; i < data.errors.length; i++) {
+                                console.log(data.errors[i]);
+                                toastr["error"](data.errors[i]);
+                            }
+                        }
+                        if (data.message) {
+                            toastr["error"](data.message);
+                        }
+                    }
+                    $('.saveBtn').prop('disabled', false);
+                },
+                error: function (error) {
+                    $('.saveBtn').prop('disabled', false);
+                }
+            });
+            return false;
+        }
+    });
+</script>
+<%-include('../shared/footer.ejs')%>

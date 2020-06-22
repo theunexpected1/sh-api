@@ -1,0 +1,278 @@
+<%-include('../shared/header.ejs',{active:'users',parent:''})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="/admin/users">User Management</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">View</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+
+    <div class="container-fluid">
+        <div class="row wrapper mt-2 mb-0 pt-4 bg-white pb-4 px-4">
+            <div class="col-4 col-sm-8 mb-2 mb-md-0">
+                <div class="form-header mt-2">
+                    User Details
+                </div>
+            </div>
+
+            <div class="col-8 col-sm-4 mb-2 mb-md-0 d-flex justify-content-end align-items-center">
+                <input type="hidden" name="st" value="<%=result.status%>">
+                <!-- <div class="fw-700">Enable</div>
+                <button type="button" class="status btn btn-sm btn-toggle <% if (result.status == 'Enable') { %> active <% } else { %> <% } %> mr-md-4"
+                    data-toggle="button" aria-pressed="true" autocomplete="off" data-id="<%=result._id%>">
+                    <div class="handle"></div>
+                </button>
+                <button type="button" class="deleteBtn d-flex justify-content-center align-items-start btn btn-sm btn-outline-secondary"
+                    data-id="<%=result._id%>">
+                    <i class="icon-trash-2"></i>&nbsp; Delete
+                </button> -->
+            </div>
+
+            <div class="col-sm-12 mt-4">
+                <div class="form-header border-0">
+                    <div class="fs-18 text-secondary">
+                        <%=result.name%>
+                    </div>
+                </div>
+            </div>
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 d-flex justify-content-between align-items-start flex-column flex-md-row flex-wrap mt-4 dt-fw-normal dd-bold-700 text-left user-details pb-2">
+                <dl>
+                    <dt>Email</dt>
+                    <dd>
+                        <%=result.email%>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>Mobile</dt>
+                    <dd>
+                        <%=result.mobile%>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>Total Number of Bookings</dt>
+                    <dd>
+                        <%=count||0%>
+                    </dd>
+                </dl>
+                <dl>
+                    <dt>Total Amount</dt>
+                    <dd>
+                        <%=totalAmt?totalAmt+" AED":""%>
+                    </dd>
+                </dl>
+                <!-- <dl>
+                        <dt>PIN</dt>
+                        <dd>
+                            <%=result.pin%>
+                        </dd>
+                    </dl>
+                    <div class="clearfix col-md-12 d-block border-bottom mb-3"></div>
+                    <dl>
+                        <dt>Address</dt>
+                        <dd>
+                            <%=result.address%>
+                        </dd>
+                    </dl> -->
+            </div>
+        </div>
+        <!-- row end -->
+        <div class="row wrapper mt-2 mb-0 pt-4 bg-white pb-3 px-4">
+            <div class="col-sm-12">
+                <div class="form-header mt-2">
+                    <a href="">Active Bookings</a> 
+                </div>
+                <div class="form-header mt-2 disabled">
+                    <a href="/admin/users/view/completed/<%=result._id%>">Approved Bookings</a> 
+                </div>
+            </div>
+
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-left" style="overflow-x:auto">
+                <table class="table table-hover" style="overflow-x:scroll;">
+                    <thead>
+                        <tr>
+                            <th>Userdetails</th>
+                            <th>Ref No</th>
+                            <th>Property Name</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Room Name</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%
+                            bookings.forEach((book)=>{
+                                let user = book.guestinfo;
+                                let property = book.property
+                                let property_name = "";
+                                let tmp_time = book.checkin_date+"T"+book.checkin_time+":00";
+                                let checkout = new Date(tmp_time);
+                                checkout.setHours( checkout.getHours()+book.selected_hours);      
+                                let hours = checkout.getHours();
+                                let minuites = "00";
+                                if(checkout.getMinutes()){
+                                    minuites = checkout.getMinutes();
+                                }
+                            %>
+                        <tr>
+                            <td class="d-flex flex-column"><small>
+                                    <%=user.mobile%></small>
+                                <%=user.first_name+" "+user.last_name%><small>
+                                    <%=user.email%></small></td>
+                            <td>
+                                <%=book._id%>
+                            </td>
+                            <td>
+                                <%=property.name%>
+                            </td>
+                            <td>
+                                <%=book.checkin_date%><br><small>
+                                    <%=book.checkin_time%></small></td>
+                            <td>
+                                <%=checkout.toLocaleDateString()%><br><small>
+                                    <%=hours+":"+minuites%></small></td>
+                            <td>
+                                <%
+                                    book.room.forEach((room)=>{
+                                        %>
+                                <span class="badge badge-secondary">
+                                    <%= room.room.custom_name || room.room.room_name.name %></span>
+                                <%
+                                    })
+                                    %>
+                            </td>
+                            <td><button data-id="<%=book._id%>" type="button" class="btn btn-sm btn-square pl-4 pr-4 btn-secondary show-panel">VIEW</button></td>
+                        </tr>
+                        <%    
+                            });
+                            %>
+                    </tbody>
+                </table>
+                <%- include('../shared/pagination') %>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="newModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">View Booking Details</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                    <div class="row wrapper mt-4 mt-md-0 mb-0 bg-white">
+        
+                          <div class="col-sm-8 d-flex justify-content-center mt-4 mt-md-0 mx-auto view-booking-details">
+                          <ul class="list-unstyled lh-2 d-flex flex-column bookDetailsModal">
+                          </ul>
+                          </div>
+                        </div>
+    
+                </div>
+              </div>
+            </div>
+        <script>
+            $('.status').on('click', function () {
+                var id = $(this).data('id');
+                $.ajax({
+                    type: 'post',
+                    url: '/admin/users/status/' + id,
+                    success: function (data) {
+                        if (data.status == 1) {
+                            if (data.message) {
+                                setTimeout(() => {
+                                    window.location.reload();
+                                },
+                                    1000);
+                                toastr["success"](data.message);
+                            }
+                        } else {
+                            if (data.errors) {
+                                for (i = 0; i < data.errors.length; i++) {
+                                    console.log(data.errors[i]);
+                                    toastr["error"](data.errors[i]);
+                                }
+                            }
+                            if (data.errors) {
+                                toastr["error"](data.errors);
+                            }
+                        }
+                    },
+                    error: function (data) {
+
+                    }
+                });
+            })
+        </script>
+        <script>
+            $('.deleteBtn').on('click', function () {
+                id = $(this).data('id');
+                $.confirm({
+                    title: 'Confirm!',
+                    content: 'Are you sure you want remove this user',
+                    buttons: {
+                        confirm: function () {
+                            $.ajax({
+                                type: 'get',
+                                url: '/admin/users/delete/' + id,
+                                dataType: 'json',
+                                success: function (data) {
+                                    if (data.status == 1) {
+                                        window.location.assign('/users');
+                                    }
+                                }
+                            })
+                        },
+                        cancel: function () {
+                            $.alert('Canceled!');
+                        },
+                    }
+                });
+            })
+            $('.show-panel').on('click',function(){
+            $.ajax({
+                url:'/admin/bookings/details',
+                type:'get',
+                dataType:'json',
+                data:{book_id:$(this).data('id')},
+                async:false,
+                success:function(data){
+                    if(data.status==1){
+                        var booking = data.data;
+                        var roomnames = '';
+                        $.each(booking.room_names,function(key,value){
+                            roomnames += "<span class='badge badge-secondary mr-2'>"+value+"</span>";  
+                        });
+                        var roomtypes = '';
+                        $.each(booking.room_types,function(key,value){
+                            roomtypes += "<span class='badge badge-secondary mr-2'>"+value+"</span>";  
+                        });
+                        var html = `
+                        <li><div>Name</div><div class="name">`+booking.full_name+`</div></li>
+                        <li><div>Contact No</div> <div>`+booking.contact_no+`</div></li>
+                        <li><div>Mail</div> <div>`+booking.mail+`</div></li>
+                        <li><div>Ref. Number</div> <div>`+booking.ref_no+`</div></li>
+                        <li><div>Room Name</div> <div class="room-type-badge">`+roomnames+`</div></li>
+                        <li><div>Booked Date</div> <div>`+booking.booked_date+`</div></li>
+                        <li><div>Check In</div> <div>`+booking.checkin_date+` `+booking.checkin_time+`</div></li>
+                        <li><div>Check Out</div> <div>`+booking.checkout_date+` `+booking.checkout_time+`</div></li>
+                        <li><div>Room Type</div> <div class="room-type-badge">`+roomtypes+`</div></li>
+                        <li><div>Property Name</div> <div>`+booking.property_name+`</div></li>
+                        <li><div>Room Rate</div> <div>`+booking.total_amt+` AED</div></li>
+                        <li><div>Booked Hours</div> <div>`+booking.selected_hours+` Hours</div></li>
+                        `;
+                        $('.bookDetailsModal').html(html);
+                        $('#newModal').modal('toggle');
+                    }
+                }
+            })
+        });
+        </script>
+        <%-include('../shared/footer.ejs')%>

@@ -1,0 +1,557 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+  <div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header mb-5">
+      <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+        <nav aria-label="breadcrumb">
+          <ol class="breadcrumb">
+            <li class="breadcrumb-item">
+              <a href="#">Hotel Management</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="#">Properties</a>
+            </li>
+            <li class="breadcrumb-item">
+              <a href="#">Pricing</a>
+            </li>
+            <li class="breadcrumb-item active fw-700" aria-current="page">List</li>
+          </ol>
+        </nav>
+      </div>
+    </header>
+    <div class="container-fluid">
+      <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-4 pl-4">
+        <div class="col-sm-12">
+          <div class="form-header">
+            <%=room.display_name+" ("+room.room_type.name+")"%>
+          </div>
+        </div>
+      </div>
+      <div class="row wrapper bg-white price--details justify-content-center align-items-center text-secondary mt-0 mb-0 px-4">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+          <form class="form d-flex" id="defaultPriceForm" action="javascript:;">
+            <input type="hidden" name="room_id" value="<%=room._id%>">
+            <%if(_.contains(timeslots,3)){ %>
+              <div class="form-group mr-2 text-center">
+                <label for="h3" class="fw-700 pr-3">3H</label>
+                <% let val = prices.h3; %>
+                  <input value="<%=val%>" type="number" name="h3" class="form-control text-center" placeholder="3 Hour">
+              </div>
+              <% } %>
+                <%if(_.contains(timeslots,6)){ %>
+                  <div class="form-group mr-2 text-center">
+                    <label for="h6" class="fw-700 pr-3">6H</label>
+                    <% let val = prices.h6; %>
+                      <input value="<%=val%>" type="number" name="h6" class="form-control text-center" placeholder="6 Hour">
+                  </div>
+                  <% } %>
+                    <%if(_.contains(timeslots,12)){ %>
+                      <div class="form-group mr-2 text-center">
+                        <label for="h12" class="fw-700 pr-3">12H</label>
+                        <% let val = prices.h12; %>
+                          <input value="<%=val%>" type="number" name="h12" class="form-control text-center" placeholder="12 Hour">
+                      </div>
+                      <% } %>
+                        <%if(_.contains(timeslots,24)){ %>
+                          <div class="form-group mr-2 text-center">
+                            <label for="h24" class="fw-700 pr-3">24H</label>
+                            <% let val = prices.h24; %>
+                              <input value="<%=val%>" type="number" name="h24" class="form-control text-center" placeholder="24 Hour">
+                          </div>
+                          <% } %>
+                            <div class="mt-1">
+                              <button type="submit" class="btn btn-secondary px-4 mt-4">SAVE</button>
+                            </div>
+          </form>
+        </div>
+      </div>
+
+      <div class="row wrapper justify-content-center align-items-center text-secondary bg-white mb-4 mt-0 px-4">
+        <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-center">
+          <table class="table table-hover" style="overflow-x:scroll;">
+            <thead>
+              <tr>
+                <!-- <th>#</th> -->
+                <th>From Date</th>
+                <th>To Date</th>
+                <th>Price / Slot</th>
+                <th></th>
+              </tr>
+            </thead>
+            <tbody>
+              <% pricing.forEach((price)=>{ %>
+                <tr>
+                  <!-- <th scope="row">
+                    <div class="custom-control custom-checkbox">
+                      <input type="checkbox" class="custom-control-input" id="customCheck1">
+                      <label class="custom-control-label" for="customCheck1"></label>
+                    </div>
+                  </th> -->
+                  <td>
+                    <%=price.from.toLocaleDateString()%>
+                  </td>
+                  <td>
+                    <%=price.to.toLocaleDateString()%>
+                  </td>
+                  <td>
+                    <table class="table table-sm table-bordered">
+                      <thead>
+                        <tr>
+                          <%if(_.contains(timeslots,3)){ %>
+                          <th scope="col">3H</th>
+                          <% }if(_.contains(timeslots,6)){ %>
+                          <th scope="col">6H</th>
+                          <% }if(_.contains(timeslots,12)){ %>
+                          <th scope="col">12H</th>
+                          <% }if(_.contains(timeslots,24)){ %>
+                          <th scope="col">24H</th>
+                          <% } %>
+                        </tr>
+                      </thead>
+                      <tbody>
+                        <tr>
+                          <%if(_.contains(timeslots,3)){ %>
+                          <td><%=price.h3%> AED</td>
+                          <% }if(_.contains(timeslots,6)){ %>
+                          <td><%=price.h6%> AED</td>
+                          <% }if(_.contains(timeslots,12)){ %>
+                          <td><%=price.h12%> AED</td>
+                          <% }if(_.contains(timeslots,24)){ %>
+                          <td><%=price.h24%> AED</td>
+                          <% } %>
+                        </tr>
+                      </tbody>
+                    </table>
+                  </td>
+                  <td>
+                   <a class="editBtn mr-2" href="javascript:;" data-id="<%=price._id%>">
+                      <i class="icon-edit font-lg"></i>
+                    </a>
+                    <a href="/admin/pricing/delete/<%=price._id%>">
+                      <i class="icon-trash-2 font-lg"></i>
+                    </a>
+                  </td>
+                </tr>
+                <% })%>
+            </tbody>
+          </table>
+
+          <div class="modal bd-example-modal-lg" id="newModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">New Pricing</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="container-fluid">
+                    <div class="row wrapper mt-0 pt-0 mb-0 bg-white">
+                      <div class="col-sm-12">
+                        <div class="form-header fs-18">
+                          Double Delux
+                        </div>
+                      </div>
+                    </div>
+                    <form action="javascript:;" id="pricingForm">
+                      <div class="row wrapper bg-white justify-content-center align-items-center text-secondary mt-0 mb-0">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <label for="inputPassword6">Choose the date and amount</label>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-3 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <small class="d-block border-0">
+                              <label for="inputPassword6">Choose from date</label>
+                            </small>
+                            <input type="hidden" name="room" value="<%=room._id%>">
+                            <input type="hidden" name="property" value="<%=room.property_id%>">
+                            <input type="text" class="dateselect mt-0 form-control border-secondary" placeholder="Select Date &#xe927;" style="text-indent:0.65em"
+                              name="from" readonly/>
+                          </div>
+                          <div class="date"></div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-3 col-sm-3 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <small class="d-block border-0">
+                              <label for="inputPassword6">Choose to date</label>
+                            </small>
+                            <input type="text" class="dateselect mt-0 form-control border-secondary datepicker" required="required" placeholder="Select Date &#xe927;"
+                              style="text-indent:0.65em" name="to" readonly/>
+                          </div>
+                          <div class="date"></div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <%if(_.contains(timeslots,3)){ %>
+                          <div class="form-group mr-2 text-center">
+                            <label for="h3" class="fw-700">3H</label>
+                            <input name="h3" type="number" class="form-control text-center" placeholder="3 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,6)){ %>
+                          <div class="form-group mr-2 text-center">
+                            <label for="h6" class="fw-700">6H</label>
+                            <input name="h6" type="number" class="form-control text-center" placeholder="6 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,12)){ %>
+                          <div class="form-group mr-2 text-center">
+                            <label for="h12" class="fw-700">12H</label>
+                            <input name="h12" type="number" class="form-control text-center" placeholder="12 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,24)){ %>
+                          <div class="form-group mr-2 text-center">
+                            <label for="h24" class="fw-700">24H</label>
+                            <input name="h24" type="number" class="form-control text-center" placeholder="24 Hrs">
+                          </div>
+                          <% } %>
+                          <div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row wrapper mt-0 pb-0 mb-0">
+                        <div class="col-md-3 offset-md-9">
+                          <button type="submit" class="btn btn-primary btn-lg btn-block btn-full-mobile mb-2 mb-md-0 saveBtn">Save</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <div class="modal bd-example-modal-lg" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+              <div class="modal-content">
+                <div class="modal-header">
+                  <h5 class="modal-title" id="exampleModalLabel">Edit Pricing</h5>
+                  <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                    <span aria-hidden="true">&times;</span>
+                  </button>
+                </div>
+                <div class="modal-body">
+                  <div class="container-fluid">
+                    <div class="row wrapper mt-4 mb-0 bg-white">
+                      <div class="col-sm-12">
+                        <div class="form-header">
+                          Double Delux
+                        </div>
+                      </div>
+                    </div>
+                    <form action="javascript:;" id="pricingEditForm">
+                      <div class="row wrapper bg-white justify-content-center align-items-center text-secondary mt-0 mb-0">
+                        <div class="col-lg-12 col-md-12 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <label for="inputPassword6">Choose the date and amount</label>
+                          </div>
+                        </div>
+
+                        <div class="col-lg-3 col-md-3 col-sm-3 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <small class="d-block border-0">
+                              <label for="inputPassword6">Choose from date</label>
+                            </small>
+                            <input type="hidden" name="id" value="">
+                            <input type="hidden" name="room" value="<%=room._id%>">
+                            <input type="hidden" name="property" value="<%=room.property_id%>">
+                            <input type="text" class="dateselect mt-1 form-control border-secondary" placeholder="Select Date &#xe927;" style="text-indent:0.65em"
+                              name="from" readonly/>
+                          </div>
+                          <div class="date"></div>
+                        </div>
+
+
+                        <div class="col-lg-3 col-md-3 col-sm-3 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <div class="form-group">
+                            <small class="d-block border-0">
+                              <label for="inputPassword6">Choose to date</label>
+                            </small>
+                            <input type="text" class="dateselect mt-1 form-control border-secondary datepicker" required="required" placeholder="Select Date &#xe927;"
+                              style="text-indent:0.65em" name="to" readonly/>
+                          </div>
+                          <div class="date"></div>
+                        </div>
+
+                        <div class="col-lg-6 col-md-6 col-sm-6 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                          <%if(_.contains(timeslots,3)){ %>
+                          <div class="form-group mr-2">
+                            <label for="h3" class="fw-700">3H</label>
+                            <input name="h3" type="number" class="form-control" placeholder="3 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,6)){ %>
+                          <div class="form-group mr-2">
+                            <label for="h6" class="fw-700">6H</label>
+                            <input name="h6" type="number" class="form-control" placeholder="6 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,12)){ %>
+                          <div class="form-group mr-2">
+                            <label for="h12" class="fw-700">12H</label>
+                            <input name="h12" type="number" class="form-control" placeholder="12 Hrs">
+                          </div>
+                          <% }if(_.contains(timeslots,24)){ %>
+                          <div class="form-group mr-2">
+                            <label for="h24" class="fw-700">24H</label>
+                            <input name="h24" type="number" class="form-control" placeholder="24 Hrs">
+                          </div>
+                          <% } %>
+                          <div>
+                          </div>
+                        </div>
+                      </div>
+
+                      <div class="row wrapper mt-3 pb-4">
+                        <div class="col-md-4 offset-md-8">
+                          <button type="submit" class="btn btn-primary btn-lg btn-block btn-full-mobile mb-2 mb-md-0 saveBtn">Save</button>
+                        </div>
+                      </div>
+                    </form>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+          <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-4 mb-3 d-flex justify-content-end">
+            <!-- <a href="/pricing/" class="btn btn-outline-secondary back btn-sm  btn-full-mobile mb-1 mb-md-0 mr-2">Back</a> -->
+            <a href="/admin/pricing/<%=property._id%>" class="btn btn-outline-secondary back btn-sm  btn-full-mobile mb-1 mb-md-0 mr-2">Back</a>
+            <a class="btn btn-primary text-white btn-full-mobile mb-2 mb-md-0 addNewBtn px-4">Add New</a>
+          </div>
+        </div>
+      </div>
+    </div>
+    <script type="text/javascript">
+      $('.addNewBtn').on('click', function () {
+        $('#newModal').modal('toggle');
+      });
+      $('.editBtn').on('click', function () {
+        var id = $(this).data('id');
+        $.ajax({
+          url: "/admin/pricing/getPrice",
+          data: { id: id },
+          type: 'post',
+          async: false,
+          success: function (data) {
+            if (data.status == 1) {
+              var from = data.from;
+              var to = data.to;
+              data = data.data;
+              var form = $('form#pricingEditForm');
+              $(form).find('input[name="id"]').val(data._id);
+              $(form).find('input[name="from"]').val(from);
+              $(form).find('input[name="to"]').val(to);
+              $(form).find('input[name="h3"]').val(data.h3);
+              $(form).find('input[name="h6"]').val(data.h6);
+              $(form).find('input[name="h12"]').val(data.h12);
+              $(form).find('input[name="h24"]').val(data.h24);
+              $('#editModal').modal('toggle');
+            }
+          }
+        });
+      });
+      let timeslots = '<%=timeslots%>';
+      timeslots = timeslots.split(',');
+      $('form#defaultPriceForm').on('submit', function () {
+        let invalid = false;
+        let form = $('form#defaultPriceForm');
+        $.each(timeslots, function (key, value) {
+          if (!$(form).find('input[name="h' + value + '"]').val() || $(form).find('input[name="h' + value + '"]').val() < 0) {
+            toastr["error"]("Please enter a valid amount");
+            invalid = true;
+            return false;
+          }
+        });
+        if (invalid) {
+          return false;
+        }
+
+        $('.saveBtn').prop('disabled', true);
+        $.ajax({
+          url: '/admin/pricing/defaultprice',
+          data: $('form#defaultPriceForm').serialize(),
+          type: 'post',
+          dataType: 'json',
+          success: function (data) {
+            if (data.status == 1) {
+              if (data.message) {
+                $.confirm({
+                  title: 'Success!',
+                  content: data.message,
+                  buttons: {
+                    ok: function () {
+                    }
+                  }
+                });
+              }
+            } else {
+              if (data.errors) {
+                for (i = 0; i < data.errors.length; i++) {
+                  console.log(data.errors[i]);
+                  toastr["error"](data.errors[i]);
+                }
+              }
+              if (data.message) {
+                toastr["error"](data.message);
+              }
+            }
+            $('.saveBtn').prop('disabled', false);
+          },
+          error: function (error) {
+            $('.saveBtn').prop('disabled', false);
+          }
+        });
+      });
+      $("#pricingForm").validate({
+        normalizer: function (value) {
+          return $.trim(value);
+        },
+        rules: {
+          from: {
+            required: true,
+          },
+          to: {
+            required: true,
+          }
+        },
+        messages: {
+          from: {
+            required: "From Date is required",
+          },
+          to: {
+            required: "To Date is required",
+          }
+        },
+        submitHandler: function (form) {
+          let invalid = false;
+          $.each(timeslots, function (key, value) {
+            if (!$(form).find('input[name="h' + value + '"]').val() || $(form).find('input[name="h' + value + '"]').val() < 0) {
+              toastr["error"]("Please enter a valid amount");
+              invalid = true;
+              return false;
+            }
+          });
+
+          if (invalid) {
+            return false;
+          }
+          $('.saveBtn').prop('disabled', true);
+          $.ajax({
+            type: "POST",
+            url: "/admin/pricing",
+            data: $(form).serialize(),
+            dataType: 'json',
+            success: function (data) {
+              if (data.status == 1) {
+                if (data.message) {
+                  $.confirm({
+                    title: 'Success!',
+                    content: data.message,
+                    buttons: {
+                      ok: function () {
+                        document.getElementById("pricingForm").reset();
+                        // window.location.href = "/pricing/edit/<%=room._id%>"
+                        window.location.reload();
+                      }
+                    }
+                  });
+                }
+              } else {
+                if (data.errors) {
+                  for (i = 0; i < data.errors.length; i++) {
+                    console.log(data.errors[i]);
+                    toastr["error"](data.errors[i]);
+                  }
+                }
+                if (data.message) {
+                  toastr["error"](data.message);
+                }
+              }
+              $('.saveBtn').prop('disabled', false);
+            },
+            error: function (error) {
+              $('.saveBtn').prop('disabled', false);
+            }
+          });
+          return false;
+        }
+      });
+      $("#pricingEditForm").validate({
+        normalizer: function (value) {
+          return $.trim(value);
+        },
+        rules: {
+          from: {
+            required: true,
+          },
+          to: {
+            required: true,
+          }
+        },
+        messages: {
+          from: {
+            required: "From Date is required",
+          },
+          to: {
+            required: "To Date is required",
+          }
+        },
+        submitHandler: function (form) {
+          let invalid = false;
+          $.each(timeslots, function (key, value) {
+            if (!$(form).find('input[name="h' + value + '"]').val() || $(form).find('input[name="h' + value + '"]').val() < 0) {
+              toastr["error"]("Please enter a valid amount");
+              invalid = true;
+              return false;
+            }
+          });
+
+          if (invalid) {
+            return false;
+          }
+          $('.saveBtn').prop('disabled', true);
+          $.ajax({
+            type: "POST",
+            url: "/admin/pricing/update",
+            data: $(form).serialize(),
+            dataType: 'json',
+            success: function (data) {
+              if (data.status == 1) {
+                if (data.message) {
+                  $.confirm({
+                    title: 'Success!',
+                    content: data.message,
+                    buttons: {
+                      ok: function () {
+                        document.getElementById("pricingForm").reset();
+                        // window.location.href = "/pricing/edit/<%=room._id%>"
+                        window.location.reload();
+                      }
+                    }
+                  });
+                }
+              } else {
+                if (data.errors) {
+                  for (i = 0; i < data.errors.length; i++) {
+                    console.log(data.errors[i]);
+                    toastr["error"](data.errors[i]);
+                  }
+                }
+                if (data.message) {
+                  toastr["error"](data.message);
+                }
+              }
+              $('.saveBtn').prop('disabled', false);
+            },
+            error: function (error) {
+              $('.saveBtn').prop('disabled', false);
+            }
+          });
+          return false;
+        }
+      });
+    </script>
+    <%-include('../shared/footer.ejs')%>

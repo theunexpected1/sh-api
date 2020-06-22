@@ -1,0 +1,336 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="/admin/dashboard">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/rooms">Rooms</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">New</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <%-include('../shared/property_crump.ejs',{current_page:'rooms-info'})%>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 pl-4">
+                <div class="col-sm-12">
+                    <div class="form-header mt-2">
+                        Rooms Info
+                    </div>
+                </div>
+            </div>
+            <div class="row wrapper bg-white mt-0 mb-0">
+                <div class="col-sm-12">
+                    <div class="form-section">
+                        <form class="form-horizontal" id="roomsForm">
+                            <div class="mx-4">
+                                <div class="row clearfix mb-4">
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="first_name" class="col-sm-4 col-form-label">Room Type</label>
+                                            <div class="col-sm-8">
+                                                <input type="hidden" name="property_id" value="<%=id%>" />
+                                                <select class="form-control form-control-sm" name="room_type">
+                                                    <option value="">--Room Type--</option>
+                                                    <% roomtypes.forEach((type)=>{ %>
+                                                        <option value="<%=type._id%>">
+                                                            <%=type.name%>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="last_name" class="col-sm-4 col-form-label">Number of Rooms</label>
+                                            <div class="col-sm-8">
+                                                <input placeholder="Number of Rooms" type="number" class="form-control form-control-sm" name="number_rooms">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Room Name</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="room_name">
+                                                    <option value="">--Room Name--</option>
+                                                    <% roomnames.forEach((name)=>{ %>
+                                                        <option value="<%=name._id%>">
+                                                            <%=name.name%>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Bed Type</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="bed_type">
+                                                    <option value="">--Bed Type--</option>
+                                                    <% bedtypes.forEach((type)=>{ %>
+                                                        <option value="<%=type._id%>">
+                                                            <%=type.name%>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Custom Name</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" id="custom_name" name="custom_name" placeholder="Custom Name">
+                                                <p class="text-muted mt-1">
+                                                    <small>Optional*</small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Number of Guests</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="number_guests">
+                                                    <option value="">--Number of Guests--</option>
+                                                    <% guestnumbers.forEach((guest)=>{ %>
+                                                        <option value="<%=guest.value%>">
+                                                            <%=guest.name%>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Number of Beds</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="number_beds">
+                                                    <option value="">--Number of Beds--</option>
+                                                    <% bednumbers.forEach((number)=>{ %>
+                                                        <option value="<%=number.value%>">
+                                                            <%=number.name%>
+                                                        </option>
+                                                        <% }) %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row align-items-center">
+                                            <label for="Street" class="col-sm-4 col-form-label">Extra Bed Option</label>
+                                            <div class="col-sm-8">
+                                                <div class="form-check form-check-inline radio">
+                                                    <input class="form-check-input" type="radio" id="extrabed-yes" name="extrabed_option" value="1">
+                                                    <label class="form-check-label" for="extrabed-yes">Yes</label>
+                                                </div>
+
+                                                <div class="form-check form-check-inline radio">
+                                                    <input class="form-check-input" id="extrabed-no" type="radio" name="extrabed_option" value="0" checked>
+                                                    <label class="form-check-label" for="extrabed-no">No</label>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6 extra-bed">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">No of Extra Bed</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="extrabed_number">
+                                                    <option value="1">1 Bed</option>
+                                                    <option value="2">2 Beds</option>
+                                                    <option value="3">3 Beds</option>
+                                                    <option value="4">4 Beds</option>
+                                                </select>
+                                                <p class="text-muted mt-1">
+                                                    <small>Optional*</small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6 extra-bed">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Amount For Extra Bed</label>
+                                            <div class="col-sm-8">
+                                                <input type="number" class="form-control form-control-sm" name="amount_extrabed" placeholder="Amount for Extra Bed">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="Street" class="col-sm-4 col-form-label">Room Size</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control form-control-sm" name="room_size" placeholder="Room Size">
+                                                <p class="text-muted mt-1">
+                                                    <small>Optional*</small>
+                                                </p>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Extraslot for Cleaning</label>
+                                            <div class="col-sm-8">
+                                                <select class="form-control form-control-sm" name="extraslot_cleaning">
+                                                    <option value="">-</option>
+                                                    <option value="1">1 Slots</option>
+                                                    <option value="2">2 Slots</option>
+                                                    <option value="3">3 Slots</option>
+                                                    <option value="4">4 Slots</option>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row mb-0 bg-white">
+                                    <div class="col-sm-12">
+                                        <div class="form-header-line">
+                                            Amenites and Services
+                                        </div>
+                                    </div>
+                                </div>
+
+                                <div class="row amenities bg-white mt-0 mb-0">
+                                    <div class="col-sm-12">
+                                        <ul class="list-unstyled d-flex flex-wrap service-amenities justify-content-between align-items-start align-items-md-center flex-md-row mt-4">
+                                            <% services.forEach((service)=>{ %>
+                                                <div class="form-check form-check-inline checkbox checkbox-primary">
+                                                    <input class="form-check-input" id="<%=service._id%>" value="<%=service._id%>" type="checkbox" name="services[]">
+                                                    <label for="<%=service._id%>">
+                                                        <%=service.name%>
+                                                    </label>
+                                                </div>
+                                                <% }); %>
+                                        </ul>
+                                    </div>
+                                </div>
+                            </div>
+                            <!-- container -->
+                            <div class="row mt-2 mb-1">
+                                <div class="col-sm-10 d-flex justify-content-center d-block mx-auto pt-3 pb-4">
+                                    <button type="submit" class="col-sm-4 btn btn-block btn-primary loginBtn saveBtn">Save</button>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $('input[name="extrabed_option"]').on('change', function () {
+                if ($(this).val() == "1") {
+                    $('.extra-bed').addClass('active');
+                } else {
+                    $('.extra-bed').removeClass('active');
+                }
+
+            });
+        </script>
+        <script>
+            $("#roomsForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    room_type: {
+                        required: true,
+                    },
+                    number_rooms: {
+                        required: true,
+                        min: 1
+                    },
+                    room_name: {
+                        required: true
+                    },
+                    bed_type: {
+                        required: true
+                    },
+                    number_guests: {
+                        required: true
+                    },
+                    number_beds: {
+                        required: true
+                    },
+                    extrabed_option: {
+                        required: true,
+                    }
+                },
+                messages: {
+                    room_type: {
+                        required: "Room type required",
+                    },
+                    number_rooms: {
+                        required: "Number of rooms required",
+                        min: "Should have atleast 1 Room"
+                    },
+                    room_name: {
+                        required: "Room Name is required"
+                    },
+                    bed_type: {
+                        required: 'Bed Type is required'
+                    },
+                    number_guests: {
+                        required: "Number of guests is reqired"
+                    },
+                    number_beds: {
+                        required: "Number of beds is required"
+                    },
+                    extrabed_option: {
+                        required: "Extra bed option is required",
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    $.ajax({
+                        type: "POST",
+                        url: "/admin/rooms",
+                        data: $(form).serialize(),
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    $.confirm({
+                                        title: 'Success!',
+                                        content: data.message,
+                                        buttons: {
+                                            ok: function () {
+                                                document.getElementById("roomsForm").reset();
+                                                window.location.href = "/admin/rooms/<%=id%>"
+                                            }
+                                        }
+                                    });
+
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        console.log(data.errors[i]);
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

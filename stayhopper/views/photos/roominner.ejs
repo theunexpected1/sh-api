@@ -1,0 +1,219 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<link
+  rel="stylesheet"
+  href="/public/stay/plugins/upload/css/jquery.dm-uploader.min.css"
+/>
+<div class="content-inner">
+  <!-- Page Header-->
+  <header class="page-header">
+    <div
+      class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center"
+    >
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="#">Hotel Management</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="#">Properties</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="#">Photos</a>
+          </li>
+          <li class="breadcrumb-item active fw-700" aria-current="page">
+            Rooms List
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </header>
+
+  <%-include('../shared/property_crump.ejs',{current_page:'photos'})%>
+
+  <div class="container-fluid">
+    <div class="row wrapper mt-4 mb-0 bg-white px-4 pt-4">
+      <div class="col-sm-12 d-flex justify-content-between">
+        <div class="form-header mt-2">
+          <%=room.room_type.name+"("%>
+          <%=room.custom_name||room.room_name.name%> <%=")"%>
+        </div>
+        <a
+          href="/photos/<%=property._id%>"
+          class="btn btn-outline-secondary back btn-sm  btn-full-mobile mb-1 mb-md-0 mr-2"
+          >Continue</a
+        >
+      </div>
+
+      <div class="col-sm-12 col-md-12 col-sm-12 col-12 mt-3">
+        <p class="small mb-4">
+          Great photos invite guests to get the full experience of your
+          property. So upload some high-resolution photos that represent all
+          your property has to offer.
+        </p>
+        <div class="img-mention">
+          <p class="muted mb-0">
+            Supported file formats - <span class="fw-700">.jpg, .png</span>
+          </p>
+          <p class="muted mb-0">
+            Max allowed size: <span class="fw-700">20MB</span>
+          </p>
+          <p class="muted mb-0">
+            System resizing the photos to width 600, height will be
+            automatically adjusted based on the photo's original width and
+            height. So try to use similar sized images or in ratio. Resize image
+            will be perfect if uploading image in size like
+            <span class="fw-700"
+              >600pxx400px, 900x600px, 1200x800px, 1500x1000px, 1800x1200px,
+              2400x1600px</span
+            >
+            etc.
+          </p>
+        </div>
+      </div>
+
+      <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-3 mb-3">
+        <div class="row w-900 mx-auto mt-2 mb-2 file_upload">
+          <div class="col-md-12 col-sm-12 pl-md-0 pr-md-0">
+            <!-- Our markup, the important part here! -->
+            <div id="drag-and-drop-zone" class="dm-uploader p-5">
+              <h3 class="mb-5 mt-5 text-muted">Drag &amp; drop files here</h3>
+              <div class="btn btn-primary btn-block mb-5">
+                <span>Upload Image</span>
+                <input type="file" title="Click to add Files" name="images" />
+              </div>
+            </div>
+            <!-- /uploader -->
+          </div>
+          <div class="col-md-12 col-sm-12 pl-md-0 pr-md-0">
+            <div class="card h-100">
+              <div class="card-header">
+                File List
+              </div>
+              <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                <li class="text-muted text-center empty">No files uploaded.</li>
+              </ul>
+            </div>
+          </div>
+        </div>
+      </div>
+      <div class="col-lg-12 col-md-12 col-sm-12 col-12 mt-3 mb-3">
+        <div class="row image--grid">
+          <% if(room.images.length > 0){ room.images.forEach((image)=>{ %>
+          <div class="col-sm-4">
+            <% if(room.featured){if(_.contains(room.featured,image)){ %>
+            <div class="image--grid--tag">
+              <span class="make_featured">FEATURED</span>
+            </div>
+            <% }else{ %>
+            <div class="image--grid--tag">
+              <span
+                class="make_featured"
+                data-image="<%=image%>"
+                data-id="<%=room._id%>"
+                onclick="make_featured(this)"
+              >
+                <% if(room.featured){if(_.contains(room.featured,image)){
+                %>FEATURED <% }else{ %>MAKE FEATURED <%}}else{%>MAKE FEATURED
+                <%}%>
+              </span>
+              <a
+                class="remove-image"
+                data-image="<%=image%>"
+                data-id="<%=room._id%>"
+                onclick="remove_image(this)"
+              >
+                <span class="tag-close icon-cancel"></span>
+              </a>
+            </div>
+            <%}}else{%>
+            <div class="image--grid--tag">
+              <span
+                class="make_featured"
+                data-image="<%=image%>"
+                data-id="<%=room._id%>"
+                onclick="make_featured(this)"
+              >
+                <% if(room.featured){if(_.contains(room.featured,image)){
+                %>FEATURED <% }else{ %>MAKE FEATURED <%}}else{%>MAKE FEATURED
+                <%}%>
+              </span>
+              <a
+                class="remove-image"
+                data-image="<%=image%>"
+                data-id="<%=room._id%>"
+                onclick="remove_image(this)"
+              >
+                <span class="tag-close icon-cancel"></span>
+              </a>
+            </div>
+            <%}%>
+            <img src="/<%=image%>" class="img-fluid" alt="image-grid" />
+          </div>
+          <% }); } %>
+        </div>
+      </div>
+    </div>
+  </div>
+  <script>
+    function remove_image(el) {
+      var image = $(el).data("image");
+      var id = $(el).data("id");
+      $.confirm({
+        title: "Confirm!",
+        content: "Do you want to continue?",
+        buttons: {
+          confirm: function() {
+            $.ajax({
+              url: "/photos/room/remove",
+              type: "post",
+              data: { image: image, id: id },
+              success: function(data) {
+                if (data.status == 1) {
+                  window.location.reload();
+                }
+              }
+            });
+          },
+          cancel: function() {}
+        }
+      });
+    }
+    function make_featured(el) {
+      var image = $(el).data("image");
+      var id = $(el).data("id");
+      $.ajax({
+        url: "/photos/room/featured",
+        type: "post",
+        data: { image: image, id: id },
+        success: function(data) {
+            window.location.reload();
+        }
+      });
+    }
+  </script>
+  <script src="/public/stay/plugins/upload/js/jquery.dm-uploader.min.js"></script>
+  <script src="/public/stay/plugins/upload/upload-room.js"></script>
+  <script src="/public/stay/plugins/upload/demo-ui.js"></script>
+  <!-- File item template -->
+  <script type="text/html" id="files-template">
+    <li class="media">
+      <div class="media-body mb-1">
+        <p class="mb-2">
+          <strong>%%filename%%</strong> - Status: <span class="text-muted">Waiting</span>
+        </p>
+        <div class="progress mb-2">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary"
+            role="progressbar"
+            style="width: 0%"
+            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+        <hr class="mt-1 mb-1" />
+      </div>
+    </li>
+  </script>
+  <script type="text/javascript">
+    var room_id = "<%=room._id%>";
+  </script>
+  <%-include('../shared/footer.ejs')%>
+</div>

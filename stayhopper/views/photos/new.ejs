@@ -1,0 +1,88 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<link rel="stylesheet" href="/public/stay/plugins/upload/css/jquery.dm-uploader.min.css">
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Hotel Management</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Properties</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Photos</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">New</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row wrapper mt-4 mb-0 bg-white">
+            <div class="col-sm-12 text-center mx-auto">
+                <div class="form-header fs-20">
+                    Photo Upload
+                </div>
+            </div>
+        </div>
+        <main role="main" class="wrapper bg-white">
+            <div class="row w-900 mx-auto mt-2 mb-2">
+                <div class="col-md-6 col-sm-12">
+                    <!-- Our markup, the important part here! -->
+                    <div id="drag-and-drop-zone" class="dm-uploader p-5">
+                        <h3 class="mb-5 mt-5 text-muted">Drag &amp; drop files here</h3>
+                        <div class="btn btn-primary btn-block mb-5">
+                            <span>Upload Image</span>
+                            <input type="file" title='Click to add Files' name="images" />
+                        </div>
+                    </div>
+                    <!-- /uploader -->
+                </div>
+                <div class="col-md-6 col-sm-12">
+                    <div class="card h-100">
+                        <div class="card-header">
+                            File List
+                        </div>
+                        <ul class="list-unstyled p-2 d-flex flex-column col" id="files">
+                            <li class="text-muted text-center empty">No files uploaded.</li>
+                        </ul>
+                    </div>
+                </div>
+            </div>
+            <!-- /file list -->
+            <div class="row mt-5 mb-4">
+                <div class="col-md-12  d-flex justify-content-end pr-5">
+                    <a href="/photos/<%=property._id%>" class="btn btn-outline-secondary back btn-sm btn-full-mobile mb-1 mb-md-0">Back</a>
+                </div>
+            </div>
+        </main>
+        <!-- /container -->
+    </div>
+    <script src="/public/stay/plugins/upload/js/jquery.dm-uploader.min.js"></script>
+    <script src="/public/stay/plugins/upload/demo-config.js"></script>
+    <script src="/public/stay/plugins/upload/demo-ui.js"></script>
+    <!-- File item template -->
+    <script type="text/html" id="files-template">
+    <li class="media">
+      <div class="media-body mb-1">
+        <p class="mb-2">
+          <strong>%%filename%%</strong> - Status: <span class="text-muted">Waiting</span>
+        </p>
+        <div class="progress mb-2">
+          <div class="progress-bar progress-bar-striped progress-bar-animated bg-primary" 
+            role="progressbar"
+            style="width: 0%" 
+            aria-valuenow="0" aria-valuemin="0" aria-valuemax="100">
+          </div>
+        </div>
+        <hr class="mt-1 mb-1" />
+      </div>
+    </li>
+  </script>
+    <script type="text/javascript">
+        var property_id = '<%=property._id%>'
+    </script>
+    <%-include('../shared/footer.ejs')%>

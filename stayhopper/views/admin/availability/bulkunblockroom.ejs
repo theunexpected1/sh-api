@@ -1,0 +1,198 @@
+<!-- Modal Header -->
+<div class="modal-header">
+        <!-- <h4 class="text-center">Room Details</h4> -->
+        <button type="button" class="close" data-dismiss="modal">&times;</button>
+      </div>
+      <!-- Modal body -->
+      <form action="javascript:;" id="formBulkEdit">
+      <div class="modal-body">
+              <input type="hidden" name="property" value="<%=property%>">
+              <input type="hidden" name="room" value="<%=room%>">
+              <input type="hidden" name="room_no" value="<%=room_no%>">
+              <div class="row">
+                  <div class="col-sm-6">
+                      <div class="form-group">
+                          <label for="rooms" class="form-label">From Date</label>
+                          <input type="text" name="from" id="fromDate" class="form-control" autocomplete="off">
+                      </div>
+                  </div>
+                  <div class="col-sm-6">
+                      <div class="form-group">
+                          <label for="rooms" class="form-label">To Date</label>
+                          <input type="text" name="to" id="toDate" class="form-control" autocomplete="off">
+                      </div>
+                  </div>
+              </div>
+              <div class="row">
+                  <div class="col-sm-6">
+                      <div class="form-group">
+                          <label for="rooms" class="form-label">From Slot</label>
+                          <select name="from_slot" id="fromSlot" class="form-control">
+                              <option value="">-Select From Slot-</option>
+                              <%
+                                  for(var i=0;i<slots.length;i++){
+                              %>
+                                  <option value="<%=slots[i].id%>"><%=slots[i].label%></option>
+                              <%
+                                  }
+                              %> 
+                          </select>
+                      </div>
+                  </div>
+                  <div class="col-sm-6">
+                      <div class="form-group">
+                          <label for="rooms" class="form-label">To Slot</label>
+                          <select name="to_slot" id="toSlot" class="form-control">
+                              <option value="">-Select To Slot-</option>
+                              <%
+                                  for(var i=0;i<slots.length;i++){
+                              %>
+                                  <option value="<%=slots[i].id%>"><%=slots[i].label%></option>
+                              <%
+                                  }
+                              %> 
+                          </select>
+                      </div>
+                  </div>
+              </div>
+      </div>
+      <!-- Modal footer -->
+      <style>
+          .saveBtn{
+              min-height: 0px;
+          }
+      </style>    
+      <div class="modal-footer">
+          <button type="submit" class="btn btn-success saveBtn">Unblock Slots</button>
+          <button type="button" class="btn btn-danger" data-dismiss="modal">Close</button>
+      </div>
+      <br/>
+      <div class="msgDiv m-1"></div>
+      </form>
+      <script>
+          $('#fromDate').datepicker({
+              startDate: '0d',
+              format: 'yyyy-mm-dd',
+              autoclose: true
+          });
+          $('#toDate').datepicker({
+              startDate: '0d',
+              format: 'yyyy-mm-dd',
+              autoclose: true
+          });
+          $('#fromDate').on('change',function(){
+              var fromDate = $(this).val();
+              $('#toDate').datepicker('remove');
+              $('#toDate').datepicker({
+              startDate: fromDate,
+              format: 'yyyy-mm-dd',
+              autoclose: true
+          });
+          });
+      </script>    
+      <script type="text/javascript">
+          $("form#formBulkEdit").validate({
+              normalizer: function (value) {
+                  return $.trim(value);
+              },
+              rules: {
+                  from: {
+                      required: true
+                  },
+                  to: {
+                      required: true
+                  },
+                  from_slot: {
+                      required: true
+                  },
+                  to_slot: {
+                      required: true
+                  }
+              },
+              messages: {
+                  from: {
+                      required: "From Date must be required"
+                  },
+                  to: {
+                      required: "To Date must be required"
+                  },
+                  from_slot: {
+                      required: "From Slot must be required"
+                  },
+                  to_slot: {
+                      required: "To Slot must be required"
+                  }
+              },
+              submitHandler: function (form) {
+                  $('.saveBtn').prop('disabled', true);
+                  $('.saveBtn').html('Saving...');
+                  $('.msgDiv').html(``);
+                  $.ajax({
+                      type: "post",
+                      url: "/admin/availability/bulkunblock/room/update",
+                      data: $(form).serialize(),
+                      dataType: 'json',
+                      success: function (data) {
+                          if (data.status == 1) {
+                              if (data.message) {
+                                $('.msgDiv').html(`
+                                    <div class="alert alert-success">
+                                        `+data.message+`
+                                    </div>
+                                `);
+                                //   toastr["success"](data.message);
+                                //   setTimeout(function(){
+                                //     window.location.reload();
+                                //   },1000);
+                              }
+                          } else {
+                              if (data.errors) {
+                                html = "";
+                                for (i = 0; i < data.errors.length; i++) {
+                                    html += data.errors[i]+"<br/>";
+                                }
+                                $('.msgDiv').html(`
+                                    <div class="alert alert-danger">
+                                        `+html+`
+                                    </div>
+                                `);
+                              }
+                              if (data.message) {
+                                $('.msgDiv').html(`
+                                    <div class="alert alert-danger">
+                                        `+data.message+`
+                                    </div>
+                                `);
+                              }
+                          }
+                          $('.saveBtn').prop('disabled', false);
+                          $('.saveBtn').html('Unblock Slots');
+                      },
+                      error: function (error) {
+                          $('.saveBtn').prop('disabled', false);
+                          $('.saveBtn').html('Unblock Slots');
+                      }
+                  });
+                  return false;
+              }
+          });
+          $('#fromSlot').on('change',function(){
+              var from_slot = $(this).val(); 
+              $.ajax({
+                  url:'/admin/availability/get_toslot',
+                  type:'post',
+                  data:{from_slot},
+                  dataType:'json',
+                  success:function(data){
+                      var html = `<option value="">-To Slot-</option>`;
+                      if(data.status==1){
+                          $.each(data.slots,function(key,value){
+                              html+= `<option value="`+value._id+`">`+value.label+`</option>`
+                          });
+                      }
+                      $('#toSlot').html(html);
+                  }
+              });
+          });
+      </script>    
+      

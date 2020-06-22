@@ -1,0 +1,165 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header mb-5">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#">Properties</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="#">Pricing</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">New</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+
+
+        <div class="container-fluid">
+            <div class="row wrapper mt-4 mb-0 bg-white">
+                <div class="col-sm-12">
+                    <div class="form-header">
+                        Double Delux
+                    </div>
+                </div>
+            </div>
+            <form action="javascript:;" id="pricingForm">
+                <div class="row wrapper bg-white justify-content-center align-items-center text-secondary mt-0 mb-0">
+                    <div class="col-lg-12 col-md-12 col-sm-12 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                        <div class="form-group">
+                            <label for="inputPassword6">Choose the date and amount</label>
+                        </div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                        <div class="form-group">
+                            <small class="d-block border-0">
+                                <label for="inputPassword6">Choose from date</label>
+                            </small>
+                            <input type="hidden" name="room" value="<%=room._id%>">
+                            <input type="hidden" name="property" value="<%=room.property_id%>">
+                            <input type="text" class="dateselect mt-1 form-control border-secondary" placeholder="Select Date &#xe927;" style="text-indent:0.65em"
+                                name="from" readonly/>
+                        </div>
+                        <div class="date"></div>
+                    </div>
+
+
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                        <div class="form-group">
+                            <small class="d-block border-0">
+                                <label for="inputPassword6">Choose to date</label>
+                            </small>
+                            <input type="text" class="dateselect mt-1 form-control border-secondary datepicker" required="required" placeholder="Select Date &#xe927;"
+                                style="text-indent:0.65em" name="to" readonly/>
+                        </div>
+                        <div class="date"></div>
+                    </div>
+
+                    <div class="col-lg-4 col-md-4 col-sm-4 col-12 d-flex justify-content-between align-items-center flex-column flex-md-row flex-nowrap text-center text-md-left">
+                        <div class="form-group mr-2">
+                            <label for="exampleInputEmail1">3H</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="3 Hrs">
+                        </div>
+                        <div class="form-group mr-2">
+                            <label for="exampleInputEmail1">6H</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="6 Hrs">
+                        </div>
+                        <div class="form-group mr-2">
+                            <label for="exampleInputEmail1">12H</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="12 Hrs">
+                        </div>
+                        <div class="form-group mr-2">
+                            <label for="exampleInputEmail1">24H</label>
+                            <input type="email" class="form-control" id="exampleInputEmail1" aria-describedby="emailHelp" placeholder="24 Hrs">
+                        </div>
+                        <div>
+                        </div>
+                    </div>
+                </div>
+
+                <div class="row wrapper mt-3 pb-4">
+                    <div class="col-md-4 offset-md-8">
+                        <button type="submit" class="btn btn-primary btn-lg btn-block btn-full-mobile mb-2 mb-md-0 saveBtn">Save</button>
+                    </div>
+                </div>
+            </form>
+        </div>
+        <script type="text/javascript">
+            $("#pricingForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    from: {
+                        required: true,
+                    },
+                    to: {
+                        required: true,
+                    },
+                    price: {
+                        required: true,
+                        min: 1
+                    }
+                },
+                messages: {
+                    from: {
+                        required: "From Date is required",
+                    },
+                    to: {
+                        required: "To Date is required",
+                    },
+                    price: {
+                        required: "Price is required",
+                        min: "Should be atleast 1"
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    $.ajax({
+                        type: "POST",
+                        url: "/admin/pricing",
+                        data: $(form).serialize(),
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    $.confirm({
+                                        title: 'Success!',
+                                        content: data.message,
+                                        buttons: {
+                                            ok: function () {
+                                                document.getElementById("pricingForm").reset();
+                                                window.location.href = "/admin/pricing/edit/<%=room._id%>"
+                                            }
+                                        }
+                                    });
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        console.log(data.errors[i]);
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

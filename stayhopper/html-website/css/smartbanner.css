@@ -1,0 +1,201 @@
+/*!
+ * smartbanner.js v1.10.1 <https://github.com/ain/smartbanner.js>
+ * Copyright © 2018 Ain Tohvri, contributors. Licensed under GPL-3.0.
+ */
+html[data-smartbanner-original-margin-bottom] {
+    height: auto!important;
+}
+
+.smartbanner {
+    position: fixed;
+    bottom: 0;
+    left: 0;
+    overflow-x: hidden;
+    width: 100%;
+    height: 80px;
+    background: #F4F9FA;
+    font-family: Helvetica, sans, sans-serif;
+	z-index:9999;
+}
+
+.smartbanner__exit {
+    position: absolute;
+    top: calc(50% - 6px);
+    left: 9px;
+    display: block;
+    margin: 0;
+    width: 12px;
+    height: 12px;
+    border: 0;
+    text-align: center;
+	display:none
+}
+
+.smartbanner__exit::before,
+.smartbanner__exit::after {
+    position: absolute;
+    width: 1px;
+    height: 12px;
+    background: #767676;
+    content: ' '
+}
+
+.smartbanner__exit::before {
+    transform: rotate(45deg)
+}
+
+.smartbanner__exit::after {
+    transform: rotate(-45deg)
+}
+
+.smartbanner__icon {
+    position: absolute;
+    top: 15px;
+    left: 15px;
+    width: 52px;
+    height: 52px;
+    border-radius: 6px;
+    background-size:cover;
+}
+
+.smartbanner__info {
+    position: absolute;
+    top: 8px;
+    left:78px;
+    display: flex;
+    overflow-y: hidden;
+    width: 60%;
+    height: 64px;
+    align-items: center;
+    color: #0a174c75;
+}
+
+.smartbanner__info__title {
+    font-size: 16px;
+    margin-top: 8px;
+    font-weight: 400!important;
+    margin-bottom: -3px;
+	line-height: 18px;
+	color:#0a174c;
+}
+
+.smartbanner__info__author,
+.smartbanner__info__price {
+    font-size: 12px
+}
+.smartbanner__info__author{margin-bottom: -10px;display:none}
+
+.smartbanner__button {
+    position: absolute;
+    top: 25px;
+    right: 12px;
+    z-index: 1;
+    display: block;
+    padding: 0 10px;
+    min-width: 10%;
+    border-radius: 5px;
+    background: #0a174c;
+    color: #1474fc;
+    font-size: 14px;
+    text-align: center;
+    text-decoration: none;
+    border: 0 none;
+    padding: 6px 15px;
+    border-radius: 5px;
+    color: #fff!important;
+}
+
+.smartbanner__button__label {
+    text-align: center
+}
+
+.smartbanner.smartbanner--android {
+    background: #f4f9fa;
+    box-shadow: none;
+}
+
+.smartbanner.smartbanner--android .smartbanner__exit {
+    left: 6px;
+    margin-right: 7px;
+    width: 17px;
+    height: 17px;
+    border-radius: 14px;
+    background: #1c1e21;
+    box-shadow: 0 1px 2px rgba(0, 0, 0, 0.8) inset, 0 1px 1px rgba(255, 255, 255, 0.3);
+    color: #b1b1b3;
+    font-family: 'ArialRoundedMTBold', Arial;
+    font-size: 20px;
+    -webkit-font-smoothing: subpixel-antialiased;
+    line-height: 17px;
+    text-shadow: 0 1px 1px #000;
+	display:none;
+}
+
+.smartbanner.smartbanner--android .smartbanner__exit::before,
+.smartbanner.smartbanner--android .smartbanner__exit::after {
+    top: 3px;
+    left: 8px;
+    width: 2px;
+    height: 11px;
+    background: #b1b1b3
+}
+
+.smartbanner.smartbanner--android .smartbanner__exit:active,
+.smartbanner.smartbanner--android .smartbanner__exit:hover {
+    color: #eee
+}
+
+.smartbanner.smartbanner--android .smartbanner__icon {
+    background-color: transparent;
+    box-shadow: none
+}
+
+.smartbanner.smartbanner--android .smartbanner__info {
+    color: #0a174c75;
+    text-shadow: 0 0 0;
+}
+
+.smartbanner.smartbanner--android .smartbanner__info__title {
+    color: #0a174c;
+    font-weight: bold;
+	line-height: 18px;
+	width:200px;
+}
+
+.smartbanner.smartbanner--android .smartbanner__button {
+    top: 24px;
+    right: 15px;
+    padding: 0;
+    min-width: 12%;
+    border-radius: 0;
+    background: none;
+    box-shadow: none;
+    color: #fff;
+    font-size: 14px;
+    font-weight: bold
+}
+
+.smartbanner.smartbanner--android .smartbanner__button:active,
+.smartbanner.smartbanner--android .smartbanner__button:hover {
+    background: none
+}
+
+.smartbanner.smartbanner--android .smartbanner__button__label {
+    display: block;
+    padding: 0 10px;
+    background: #0a174c;
+    box-shadow: none;
+    line-height: 24px;
+    text-align: center;
+    text-shadow: none;
+    text-transform: none;
+    transition: all 2s;
+    border: 0 none;
+    padding: 7px 16px;
+    border-radius: 4px;
+}
+
+.smartbanner.smartbanner--android .smartbanner__button__label:active,
+.smartbanner.smartbanner--android .smartbanner__button__label:hover {
+    background: #2ac7e1
+}

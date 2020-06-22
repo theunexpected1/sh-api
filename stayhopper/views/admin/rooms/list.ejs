@@ -1,0 +1,141 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<div class="content-inner">
+  <!-- Page Header-->
+  <header class="page-header">
+    <div
+      class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center"
+    >
+      <nav aria-label="breadcrumb">
+        <ol class="breadcrumb">
+          <li class="breadcrumb-item">
+            <a href="javascript:;">Hotel Management</a>
+          </li>
+          <li class="breadcrumb-item">
+            <a href="/admin/properties">Properties</a>
+          </li>
+          <li class="breadcrumb-item active fw-700" aria-current="page">
+            Rooms
+          </li>
+        </ol>
+      </nav>
+    </div>
+  </header>
+  <%-include('../shared/property_crump.ejs',{current_page:'rooms-info'})%>
+  <div class="container-fluid pb-0">
+    <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 pl-4">
+      <div class="col-sm-12">
+        <div class="form-header">Rooms Information</div>
+      </div>
+    </div>
+    <div class="row wrapper mt-0 mb-0 bg-white">
+      <div
+        class="col-lg-4 col-md-4 col-sm-12 col-12 d-flex flex-column flex-md-row justify-content-between align-items-center align-items-md-end mt-4 mt-md-0 text-secondary text-center mx-4"
+      >
+        <p>Added Rooms : <span class="fw-700"> <%=itemCount%> </span></p>
+        <p>Total Rooms : <span class="fw-700"> <%=totalRooms||0%> </span></p>
+      </div>
+    </div>
+    <div class="row mt-0 mb-0">
+      <div
+        class="col-lg-12 col-md-12 col-sm-12 col-12 mt-3 mb-3 d-flex justify-content-end"
+      >
+        <a
+          type="btn btn-sm"
+          class="btn btn-secondary btn-full-mobile mb-2 mb-md-0 mr-5"
+          href="/admin/rooms/new/<%=property._id%>"
+        >
+          Add new room
+        </a>
+      </div>
+    </div>
+  </div>
+  <!-- container -->
+  <div class="container-fluid">
+    <% rooms.forEach((room)=>{ %>
+    <div
+      class="row wrapper room-information justify-content-center align-items-center has-shadow text-secondary bg-white mb-4"
+    >
+      <div
+        class="col-lg-12 col-md-12 col-sm-12 col-12 room-information-items d-flex justify-content-around align-items-center flex-column flex-md-row flex-nowrap text-center"
+      >
+        <dl>
+          <dt>Room Type</dt>
+          <dd><%=room.room_type.name %></dd>
+        </dl>
+        <dl>
+          <dt>Room Name</dt>
+          <dd>
+            <% if(room.custom_name){%> <%=room.custom_name%> <% }else{%>
+            <%=room.room_name.name%> <% } %>
+          </dd>
+        </dl>
+        <dl>
+          <dt>Number of room in this type</dt>
+          <dd><%=room.number_rooms%></dd>
+        </dl>
+        <dl class="d-flex align-items-center">
+          <a href="/admin/rooms/edit/<%=room._id%>" id="show-panel">
+            <i class="icon-edit font-lg"></i>
+          </a>
+          <a href="#" data-room="<%=room._id%>" class="deleteBtn ml-2">
+            <i class="icon-trash-2 font-lg"></i>
+          </a>
+        </dl>
+      </div>
+    </div>
+    <% })%> <%- include('../shared/pagination') %> <% if(_.contains(completed,
+    'rooms') && ! _.contains(completed, 'photos')){ %>
+    <div
+      class="col-sm-4 d-flex justify-content-center d-block mx-auto pt-3 pb-4"
+    >
+      <a href="/admin/photos/<%=property_id%>">
+        <button class="btn btn-block btn-primary loginBtn saveBtn px-5">
+          Save & Continue
+        </button>
+      </a>
+    </div>
+    <% } %>
+  </div>
+  <script>
+    $(".deleteBtn").on("click", function() {
+      room = $(this).data("room");
+      $.confirm({
+        title: "Requires confirmation!",
+        content: "Do you really want to delete this Room",
+        buttons: {
+          Yes: function() {
+            $.ajax({
+              url: "/admin/rooms/delete",
+              type: "post",
+              data: { room },
+              dataType: "json",
+              success: function(data) {
+                if (data.status == 1) {
+                  if (data.message) {
+                    $.confirm({
+                      title: "Success!",
+                      content: data.message,
+                      buttons: {
+                        ok: function() {
+                          window.location.reload();
+                        }
+                      }
+                    });
+                  }
+                } else {
+                  if (data.message) {
+                    toastr["error"](data.message);
+                  }
+                }
+              }
+            });
+          },
+          No: function() {
+
+          }
+        }
+      });
+    });
+  </script>
+  <%-include('../shared/footer.ejs')%>
+</div>

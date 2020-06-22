@@ -1,0 +1,270 @@
+<%-include('../shared/header.ejs',{active:'hoteladmin',parent:'hotels-management'})%>
+    <div class="content-inner">
+        <header class="page-header">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="javascript:;">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/hoteladmins/">Hotel Admins</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">New</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-4 pl-4">
+                <div class="col-sm-12">
+                    <div class="form-header">
+                        Contact Information
+                    </div>
+                </div>
+            </div>
+            <div class="row wrapper mt-0 mb-5 bg-white">
+                <div class="col-sm-12">
+                    <form action="javascript:;" id="hotelEditForm">
+                        <div class="form-section">
+                            <div class="mx-4">
+                                <div class="row">
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="contact_name" class="col-sm-4 col-form-label">Contact Person*</label>
+                                            <div class="col-sm-8">
+                                                <input type="hidden" name="company_id" value="">
+                                                <input type="text" class="form-control" name="contact_person" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="legal_name" class="col-sm-4 col-form-label">Designation*</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="legal_name" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="select_country" class="col-sm-4 col-form-label">Country*</label>
+                                            <div class="col-sm-8">
+                                                <select class="custom-select" name="country">
+                                                    <option value="">--Country--</option>
+                                                    <% countries.forEach((country)=>{ %>
+                                                        <option value="<%=country._id%>">
+                                                            <%=country.country%>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label for="select_city" class="col-sm-4 col-form-label">City*</label>
+                                            <div class="col-sm-8">
+                                                <select name="city" class="form-control">
+                                                    <option value="">--City--</option>
+                                                    <% cities.forEach(city=>{ %>
+                                                        <option value="<%=city._id%>">
+                                                                <%=city.name%>
+                                                        </option>
+                                                        <% }); %>
+                                                </select>
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Address 1</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="address_1" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Address 2</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="address_2" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6" hidden>
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Location</label>
+                                            <div class="col-sm-8">
+                                                <input type="hidden" name="latlng" value="25.2048,55.2708">
+                                                <input class="form-control placepicker" type="text" name="location" value="Dubai">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Postal Number</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="zip" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Email Address*</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="email" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Mobile Number*</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="mobile" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Land Number</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="land_phone" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                    <div class="form-group form-group-sm col-sm-6">
+                                        <div class="row">
+                                            <label class="col-sm-4 col-form-label">Alt. Land Number</label>
+                                            <div class="col-sm-8">
+                                                <input type="text" class="form-control" name="alt_land_phone[]" value="">
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-4 d-flex justify-content-center d-block mx-auto pt-3 pb-4">
+                                <button class="btn btn-block btn-primary loginBtn saveBtn">Save</button>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+        <!-- container -->
+        <script src='https://maps.googleapis.com/maps/api/js?language=en&libraries=places&key=AIzaSyDf4pG0suPTM9_c9j4cUiRoWCtkzJJzH2c'></script>
+        <script src="/public/stay/plugins/placepicker/jquery.placepicker.min.js"></script>
+        <script>
+            $(document).ready(function () {
+                var mapPlacepicker = $(".placepicker").placepicker({
+                    placeChanged: function (place) {
+                        $('input[name="latlng"]').val(this.getLocation().latitude + "," + this.getLocation().longitude);
+                    }
+                });
+            });
+            $(".placepicker").on('change', function () {
+                if (!$('input[name="latlng"]').val()) {
+                    $(this).val("");
+                }
+            });
+        </script>
+        <script>
+            $("#hotelEditForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    contact_person: {
+                        required: true
+                    },
+                    legal_name: {
+                        required: true
+                    },
+                    country: {
+                        required: true
+                    },
+                    city: {
+                        required: true
+                    },
+                    email: {
+                        required: true,
+                        email: true
+                    },
+                    mobile: {
+                        required: true,
+                        number:true
+                    },
+                    location: {
+                        required: true
+                    }
+                },
+                messages: {
+                    contact_person: {
+                        required: "Contact name must be required",
+                    },
+                    legal_name: {
+                        required: "Designation must be required",
+                    },
+                    country: {
+                        required: "Country name must be required",
+                    },
+                    city: {
+                        required: "City name must be required",
+                    },
+                    email: {
+                        required: "Email must be required",
+                        email: "Not a valid email address"
+                    },
+                    mobile: {
+                        required: "Mobile must be required",
+                        number: "Mobile number must be numeric",
+                    },
+                    location: {
+                        required: "Location must be required"
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    var form = document.getElementById('hotelEditForm');
+                    var data = $(form).serialize();
+                    $.ajax({
+                        type: "POST",
+                        url: "/admin/hoteladmins/admin/new",
+                        data: data,
+                        dataType: 'json',
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    $.confirm({
+                                        title: 'Success!',
+                                        content: data.message,
+                                        buttons: {
+                                            ok: function () {
+                                                document.getElementById("hotelEditForm").reset();
+                                                window.location.href = "/admin/hoteladmins/";
+                                            }
+                                        }
+                                    });
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        console.log(data.errors[i]);
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>

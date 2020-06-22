@@ -1,0 +1,430 @@
+<%-include('../shared/header.ejs',{active:'availability',parent:'hotels-management'})%>
+    <link rel="stylesheet" href="/public/css/booking.css">
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item">
+                            <a href="#">Hotel Management</a>
+                        </li>
+                        <li class="breadcrumb-item">
+                            <a href="/admin/availability">Availability</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">View</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-4 px-4">
+                <div class="col-lg-6 col-md-6 col-sm-4 col-12 mb-2  mt-2">
+                        <p class="post-tags">
+                            <!-- <span>Tags:</span>  -->
+                            <a href="#" rel="tag"><%=property.company.legal_name%></a>
+                            <a href="#" rel="tag"><%=property.name%></a>
+                            <a href="#" rel="tag"><%=room.room_name.name||room.custom_name%></a>
+                            <a style="cursor:pointer;" onclick="reserveAll('<%=room._id%>')" rel="tag">Block All</a>
+                            <a style="cursor:pointer;" onclick="cancelAll('<%=room._id%>')" rel="tag">Unblock All</a>
+                        </p>
+                    <!-- <button type="button" class="btn btn-sm btn-outline-primary btn-full-mobile mb-2" id="dropdownMenuButton" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <%=property.company.legal_name%>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-full-mobile mb-2" id="dropdownMenuButton" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <%=property.name%>
+                    </button>
+                    <button type="button" class="btn btn-sm btn-outline-primary btn-full-mobile mb-2" id="dropdownMenuButton" data-toggle="dropdown"
+                        aria-haspopup="true" aria-expanded="false">
+                        <%=room.room_name.name||room.custom_name%>
+                    </button> -->
+                </div>
+                <div class="col-lg-3 col-md-3 col-sm-8 col-12 d-flex justify-content-center justify-content-md-end ml-auto">
+                    <form action="" id="dateForm">
+                        <div class="form-group">
+                            <input type="text" value="<%=date%>" name="date" class="form-control form-control-sm mt-1 empty datepicker border-secondary"
+                                required="required" placeholder="Select Date &#xe927;" style="text-indent:0.65em" />
+                        </div>
+                        <div class="date"></div>
+                    </form>
+                </div>
+            </div>
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-4 px-4 mt-4 has-shadow mb-4">
+                <div class="col-sm-6">
+                    <div class="form-header">
+                        <%=room.room_type.name%>
+                            <% if(room.custom_name){%>
+                                <%="("+room.custom_name+")"%>
+                                    <%}else{%>
+                                        <%="("+room.room_name.name+")"%>
+                                            <%}%>
+                    </div>
+                </div>
+                <div class="col-sm-6 ">
+                    <div class="indicator d-flex flex-column flex-md-row justify-content-md-end align-items-start align-items-md-end mt-3 mt-md-0">
+                        <div class="d-flex justify-content-md-center align-items-start align-items-md-center">
+                            <div class="indicator-light green"></div>
+                            <span>Booked</span>
+                        </div>
+                        <div class="d-flex justify-content-md-center align-items-center">
+                            <div class="indicator-light red"></div>
+                            <span>Blocked</span>
+                        </div>
+                        <div class="d-flex justify-content-md-center align-items-center">
+                            <div class="indicator-light blue"></div>
+                            <span>Reserved</span>
+                        </div>
+                        <div class="d-flex justify-content-md-center align-items-center">
+                            <div class="indicator-light grey"></div>
+                            <span>Available</span>
+                        </div>
+                    </div>
+                </div>
+            </div>
+            <% for(var i = 0; i < room.number_rooms; i++){ %>
+                <div class="row wrapper room-availability-details justify-content-center align-items-center bg-white text-secondary mt-0 mb-4 pb-0">
+                    <div class="col-lg-10 col-md-12 col-sm-12 col-12 text-center">
+                        <ol class="seats list-unstyled mb-0" type="A">
+                            <% 
+                                var blocked = false;
+                                slots.forEach((slot)=>{ 
+                                    blocked = false;
+                                    booked = false;
+                                    reserved = false;
+                                    var arr = _.filter(bookingArray, function(obj) {
+                                        if(obj.slot.no == slot.no && obj.number==(i+1) && (obj.status=='BLOCKED')){
+                                          return obj;
+                                        }
+                                    });
+                                    if(arr.length){
+                                        blocked = true;
+                                    }
+                                    var booked_arr = _.filter(bookingArray, function(obj) {
+                                        if(obj.slot.no == slot.no && obj.number==(i+1) && (obj.status=='BOOKED')){
+                                          return obj;
+                                        }
+                                    });
+                                    if(booked_arr.length > 0){
+                                        booked = true;
+                                    }
+                                    var reserved_arr = _.filter(bookingArray, function(obj) {
+                                        if(obj.slot.no == slot.no && obj.number==(i+1) && (obj.status=='RESERVED')){
+                                          return obj;
+                                        }
+                                    });
+                                    if(reserved_arr.length > 0){
+                                        reserved = true;
+                                    }
+                            %>
+                                <li class="seat slot <%if(booked){%>booked<%}%> <%if(reserved){%>reserved<%}%>" data-property="<%=property._id%>" data-room="<%=room._id%>" data-no="<%=i+1%>" data-slot="<%=slot._id%>"
+                                    disabled>
+                                    <div class="time">
+                                        <%=slot.label%>
+                                    </div>
+                                    <input class="room<%=i+1%> <%if(booked){%>booked<%}%> <%if(reserved){%>reserved<%}%>" type="checkbox" name="slot" id="<%=i+slot._id%>" <% if(blocked== true){ %>checked
+                                    <% } %> disabled/>
+                                        <label for="<%=i+slot._id%>"></label>
+                                </li>
+                                <% }); %>
+                        </ol>
+                    </div>
+                    <div class="col-lg-2 col-md-2 col-sm-12 col-12 align-items-center flex-column flex-md-row flex-nowrap text-center mt-3 mt-md-0"> 
+                        <div class="btn-group" role="group">
+                                <button type="button" class="btn btn-primary mb-2 ml-2 back-edit" data-no="<%=i+1%>" style="display:none;">Back</button>
+                                <button id="btnGroupDrop1" type="button" class="btn btn-secondary dropdown-toggle" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                                  Action
+                                </button>
+                                <div class="dropdown-menu" aria-labelledby="btnGroupDrop1">
+                                  <a class="dropdown-item enable" data-no="<%=i+1%>">Edit</a>
+                                  <a class="dropdown-item block_range_btn" data-no="<%=i+1%>">Bulk Edit</a>
+                                  <a class="dropdown-item block_all_btn" data-date="<%=date%>" data-room="<%=room._id%>" data-property="<%=property._id%>" data-no="<%=i+1%>">Block ALL</a>
+                                  <a class="dropdown-item unblock_all_btn" data-date="<%=date%>" data-room="<%=room._id%>" data-property="<%=property._id%>" data-no="<%=i+1%>">Unblock ALL</a>     
+                                  <a class="dropdown-item bulkEdit" data-room="<%=room._id%>" data-property="<%=property._id%>" data-no="<%=i+1%>">Block Range of Slots</a> 
+                                  <a class="dropdown-item unblockSlots" data-room="<%=room._id%>" data-property="<%=property._id%>" data-no="<%=i+1%>">Unblock Range of Slots</a>                              
+                                </div>
+                        </div>   
+                    </div>
+                </div>
+                <% } %>
+        </div>
+        <div id="block_range_modal" class="modal" role="dialog">
+                <div class="modal-dialog">         
+                  <!-- Modal content-->                                
+                  <div class="modal-content">
+                    <div class="modal-header">
+                      <button type="button" class="close" data-dismiss="modal">&times;</button>
+                      <!-- <h4 class="modal-title">Modal Header</h4> -->
+                    </div>
+                    <div class="modal-body">
+                            <form id="block-range-form" class="form-inline" action="javascript:;">
+                                <label for="from_slot" class="mr-sm-2">From:</label>
+                                <input name="room_no" type="hidden">
+                                <input name="date" type="hidden" value="<%=date%>">
+                                <input name="room" type="hidden" value="<%=room._id%>">
+                                <input name="property" type="hidden" value="<%=property._id%>">
+                                <select name="from_slot" class="form-control mb-2 mr-sm-2 col-4">
+                                    <%
+                                        slots.forEach((slot)=>{
+                                            %>
+                                            <option value="<%=slot._id%>"><%=slot.label%></option>
+                                            <%
+                                        }); 
+                                    %>
+                                </select>
+                                <label for="to_slot" class="mr-sm-2">To:</label>
+                                <select name="to_slot" class="form-control mb-2 mr-sm-2 col-4">
+                                    <%       
+                                    i = 0;                
+                                    slots.forEach((slot)=>{    
+                                        if(i==0){
+                                            i = i+1;
+                                        }else{                     
+                                        %>                              
+                                        <option value="<%=slot._id%>"><%=slot.label%></option>                              
+                                        <%
+                                        }
+                                        }); 
+                                    %>
+                                </select>                          
+                            </form>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-primary mb-2 ml-2 block-range">Block</button>
+                        <button type="button" class="btn btn-secondary mb-2 ml-2 unblock-range">UnBlock</button>
+                    </div>
+                  </div>              
+                </div>
+        </div>
+        <!-- container -->
+        <div class="modal fade" id="bulkEditModal">
+            <div class="modal-dialog">
+                <div class="modal-content bulkeditContent">            
+                                     
+                </div>
+            </div>
+        </div>
+        <script>
+            $('.bulkEdit').on('click',function(){
+                var room = $(this).data('room');
+                var property = $(this).data('property');
+                var room_no = $(this).data('no');
+                $.ajax({
+                    url:'/admin/availability/room/bulkedit',
+                    data:{property,room,room_no},
+                    type:'post',
+                    success:function(data){
+                       $('.bulkeditContent').html(data);
+                       $('#bulkEditModal').modal('toggle');
+                    }
+                })
+            });
+
+            $('.unblockSlots').on('click',function(){
+                var room = $(this).data('room');
+                var property = $(this).data('property');
+                var room_no = $(this).data('no');
+                $.ajax({
+                    url:'/admin/availability/room/bulkunblock',
+                    data:{property,room,room_no},
+                    type:'post',
+                    success:function(data){
+                       $('.bulkeditContent').html(data);
+                       $('#bulkEditModal').modal('toggle');
+                    }
+                })
+            });
+            let date = '<%=date%>';
+            $('select[name="from_slot"]').on('change',function(){
+                value = $(this).val();
+                $.ajax({
+                    url:'/admin/availability/get_to_slots',
+                    data:{from_id:value},
+                    type:'post',
+                    async:false,
+                    dataType:'json',
+                    success:function(data){
+                        var html = "";
+                        $.each(data.slots,function(key,value){
+                            html +="<option value='"+value._id+"'>"+value.label+"</option>";
+                        });
+                        $('select[name="to_slot"]').html(html);
+                    }    
+                });
+            });
+            $('.block_range_btn').on('click',function(){
+                var room_no = $(this).data('no');
+                $('input[name="room_no"]').val(room_no);
+                $('#block_range_modal').modal('toggle');
+            });
+            $(document).ready(function () {
+                $('.datepicker').datepicker({
+                    startDate: '0d',
+                    format: 'yyyy-mm-dd'
+                });
+            })
+
+            $('.datepicker').on('change', function () {
+                $('#dateForm').submit();
+            })
+            
+            $('.slot').children('input[name="slot"]').on('change', function () {
+                let el = $(this).parent();
+                let room = $(el).data('room');
+                let property = $(el).data('property');
+                let no = $(el).data('no');
+                let slot = $(el).data('slot');
+                let data = { room: room, property: property, no: no, slot: slot, date: date }
+                $.ajax({
+                    url: '/admin/availability/block',
+                    data: data,
+                    dataType: 'json',
+                    type: 'post',
+                    async: false,
+                    success: function (data) {
+                        console.log(data);
+                    },
+                    statusCode: {
+                        304: function () {
+                           windows.location.reload();
+                        }
+                    }
+                });
+            })
+            $('.enable').on('click', function () {
+                let no = $(this).data('no');
+                if ($('.room' + no).prop('disabled')) {
+                    $('.room' + no).attr('disabled', false);
+                    $('.booked.room' + no).attr('disabled', true);
+                } else {
+                    $('.room' + no).attr('disabled', true);
+                    $('input.booked' + no).attr('disabled', true);
+                }
+                $(this).parent().parent().find('.dropdown-toggle').hide();
+                $(this).parent().parent().find('.back-edit').show();
+            });
+            $('.back-edit').on('click',function(){
+                let no = $(this).data('no');
+                if ($('.room' + no).prop('disabled')) {
+                    $('.room' + no).attr('disabled', false);
+                    $('.booked.room' + no).attr('disabled', true);
+                } else {
+                    $('.room' + no).attr('disabled', true);
+                    $('input.booked' + no).attr('disabled', true);
+                }
+                $(this).hide();
+                $(this).parent().find('.dropdown-toggle').show();
+            });
+            
+            $('.block-range').on('click',function(){
+                $(this).html('Loading..');
+                $(this).prop('disabled',true);
+                $.ajax({
+                    url:'/admin/availability/block_range',
+                    type:'post',
+                    data:$('#block-range-form').serialize(),
+                    dataType:'json',
+                    success:function(data){
+                        if(data.status == 1){
+                            window.location.reload();
+                        }
+                        $('.block-range').html('Block');
+                        $('.block-range').prop('disabled',false);
+                    },
+                    error:function(error){
+                        $('.block-range').html('Block');
+                        $('.block-range').prop('disabled',false);
+                    }
+                });
+            });
+            $('.unblock-range').on('click',function(){
+                $(this).html('Loading..');
+                $(this).prop('disabled',true);
+                $.ajax({
+                    url:'/admin/availability/unblock_range',
+                    type:'post',
+                    data:$('#block-range-form').serialize(),
+                    dataType:'json',
+                    success:function(data){
+                        console.log(data);
+                        if(data.status == 1){
+                            window.location.reload();
+                        }
+                        $('.unblock-range').html('Block');
+                        $('.unblock-range').prop('disabled',false);
+                    },
+                    error:function(error){
+                        $('.unblock-range').html('Block');
+                        $('.unblock-range').prop('disabled',false);
+                    }
+                });
+            });
+            $('.block_all_btn').on('click',function(){
+                   var room_no  = $(this).data('no');
+                   var room  = $(this).data('room');
+                   var property  = $(this).data('property');
+                   var date  = $(this).data('date'); 
+                   $.ajax({
+                        url:'/admin/availability/block_all',
+                        type:'post',
+                        data:{room_no,room,property,date},
+                        dataType:'json',
+                        success:function(data){
+                            console.log(data);
+                            if(data.status == 1){
+                                window.location.reload();
+                            }
+                        }
+                    });
+            });
+            $('.unblock_all_btn').on('click',function(){
+                   var room_no  = $(this).data('no');
+                   var room  = $(this).data('room');
+                   var property  = $(this).data('property');
+                   var date  = $(this).data('date'); 
+                   $.ajax({
+                        url:'/admin/availability/unblock_all',
+                        type:'post',
+                        data:{room_no,room,property,date},
+                        dataType:'json',
+                        success:function(data){
+                            console.log(data);
+                            if(data.status == 1){
+                                window.location.reload();
+                            }
+                        }
+                    });
+            });
+            function reserveAll(id){
+                $.ajax({
+                    url:'/admin/availability/reserveall',
+                    type:'post',
+                    data:{id,date},
+                    dataType:'json',
+                    success:function(data){
+                        if(data.status == 1){
+                            window.location.reload();
+                        }
+                    },
+                    error:function(error){
+                    }
+                });
+            }
+            function cancelAll(id){
+                $.ajax({
+                    url:'/admin/availability/cancelall',
+                    type:'post',
+                    data:{id,date},
+                    dataType:'json',
+                    success:function(data){
+                        if(data.status == 1){
+                            window.location.reload();
+                        }
+                    },
+                    error:function(error){
+                    }
+                });
+            }
+        </script>
+        <%-include('../shared/footer.ejs')%>

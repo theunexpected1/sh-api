@@ -1,0 +1,50 @@
+  
+.panel-body input[type="text"],.panel-body select{
+ min-height: 45px;
+}
+.jumbotron{
+	background: #f4f5f5;
+}
+.jumbotron p{	
+	color:#666;
+	font-size: 11px!important;
+	font-weight:400!important;
+	padding:0;
+	margin:0 0 2px;
+	line-height:13px;
+}
+.jumbotron h1{
+    color:#555;
+	font-size: 13px!important;
+}
+.panel{
+	border: 0 none;
+	border-radius:0 none;
+	box-shadow: 0 0 0;
+}
+.panel-heading {
+	background: none;
+	margin-top: 10px;
+}
+.btn-success{
+	width:100%;
+	box-sizing:border-box;
+	padding-top:12px;
+	padding-bottom:12px;
+	text-transform: uppercase;
+}
+ .btn.btn-danger { 
+  	background: none!important;
+    color: #666!important;
+    float: left;
+    margin-top: 20px;
+    border:0 none;
+    font-size:10px;
+    text-decoration:underline;
+}
+.content_footer{
+	display:none!important;
+	visibility:hidden!important;
+	opacity: 0!important;
+	text-indent: -99999px;
+}

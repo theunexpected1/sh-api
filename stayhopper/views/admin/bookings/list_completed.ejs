@@ -1,0 +1,214 @@
+<%-include('../shared/header.ejs',{active:'bookings',parent:'hotels-management'})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item"><a href="#">Hotel Management</a></li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">Bookings</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+    <div class="container-fluid">
+        <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 px-4   ">
+            <div class="col-sm-6 mb-2 mb-md-0 ">
+                <div class="form-header mt-2 disabled mr-md-4">
+                    <a href="/admin/bookings">Active Bookings</a> 
+                </div>
+                <div class="form-header mt-2">
+                    <a href="/admin/completedbookings">Completed Bookings</a> 
+                </div>
+            </div>
+
+            <form action="" id="filter_form" class="col-sm-6 mb-2 mb-md-0 d-flex align-items-center">
+                    <select name="filter_property" id="filter_property" class="form-control mr-md-4">
+                        <option value="">-Property-</option>
+                        <%
+                                    properties.forEach(property=>{
+                                        let ch = "";
+                                        if(property._id.toString() == filter_property){
+                                            ch = "selected";
+                                        }
+                                        %>
+                        <option <%=ch%> value="<%=property._id%>">
+                            <%=property.name%>
+                        </option>
+                        <%
+                                    })
+                                %>
+                    </select>
+
+                    <div class="form-group text-box-container">
+                        <input name="filter_date" id="filter_date" type="text" class="dateselect mt-1 empty border-secondary form-control" required="required" placeholder="Select Date" style="text-indent:0.65em" value="<%=filter_date%>" readonly/>
+                    </div>
+                </form>
+        </div>
+
+        <div class="row wrapper justify-content-center align-items-center text-secondary bg-white mt-0 mb-4">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-left px-4" style="overflow-x:auto">
+                <table class="table table-hover bookings" style="overflow-x:scroll;">
+                    <thead>
+                        <tr>
+                            <th>Userdetails</th>
+                            <th>Booking Conf Number</th>
+                            <th>Check In</th>
+                            <th>Check Out</th>
+                            <th>Property Name</th>
+                            <th>Room Name</th>
+                            <th></th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        <%
+                        bookings.forEach((book)=>{
+                            let user = book.guestInfo;
+                            console.log(book);
+                            let property = book.propertyInfo;
+                            let property_name = "";
+                            let tmp_time = book.checkin_date+"T"+book.checkin_time+":00";
+                            let checkout = book.date_checkout      
+                            let hours = checkout.getHours();
+                            let minuites = "00";
+                            if(checkout.getMinutes()){
+                                minuites = checkout.getMinutes();
+                            }
+                        %>
+                        <tr>
+                            <td class="d-flex flex-column">
+                             <strong><%=user.first_name+" "+user.last_name%></strong>
+                             <small>
+                                    <%=user.mobile%></small>
+                                <small>
+                                    <%=user.email%></small></td>
+                            <td>
+                                <span class="bookingID"><%=book.book_id%></span>
+                            </td>
+                            <td>
+                                <%=book.checkin_date%><br><small>
+                                    <%=book.checkin_time%></small></td>
+                            <td>
+                                <%=checkout.toLocaleDateString()%><br><small>
+                                    <%=hours+":"+minuites%></small></td>
+                            <td>
+                                <%=property.name%>
+                            </td>        
+                            <td>
+                                <%
+                                book.roomsInfo.forEach((room)=>{
+                                    %>
+                                    <span class="badge badge-yellow"><%= room.name %></span>
+                                <%
+                                })
+                                %>
+                            </td>
+                            <td>
+                                <button data-id="<%=book._id%>" type="button" class="btn btn-sm btn-square pl-4 pr-4 btn-secondary show-panel">VIEW</button>
+                                <%
+                                        if(book.cancel_approval==1){
+                                            %>
+                                            <label class="badge badge-secondary">Cancelled</label>
+                                            <%
+                                        }else if(book.cancel_approval==2){
+                                            %>
+                                            <label class="badge badge-secondary">Cancellation rejected</label>
+                                            <%
+                                        }
+                                %>
+                            </td>
+                        </tr>
+                        <%    
+                        });
+                        %>
+                    </tbody>
+                </table>
+            </div>
+            <%- include('../shared/pagination') %>
+        </div>
+    </div> <!-- container -->
+    <div class="modal bd-example-modal-lg" id="newModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title" id="exampleModalLabel">View Booking Details</h5>
+              <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                <span aria-hidden="true">&times;</span>
+              </button>
+            </div>
+                <div class="row wrapper mt-4 mt-md-0 mb-0 bg-white">
+    
+                      <div class="col-sm-8 d-flex justify-content-center mt-4 mt-md-0 mx-auto view-booking-details">
+                            <div class="bookDetailsModal"></div>
+                      </div>
+                    </div>
+
+            </div>
+          </div>
+        </div>
+      </div>
+    <script type="text/javascript">
+    $(document).ready(function(){
+        $('#filter_date').datepicker({
+            format: 'mm/dd/yyyy',
+            autoclose: true,
+            todayHighlight: true,
+            endDate: '0d'
+        });
+    });
+        $('#filter_property').on('change',function(){
+            $('form#filter_form').submit();
+        });
+        $('#filter_date').on('change',function(){
+            $('form#filter_form').submit();
+        });
+        $('.show-panel').on('click',function(){
+            $.ajax({
+                url:'/admin/completedbookings/details',
+                type:'get',
+                dataType:'json',
+                data:{book_id:$(this).data('id')},
+                async:false,
+                success:function(data){
+                    if(data.status==1){
+                        var booking = data.data;
+                        var html = `
+                        <ul class="list-unstyled lh-2 d-flex flex-column">
+                            <li><div>Name</div><div class="name">`+booking.full_name+`</div></li>
+                            <li><div>Contact No</div> <div>`+booking.contact_no+`</div></li>
+                            <li><div>Mail</div> <div>`+booking.mail+`</div></li>
+                            <li><div>Booking Confirmation number</div> <div>`+booking.ref_no+`</div></li>
+                            <li><div>Property Name</div> <div>`+booking.property_name+`</div></li>
+                            <li><div>Check In</div> <div>`+booking.checkin_date+` `+booking.checkin_time+`</div></li>
+                            <li><div>Check Out</div> <div>`+booking.checkout_date+` `+booking.checkout_time+`</div></li>                            
+                            <li><div>Room Rate</div> <div>`+booking.total_amt+` AED</div></li>
+                        </ul>
+                        <h4>Rooms Details</h4>
+                        `;
+                        var rooms_info = `<table class="table table-bordered">
+                        <thead>
+                            <tr>
+                                <th>Room Name</th>
+                                <th>Room Type</th>
+                                <th>No Of Rooms</th>
+                            </tr>
+                         </thead>
+                         <tbody>`;
+                        $.each(booking.room_info,function(key,value){
+                            rooms_info += `<tr>
+                            <td>`+value.name+`</td>
+                            <td>`+value.type+`</td>
+                            <td>`+value.nos+`</td>
+                            </tr>`; 
+                        });
+                        rooms_info += ` </tbody>
+                        </table>`;
+                        html += rooms_info;
+                        $('.bookDetailsModal').html(html);
+                        $('#newModal').modal('toggle');
+                    }
+                }
+            })
+        });
+    </script>
+    <%-include('../shared/footer.ejs')%>

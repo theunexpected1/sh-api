@@ -1,0 +1,256 @@
+<%-include('../shared/header.ejs',{active:'properties',parent:'hotels-management'})%>
+<div class="content-inner">
+    <!-- Page Header-->
+    <header class="page-header">
+        <div class="container-fluid d-flex flex-column flex-md-row justify-content-between align-items-center">
+            <nav aria-label="breadcrumb">
+                <ol class="breadcrumb">
+                    <li class="breadcrumb-item">
+                        <a href="#">Hotel Management</a>
+                    </li>
+                    <li class="breadcrumb-item">
+                        <a href="#">Properties</a>
+                    </li>
+                    <li class="breadcrumb-item active fw-700" aria-current="page">Near By</li>
+                </ol>
+            </nav>
+        </div>
+    </header>
+    <%-include('../shared/property_crump.ejs',{current_page:'nearby'})%>
+    <div class="container-fluid pt-0 pb-0">
+        <div class="col-sm-12 d-flex justify-content-end d-block mx-auto pt-3 pb-4">
+            <a class="newPlacebtn">
+                <button class="btn btn-block btn-primary px-4">Add New</button>
+            </a>
+        </div>
+        <%
+            if(property.nearby){
+                let nearby = property.nearby;
+                nearby.forEach((near)=>{
+                    %>
+        <div class="row wrapper room-information justify-content-center align-items-center text-secondary bg-white mb-4">
+            <div class="col-lg-12 col-md-12 col-sm-12 col-12 room-information-items d-flex justify-content-around align-items-center flex-column flex-md-row flex-nowrap text-center">
+                <dl>
+                    <!-- <dt>Place</dt> -->
+                    <dd>
+                        <%=near.name%>
+                    </dd>
+                </dl>
+                <dl>
+                    <dd>
+                        <img src="/<%=near.image%>" alt="" class="ml-4" width="45px">
+                    </dd>
+                </dl>
+                <dl class="d-flex align-items-center">
+                    <a class="deletebtn" data-id="<%=near._id%>">
+                        <i class="icon sh-icon-delete font-lg"></i>
+                    </a>
+                    <!-- <a data-id="<%=near._id%>" class="editBtn">
+                        <i class="icon sh-icon-edit font-lg"></i>
+                    </a> -->
+                </dl>
+            </div>
+        </div>
+        <%
+                });
+            }
+        %>
+        <% if(property.nearby.length > 0){ %>
+            <div class="col-sm-10 d-flex justify-content-center d-block mx-auto pt-3 pb-4">
+                <a href="/properties/view/<%=property._id%>" class="col-sm-4 btn btn-block btn-primary">View Property</a>
+            </div>
+        <% } %>
+    </div>
+    <div class="modal bd-example-modal-lg" id="exampleModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel"
+        aria-hidden="true">
+        <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+            <div class="modal-content">
+                <div class="modal-header">
+                    <h5 class="modal-title" id="exampleModalLabel">New Nearby Place</h5>
+                    <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                        <span aria-hidden="true">&times;</span>
+                    </button>
+                </div>
+                <div class="modal-body">
+                    <form id="newPlaceForm" enctype="multipart/form-data">
+                        <div class="row wrapper mt-4 mb-5 bg-white align-items-center">
+                            <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                <div class="form-inline row">
+                                    <label for="inputPassword" class="col-sm-3 col-form-label">Nearby Place</label>
+                                    <div class="col-sm-9">
+                                        <input type="hidden" name="property" value="<%=property._id%>" />
+                                        <input name="nearby_place" type="text" class="form-control border-secondary"
+                                            placeholder="Please Enter Nearby Place">
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                <div class="form-inline row">
+                                    <label for="inputPassword" class="col-sm-3 col-form-label">Select Icon</label>
+                                    <div class="col-sm-9">
+                                        <div class="avatar-upload">
+                                            <div class="avatar-edit">
+                                                <input type='file' id="imageUpload" data-index="1" name="image" accept=".png, .jpg, .jpeg" />
+                                                <label for="imageUpload"></label>
+                                            </div>
+                                            <div class="avatar-preview">
+                                                <div id="imagePreview1" style="background-image: url('/public/img/quickadd.png');">
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                            </div>
+                            <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                <div class="header-buttons d-flex justify-content-center">
+                                    <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">SAVE</button>
+                                </div>
+                            </div>
+                        </div>
+                    </form>
+                </div>
+            </div>
+        </div>
+    </div>
+    <script type="text/javascript">
+        $.validator.addMethod("noHTML", function(value, element){
+            if(this.optional(element) || /<\/?[^>]+(>|$)/g.test(value)){
+                return false;
+            } else {
+                return true;
+            }
+        }, "HTML tags are Not allowed.");
+        var property = '<%=property._id%>';
+        $('.newPlacebtn').on('click', function () {
+            $('#exampleModal').modal('toggle');
+        });
+        $("#imageUpload").on('change', function () {
+            readURL(this, 1);
+        });
+        $("#newPlaceForm").validate({
+            normalizer: function (value) {
+                return $.trim(value);
+            },
+            rules: {
+                nearby_place: {
+                    required: true,
+                    noHTML:true
+                }
+            },
+            messages: {
+                nearby_place: {
+                    required: "Nearby Place must be required",
+                }
+            },
+            submitHandler: function (form) {
+                $('.saveBtn').prop('disabled', true);
+                var form = document.getElementById('newPlaceForm');
+                var data = new FormData(form);
+                $.ajax({
+                    type: "POST",
+                    url: "/nearby",
+                    data: data,
+                    dataType: 'json',
+                    processData: false,
+                    contentType: false,
+                    cache: false,
+                    success: function (data) {
+                        if (data.status == 1) {
+                            if (data.message) {
+                                $.confirm({
+                                    title: 'Success!',
+                                    content: data.message,
+                                    buttons: {
+                                        ok: function () {
+                                            document.getElementById("newPlaceForm").reset();
+                                        }
+                                    }
+                                });
+                                document.getElementById("newPlaceForm").reset();
+                            }
+                            window.location.reload();
+                        } else {
+                            if (data.errors) {
+                                for (i = 0; i < data.errors.length; i++) {
+                                    toastr["error"](data.errors[i]);
+                                }
+                            }
+                            if (data.message) {
+                                toastr["error"](data.message);
+                            }
+                        }
+                        $('.saveBtn').prop('disabled', false);
+                    },
+                    error: function (error) {
+                        $('.saveBtn').prop('disabled', false);
+                    }
+                });
+                return false;
+            }
+        });
+        $('.deletebtn').on('click', function () {
+            var id = $(this).data('id');
+            if(confirm('Do you want to continue?')){
+                $.ajax({
+                url: '/nearby/delete',
+                data: { id: id, property: property },
+                type: 'post',
+                dataType: 'json',
+                success: function (data) {
+                    if (data.status == 1) {
+                        $.confirm({
+                            title: 'Success!',
+                            content: data.message,
+                            buttons: {
+                                ok: function () {
+                                    window.location.reload();
+                                }
+                            }
+                        });
+                    } else {
+                        if (data.errors) {
+                            for (i = 0; i < data.errors.length; i++) {
+                                toastr["error"](data.errors[i]);
+                            }
+                        }
+                        if (data.message) {
+                            toastr["error"](data.message);
+                        }
+                    }
+                }
+            });
+            }
+        });
+        // $('.editBtn').on('click', function () {
+        //     var id = $(this).data('id');
+        //     $.ajax({
+        //         url: '/nearby/'+id+'/details',
+        //         data: {property: property },
+        //         type: 'get',
+        //         dataType: 'json',
+        //         success: function (data) {
+        //             if (data.status == 1) {
+        //                 $.confirm({
+        //                     title: 'Success!',
+        //                     content: data.message,
+        //                     buttons: {
+        //                         ok: function () {
+        //                             window.location.reload();
+        //                         }
+        //                     }
+        //                 });
+        //             } else {
+        //                 if (data.errors) {
+        //                     for (i = 0; i < data.errors.length; i++) {
+        //                         toastr["error"](data.errors[i]);
+        //                     }
+        //                 }
+        //                 if (data.message) {
+        //                     toastr["error"](data.message);
+        //                 }
+        //             }
+        //         }
+        //     });
+        // });
+    </script>
+    <%-include('../shared/footer.ejs')%>

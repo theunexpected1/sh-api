@@ -1,0 +1,346 @@
+<%-include('../shared/header.ejs',{active:'',parent:'settings'})%>
+    <div class="content-inner">
+        <!-- Page Header-->
+        <header class="page-header">
+            <div class="container-fluid d-flex justify-content-between align-items-center">
+                <nav aria-label="breadcrumb">
+                    <ol class="breadcrumb">
+                        <li class="breadcrumb-item" aria-current="page">
+                            <a href="#">General Settings</a>
+                        </li>
+                        <li class="breadcrumb-item active fw-700" aria-current="page">Room Names</li>
+                    </ol>
+                </nav>
+            </div>
+        </header>
+        <div class="container-fluid">
+            <div class="row wrapper mt-0 mb-0 pt-4 bg-white pb-2 px-4">
+                <div class="col-sm-12 mb-2 mb-md-3">
+                    <div class="form-header mt-2">
+                        Room Names
+                    </div>
+                </div>
+                <div class="col-sm-12 mt-2 mt-md-3 mb-2 mb-md-2">
+                    <div class="header-buttons d-flex justify-content-end">
+                        <button type="button" class="btn btn-primary mr-md-4" data-toggle="modal" data-target=".bd-example-modal-lg" data-whatever="@mdo">
+                            <i class="icon-plus-circle"></i> Add New</button>
+                    </div>
+                </div>
+
+                <div class="col-lg-12 col-md-12 col-sm-12 col-12 text-left" style="overflow-x:auto">
+                    <table class="table table-hover" style="overflow-x:scroll;">
+                        <thead class="mt-5">
+                            <tr>
+                                <th>Item Name</th>
+                                <th></th>
+                                <th></th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <% roomNames.forEach(room=>{ %>
+                                <tr>
+                                    <td style="width: 75%" class="d-flex align-items-center col-10">
+                                        <%=room.name%>
+                                            <% if(room.image){ %>
+                                                <img src="/<%=room.image%>" alt="" class="ml-4" width="45px">
+                                                <% } %>
+                                    </td>
+                                    <td style="width: 6.33%">
+                                        <a id="show-panel" class="editBtn" href="#" data-id="<%=room._id%>">
+                                            <i class="icon-edit font-lg"></i>
+                                        </a>
+                                    </td>
+                                    <td style="width: 8.33%" class="col-2">
+                                        <a id="show-panel" class="deleteBtn" href="#" data-id="<%=room._id%>">
+                                            <i class="icon-trash-2 font-lg"></i>
+                                        </a>
+                                    </td>
+                                </tr>
+                                <% }); %>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="newModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">New Room Name</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="newRoomNameForm" enctype="multipart/form-data">
+                            <div class="row wrapper mt-2 mb-1 bg-white align-items-center">
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Room Name</label>
+                                        <div class="col-sm-9">
+                                            <input name="room_name" type="text" class="form-control border-secondary" placeholder="Please Enter Room Name">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Select Icon</label>
+                                        <div class="col-sm-9">
+                                            <div class="avatar-upload">
+                                                <div class="avatar-edit">
+                                                    <input type='file' id="imageUpload" data-index="1" name="image" accept=".png, .jpg, .jpeg" />
+                                                    <label for="imageUpload"></label>
+                                                </div>
+                                                <div class="avatar-preview">
+                                                    <div id="imagePreview1" style="background-image: url('/public/img/quickadd.png');">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                    <div class="header-buttons d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">Update</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <div class="modal bd-example-modal-lg" id="editModal" tabindex="-1" role="dialog" aria-labelledby="exampleModalLabel" aria-hidden="true">
+            <div class="modal-dialog modal-dialog-centered modal-lg" role="document">
+                <div class="modal-content">
+                    <div class="modal-header">
+                        <h5 class="modal-title" id="exampleModalLabel">Update Room Name</h5>
+                        <button type="button" class="close" data-dismiss="modal" aria-label="Close">
+                            <span aria-hidden="true">&times;</span>
+                        </button>
+                    </div>
+                    <div class="modal-body">
+                        <form id="editRoomNameForm" enctype="multipart/form-data">
+                            <div class="row wrapper mt-2 mb-1 bg-white align-items-center">
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Room Name</label>
+                                        <div class="col-sm-9">
+                                            <input type="hidden" name="id">
+                                            <input name="room_name" type="text" class="form-control border-secondary" placeholder="Please Enter Room Name">
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-6 mt-2 mt-md-3 mb-2 mb-md-2">
+                                    <div class="form-inline row">
+                                        <label for="inputPassword" class="col-sm-3 col-form-label">Select Icon</label>
+                                        <div class="col-sm-9">
+                                            <div class="avatar-upload">
+                                                <div class="avatar-edit">
+                                                    <input type='file' id="imageUpload2" data-index="2" name="image" accept=".png, .jpg, .jpeg" />
+                                                    <label for="imageUpload2"></label>
+                                                </div>
+                                                <div class="avatar-preview">
+                                                    <div id="imagePreview2" style="background-image: url('/public/img/quickadd.png');">
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
+                                </div>
+                                <div class="col-sm-12 mt-3 mt-md-5 mb-2 mb-md-2">
+                                    <div class="header-buttons d-flex justify-content-center">
+                                        <button type="submit" class="btn btn-primary btn-lg mr-md-4 pl-5 pr-5 saveBtn">Update</button>
+                                    </div>
+                                </div>
+                            </div>
+                        </form>
+                    </div>
+                </div>
+            </div>
+        </div>
+        <script>
+            $.validator.addMethod("noHTML", function(value, element){
+                    if(this.optional(element) || /<\/?[^>]+(>|$)/g.test(value)){
+                        return false;
+                    } else {
+                        return true;
+                    }
+            },"HTML tags are Not allowed.");
+
+            $("#imageUpload").on('change', function () {
+                readURL(this, 1);
+            });
+            $("#imageUpload2").on('change', function () {
+                readURL(this, 2);
+            });
+            $("#newRoomNameForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    room_name: {
+                        required: true,
+                        noHTML:true
+                    }
+                },
+                messages: {
+                    room_name: {
+                        required: "Room Name must be required",
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    var form = document.getElementById('newRoomNameForm');
+                    var data = new FormData(form);
+                    $.ajax({
+                        type: "POST",
+                        url: "/roomnames",
+                        data: data,
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    $.confirm({
+                                        title: 'Success!',
+                                        content: data.message,
+                                        buttons: {
+                                            ok: function () {
+                                                document.getElementById("newRoomNameForm").reset();
+                                                window.location.reload();
+                                            }
+                                        }
+                                    });
+                                    document.getElementById("newRoomNameForm").reset();
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+            $('.deleteBtn').on('click', function () {
+                let id = $(this).data('id');
+                $.confirm({
+                    title: 'Warning',
+                    buttons: {
+                        continue: function () {
+                            // alert(id);
+                            $.ajax({
+                                url: '/roomnames/delete',
+                                data: { id: id },
+                                type: 'get',
+                                async: false,
+                                success: function (data) {
+                                    window.location.reload();
+                                }
+                            });
+                        },
+                        cancel: function () {
+
+                        }
+                    }
+                });
+            });
+            $('.editBtn').on('click', function () {
+                let id = $(this).data('id');
+                $.ajax({
+                    url: '/roomnames/' + id,
+                    type: 'get',
+                    dataType: 'json',
+                    success: function (data) {
+                        if (data.status == 1) {
+                            let res = data.data;
+                            $('#editModal').modal('toggle');
+                            var form = $('form#editRoomNameForm');
+                            $(form).find("input[name='room_name']").val(res.name);
+                            $(form).find("input[name='id']").val(res._id);
+                            if (res.image) {
+                                $(form).find("#imagePreview2").css('background-image', 'url(' + res.image + ')');
+                            } else {
+                                $(form).find("#imagePreview2").css('background-image', 'url("/public/img/quickadd.png")');
+                            }
+                        }
+                    }
+                });
+                // console.log();
+            });
+            $("#editRoomNameForm").validate({
+                normalizer: function (value) {
+                    return $.trim(value);
+                },
+                rules: {
+                    room_name: {
+                        required: true,
+                        noHTML:true
+                    }
+                },
+                messages: {
+                    room_name: {
+                        required: "Room Name must be required",
+                    }
+                },
+                submitHandler: function (form) {
+                    $('.saveBtn').prop('disabled', true);
+                    var form = document.getElementById('editRoomNameForm');
+                    var data = new FormData(form);
+                    $.ajax({
+                        type: "POST",
+                        url: "/roomnames/update",
+                        data: data,
+                        dataType: 'json',
+                        processData: false,
+                        contentType: false,
+                        cache: false,
+                        success: function (data) {
+                            if (data.status == 1) {
+                                if (data.message) {
+                                    $.confirm({
+                                        title: 'Success!',
+                                        content: data.message,
+                                        buttons: {
+                                            ok: function () {
+                                                // document.getElementById("editPropertyTypeForm").reset();
+                                            }
+                                        }
+                                    });
+                                    // document.getElementById("editPropertyTypeForm").reset();
+                                    // $("#imagePreview2").css('background-image', 'url("/public/img/quickadd.png")');
+                                }
+                            } else {
+                                if (data.errors) {
+                                    for (i = 0; i < data.errors.length; i++) {
+                                        toastr["error"](data.errors[i]);
+                                    }
+                                }
+                                if (data.message) {
+                                    toastr["error"](data.message);
+                                }
+                            }
+                            $('.saveBtn').prop('disabled', false);
+                        },
+                        error: function (error) {
+                            $('.saveBtn').prop('disabled', false);
+                        }
+                    });
+                    return false;
+                }
+            });
+        </script>
+        <%-include('../shared/footer.ejs')%>
