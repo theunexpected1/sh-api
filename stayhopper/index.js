@@ -1,5 +1,7 @@
 const session = require('express-session');
 const helmet = require('helmet');
+const dotenv = require('dotenv');
+const dotenvResult = dotenv.config()
 const config = require('config');
 const multer = require('multer');
 const morgan = require('morgan');
@@ -8,9 +10,7 @@ const express = require('express');
 const cron = require("node-cron");
 const fs = require("fs");
 const app = express();
-const dotenv = require('dotenv');
 const passport = require('passport');
-const dotenvResult = dotenv.config()
 
 const webRouter = require('./routes/web');
 const apiRouter = require('./routes/api');
