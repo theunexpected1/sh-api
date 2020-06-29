@@ -66,9 +66,15 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   if (keyword) {
     where.name = new RegExp(keyword, 'i');
   }
+  let sort = { _id: 1 };
+  if (req.query.order && req.query.orderBy) {
+    sort = {};
+    sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
+  }
   const [hoteladmins, properties, itemCount] = await Promise.all([
     HotelAdmin.find(),
     Property.find(where)
+      .sort(sort)
       .populate("company")
       .populate("type")
       .populate("rating")
