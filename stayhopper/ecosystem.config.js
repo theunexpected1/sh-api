@@ -8,7 +8,7 @@ module.exports = {
     // Stage application
     {
       name      : 'sh-admin-api-staging',
-      script    : 'stayhopper/index.js',
+      script    : 'index.js',
       env: {
         COMMON_VARIABLE: 'true',
         NODE_ENV: 'staging'
