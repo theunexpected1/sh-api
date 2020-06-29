@@ -147,7 +147,7 @@ const propertySchema = new db.Schema({
     required: [true, "Legal Name is required"]
   },
 });
-propertySchema.index({ location: "2dsphere" });
+// propertySchema.index({ location: "2dsphere" });
 propertySchema.query.withinMiles = function(coords, miles) {
   return this.find({
     "contactinfo.latlng": {

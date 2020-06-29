@@ -3,3 +3,5 @@ stayhopper/public/files/
 stayhopper/nbproject/private/
 extranet.pem
 extranet.ppk
+.env
+.vscode

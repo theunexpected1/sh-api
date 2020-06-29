@@ -8,6 +8,9 @@ const express = require('express');
 const cron = require("node-cron");
 const fs = require("fs");
 const app = express();
+const dotenv = require('dotenv');
+const passport = require('passport');
+const dotenvResult = dotenv.config()
 
 const webRouter = require('./routes/web');
 const apiRouter = require('./routes/api');
@@ -16,12 +19,15 @@ const testRouter = require('./routes/test');
 
 //middleware
 const requireLogin = require('./middleware/requiresLogin');
+const passportConfig = require('./middleware/passport-administrator');
 const cronjobs = require('./cron');
+const allowedCORS = require('./middleware/allowed-cors');
 
 app.use(helmet());
 app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
+app.use(allowedCORS);
 
 app.use('/public', express.static('public'));
 app.set('view engine','ejs');
@@ -33,6 +39,8 @@ app.use(session({
     saveUninitialized: false
 }));
 
+// Use JWT-based login for Administrators
+app.use(passport.initialize());
 
 //router
     app.use('/',webRouter);

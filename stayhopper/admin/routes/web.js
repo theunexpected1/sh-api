@@ -41,6 +41,10 @@ const promoCodeController = require('../controllers/promocode');
 const cancelBookingController = require('../controllers/cancelbookings');
 const userReviewsController = require('../controllers/userreviews');
 
+/** Sh 2.0 */
+const authController = require('../controllers/auth');
+
+
 app.get("/", (req, res) => {
   res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
   res.header("Expires", "-1");
@@ -99,5 +103,8 @@ app.use('/notifications', requireLogin, notificationController);
 app.use('/promocodes', requireLogin, promoCodeController);
 app.use('/cancelbookings', requireLogin, cancelBookingController);
 app.use('/userreviews', requireLogin, userReviewsController);
+
+/** Sh 2.0 */
+app.use("/auth", authController);
 
 module.exports = app;

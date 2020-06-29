@@ -1,4 +1,5 @@
-const active_db = 'client-live'; 
+// const active_db = 'client-live'; 
+const active_db = ''; 
 const mongoose = require('mongoose');
 let config = {};
 if(active_db == 'client-live'){ 
@@ -31,14 +32,14 @@ if(active_db == 'client-live'){
     }
 }else{
     config = {
-        url: "mongodb://localhost:27017/stayhopper",
+        url: "mongodb://localhost:27017/stay",
         options:{
             useNewUrlParser: true
         }
     }
 }
 mongoose.connect(config.url,config.options).then(() => {
-    console.log('Connected to db');
+    console.log('Connected to db', config.url);
 })
 .catch((err) => {
     console.log('Could not connected to db', err);
