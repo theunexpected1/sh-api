@@ -5,6 +5,7 @@ const requireLogin = require("../../middleware/requiresLogin2");
 
 const loginController = require("../controllers/login");
 const propertiesController = require("../controllers/properties");
+const propertiesControllerV2 = require("../controllers/properties-v2");
 const roomsController = require("../controllers/rooms");
 const pricingController = require("../controllers/pricing");
 const policyController = require("../controllers/policy");
@@ -68,6 +69,7 @@ app.get("/dashboard", requireLogin, (req, res)=>{
   return res.redirect("/admin/bookings");
 });
 
+app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
 app.use("/properties", requireLogin, propertiesController);
 app.use("/rooms", requireLogin, roomsController);
 app.use("/pricing", requireLogin, pricingController);
