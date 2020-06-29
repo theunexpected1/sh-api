@@ -16,6 +16,7 @@ var http = require('http');
 var url = require('url') ;
 const User = require("../../db/models/admins");
 const jwtMiddleware = require("../../middleware/jwt");
+console.log('config.app_url', config.app_url);
 
 router.post("/login", passport.authenticate('local-administrator-login'), async (req, res) => {
   const token = jwt.sign(req.user.toJSON(), process.env.API_SECRET || 'secret');
@@ -69,10 +70,10 @@ router.post("/reset-password", async (req, res) => {
 
     let msg = {
       to: user.email,
-      // bcc: [{email:config.website_admin_bcc_email},{email:"resetpwds@stayhopper.com"}],
+      bcc: [{email:config.website_admin_bcc_email},{email:"resetpwds@stayhopper.com"}],
       from: config.website_admin_from_email,
       fromname:config.fromname,
-      bcc: [{email:"rahul.vagadiya@gmail.com"}],
+      // bcc: [{email:"rahul.vagadiya@gmail.com"}],
       // from: "rahul.vagadiya@gmail.com",
       // fromname: "Rahul Vagadiya",
       subject: "STAYHOPPER: Reset Password",
