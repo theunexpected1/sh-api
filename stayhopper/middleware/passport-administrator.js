@@ -1,6 +1,7 @@
 const bcrypt = require("bcrypt");
 const User = require("../db/models/users");
 const Administrator = require("../db/models/administrators");
+const Role = require("../db/models/roles");
 const passport = require('passport');
 const LocalStrategy = require('passport-local').Strategy;
 const JwtStrategy = require('passport-jwt').Strategy;
@@ -15,6 +16,7 @@ passport
   }, (email, password, done) => {
     Administrator
       .findOne({email})
+      .populate('role')
       .select('+email')
       .select('+password')
       .exec(async (err, administrator) => {
@@ -67,6 +69,7 @@ passport.use('jwt-administrator', new JwtStrategy({
 
   return Administrator
     .findById(jwtPayload._id)
+    .populate('role')
     .then(user => {
       return cb(null, user);
     })

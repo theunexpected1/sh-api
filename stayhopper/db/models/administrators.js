@@ -23,10 +23,14 @@ const AdministratorSchema = new db.Schema({
     required: [true, 'Password is required'],
     select: false
   },
+  // role: {
+  //   type: String,
+  //   enum: ['ADMIN', 'HOTEL_ADMIN'],
+  //   default: 'HOTEL_ADMIN'
+  // },
   role: {
-    type: String,
-    enum: ['ADMIN', 'HOTEL_ADMIN'],
-    default: 'HOTEL_ADMIN'
+    type: db.Schema.Types.ObjectId,
+    ref: 'roles'
   },
   activationCode: {
     type: String

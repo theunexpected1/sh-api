@@ -23,5 +23,17 @@
     "mailchimp_list_id":"05d6c52a52",
     "mailchimp_admin_list_id":"6958d4a180",
     "mailchimp_android_id":"a4d538b935",
-    "mailchimp_ios_id":"5326dec6fe"
+    "mailchimp_ios_id":"5326dec6fe",
+    "permissions": {
+        "SHOW_DASHBOARD": "SHOW_DASHBOARD",
+        "LIST_PROPERTIES": "LIST_PROPERTIES",
+        "LIST_ALL_PROPERTIES": "LIST_ALL_PROPERTIES",
+        "LIST_OWN_PROPERTIES": "LIST_OWN_PROPERTIES",
+        "LIST_BOOKINGS": "LIST_BOOKINGS",
+        "LIST_ALL_BOOKINGS": "LIST_ALL_BOOKINGS",
+        "LIST_OWN_BOOKINGS": "LIST_OWN_BOOKINGS",
+        "LIST_USERS": "LIST_USERS",
+        "LIST_ADMINISTRATORS": "LIST_ADMINISTRATORS",
+        "LIST_INVOICES": "LIST_INVOICES"
+      }
 }

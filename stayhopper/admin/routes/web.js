@@ -5,7 +5,6 @@ const requireLogin = require("../../middleware/requiresLogin2");
 
 const loginController = require("../controllers/login");
 const propertiesController = require("../controllers/properties");
-const propertiesControllerV2 = require("../controllers/properties-v2");
 const roomsController = require("../controllers/rooms");
 const pricingController = require("../controllers/pricing");
 const policyController = require("../controllers/policy");
@@ -42,10 +41,6 @@ const promoCodeController = require('../controllers/promocode');
 const cancelBookingController = require('../controllers/cancelbookings');
 const userReviewsController = require('../controllers/userreviews');
 
-/** Sh 2.0 */
-const authController = require('../controllers/auth');
-
-
 app.get("/", (req, res) => {
   res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
   res.header("Expires", "-1");
@@ -69,7 +64,6 @@ app.get("/dashboard", requireLogin, (req, res)=>{
   return res.redirect("/admin/bookings");
 });
 
-app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
 app.use("/properties", requireLogin, propertiesController);
 app.use("/rooms", requireLogin, roomsController);
 app.use("/pricing", requireLogin, pricingController);
@@ -107,6 +101,12 @@ app.use('/cancelbookings', requireLogin, cancelBookingController);
 app.use('/userreviews', requireLogin, userReviewsController);
 
 /** Sh 2.0 */
-app.use("/auth", authController);
+const authControllerV2 = require('../controllers/v2/auth');
+const administratorsControllerV2 = require('../controllers/v2/administrators');
+const propertiesControllerV2 = require("../controllers/v2/properties");
+
+app.use("/v2/auth", authControllerV2);
+app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
+app.use("/v2/administrators", (req, res, next) => next(), administratorsControllerV2);
 
 module.exports = app;

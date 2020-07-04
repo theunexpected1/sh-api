@@ -6,7 +6,7 @@ const passport = require("passport");
 const jwt = require('jsonwebtoken');
 const fs = require('fs');
 const bcrypt = require('bcrypt');
-const Administrator = require("../../db/models/administrators");
+const Administrator = require("../../../db/models/administrators");
 
 const config = require('config');
 const sgMail = require("@sendgrid/mail");
@@ -14,8 +14,8 @@ sgMail.setApiKey(config.sendgrid_api);
 
 var http = require('http');
 var url = require('url') ;
-const User = require("../../db/models/admins");
-const jwtMiddleware = require("../../middleware/jwt");
+const User = require("../../../db/models/admins");
+const jwtMiddleware = require("../../../middleware/jwt");
 console.log('config.app_url', config.app_url);
 
 router.post("/login", passport.authenticate('local-administrator-login'), async (req, res) => {
