@@ -69,8 +69,14 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   if(req.query.page){
     active_page = req.query.page;
   }
+
+  let select_company = req.query.company;
   let keyword = req.query.q;
   let where = {};
+
+  if (select_company) {
+    where.company = select_company;
+  }
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
@@ -94,7 +100,8 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
-  const [properties, itemCount] = await Promise.all([
+  const [hoteladmins, properties, itemCount] = await Promise.all([
+    HotelAdmin.find(),
     Property.find(where)
       .sort(sort)
       .populate("company")
@@ -129,13 +136,15 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   } catch (error) {
     console.log(error);
   }
-
   const pageCount = Math.ceil(itemCount / req.query.limit);
   let data = {
     properties: properties,
+    hoteladmins: hasAllPropertiesAccess ? hoteladmins : [],
+    select_company: select_company,
     itemCount: itemCount,
     pageCount: pageCount,
     pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
+    search: req.query.search,
     active_page
   };
   res.status(200).send(data).end();
