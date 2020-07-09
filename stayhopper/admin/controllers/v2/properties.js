@@ -141,7 +141,7 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   }
   const pageCount = Math.ceil(itemCount / req.query.limit);
   let data = {
-    properties: properties,
+    list: properties,
     hoteladmins: hoteladmins,
     select_company: select_company,
     itemCount: itemCount,
