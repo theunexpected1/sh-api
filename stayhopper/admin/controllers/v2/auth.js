@@ -46,6 +46,32 @@ router.post("/authorized", jwtMiddleware.administratorAuthenticationRequired, (r
   res.status(200).json({});
 })
 
+router.post("/migrate-admins", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const HotelAdmin = require("../../../db/models/hoteladmins");
+  let hotelAdmins = await HotelAdmin.find()
+    .limit(100)
+    .skip(0)
+    .exec()
+  ;
+
+  try {
+    hotelAdmins.map(hotelAdmin => {
+      const newAdminData = hotelAdmin.toJSON();
+      delete newAdminData._id;
+      delete newAdminData.__v;
+      newAdminData.name = hotelAdmin.contact_person;
+      newAdminData.role = "5efc8ef65694cbf9675b28a3";
+      const newAdmin = new Administrator(newAdminData);
+      console.log('Admin', newAdmin.name, 'migrated');
+      newAdmin.save();
+    });
+  } catch (e) {
+    console.log('error in ', newAdmin.name, e);
+  }
+
+  res.status(200).json({});
+})
 router.post("/logout", (req, res) => {
   console.log('Success');
   res.status(200).json({});

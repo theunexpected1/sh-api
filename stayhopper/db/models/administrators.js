@@ -16,7 +16,8 @@ const AdministratorSchema = new db.Schema({
   },
   status: {
     type: Boolean,
-    required: [true, 'Status is required']
+    required: [true, 'Status is required'],
+    default: true
   },
   password: {
     type: String,
@@ -36,12 +37,10 @@ const AdministratorSchema = new db.Schema({
     type: String
   },
   contact_person: {
-    type: String,
-    required: [true, 'Contact Person is required']
+    type: String
   },
   legal_name: {
     type: String,
-    unique: true,
     required: [true, 'Legal Name is required']
   },
   country: {
@@ -96,13 +95,18 @@ AdministratorSchema.methods.validPassword = async function(password) {
 
 AdministratorSchema.pre('save', function (next) {
   var admin = this;
-  bcrypt.hash(admin.password, 10, function (err, hash) {
-    if (err) {
-      return next(err);
-    }
-    admin.password = hash;
+  if (!admin.password) {
+    console.log('changing password');
+    bcrypt.hash(admin.password, 10, function (err, hash) {
+      if (err) {
+        return next(err);
+      }
+      admin.password = hash;
+      next();
+    })
+  } else {
     next();
-  })
+  }
 });
 
 AdministratorModel = db.model('administrators', AdministratorSchema);

@@ -100,18 +100,21 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
+  console.log('properties: where', where);
   const [hoteladmins, properties, itemCount] = await Promise.all([
-    HotelAdmin.find(),
-    Property.find(where)
+    hasAllPropertiesAccess ? HotelAdmin.find() : Promise.resolve([]),
+    Property
+      .find(where)
       .sort(sort)
       .populate("company")
+      .populate("rooms")
       .populate("type")
       .populate("rating")
       .limit(req.query.limit)
       .skip(req.skip)
       .lean()
       .exec(),
-    Property.find(where).count({})
+    Property.countDocuments(where)
   ]);
   try {
     for (var i = 0; i < properties.length; i++) {
@@ -139,7 +142,7 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   const pageCount = Math.ceil(itemCount / req.query.limit);
   let data = {
     properties: properties,
-    hoteladmins: hasAllPropertiesAccess ? hoteladmins : [],
+    hoteladmins: hoteladmins,
     select_company: select_company,
     itemCount: itemCount,
     pageCount: pageCount,
