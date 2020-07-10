@@ -72,6 +72,8 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
 
   let select_company = req.query.company;
   let keyword = req.query.q;
+  let approved = req.query.approved;
+  let published = req.query.published;
   let where = {};
 
   if (select_company) {
@@ -91,6 +93,16 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
       {name: new RegExp(keyword, 'i')},
       {description: new RegExp(keyword, 'i')}
     ]
+  }
+
+  // Filter Approval status
+  if (approved !== '') {
+    where.approved = approved;
+  }
+
+  // Filter Publish status
+  if (published !== '') {
+    where.published = published;
   }
 
   // Sorting
