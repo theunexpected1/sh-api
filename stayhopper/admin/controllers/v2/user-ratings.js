@@ -124,7 +124,7 @@ const list = async (req, res) => {
   }
 
   let [properties, list, itemCount] = await Promise.all([
-    hasPropertiesAccess ? Property.find({}).select('_id name') : Promise.resolve([]),
+    hasPropertiesAccess ? Property.find({}).sort({name: 1}).select('_id name') : Promise.resolve([]),
     UserRating
       .find(where)
       .sort(sort)
