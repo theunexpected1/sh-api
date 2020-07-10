@@ -95,8 +95,7 @@ AdministratorSchema.methods.validPassword = async function(password) {
 
 AdministratorSchema.pre('save', function (next) {
   var admin = this;
-  if (!admin.password) {
-    console.log('changing password');
+  if (admin.password) {
     bcrypt.hash(admin.password, 10, function (err, hash) {
       if (err) {
         return next(err);

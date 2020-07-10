@@ -34,71 +34,111 @@ const currentDirPath = path.resolve(__dirname);
 // const _ = require("underscore");
 // const { where } = require("underscore");
 
-const Property = require("../../../db/models/properties");
-const Role = require("../../../db/models/roles");
-const Administrator = require("../../../db/models/administrators");
+const User = require("../../../db/models/users");
+const UserBooking = require("../../../db/models/userbookings");
+const Country = require("../../../db/models/countries");
+const CompletedBooking = require("../../../db/models/completedbookings");
 const jwtMiddleware = require("../../../middleware/jwt");
 
 const resourcePopulations = [
-  {
-    path: "properties",
-    populate: {
-      path: "rooms type company rating"
-    }
-  },
-  {
-    path: "role"
-  },
-  {
-    path: "country"
-  },
-  {
-    path: "city"
-  }
+  // {
+  //   path: 'favourites'
+  // }
 ];
+
+const getExtraUserInformation = async (user) => {
+  let sum1, sum2, countryId;
+  let totalBookingAmt = 0;
+  let totalBookingCount = 0;
+  let totalCompletedBookingAmt = 0;
+  let totalCompletedBookingCount = 0;
+
+  sum1 = await UserBooking.aggregate([
+    { $match: { user: user._id } },
+    {
+      $group: {
+        _id: "$user",
+        totalAmount: { $sum: "$total_amt" },
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+  sum2 = await CompletedBooking.aggregate([
+    { $match: { user: user._id } },
+    {
+      $group: {
+        _id: "$user",
+        totalAmount: { $sum: "$total_amt" },
+        count: { $sum: 1 }
+      }
+    }
+  ]);
+
+  const [bookings, completedBookings] = await Promise.all([
+    UserBooking.find({user: user._id}),
+    CompletedBooking.find({user: user._id})
+  ])
+
+  // Save Country information
+  // countryId = await Country.findOne({country: user.country});
+  // user.country_id = countryId;
+
+  if (sum1.length>0) {
+    totalBookingAmt = sum1[0].totalAmount;
+    totalBookingCount = sum1[0].count;
+  }
+  if (sum2.length > 0) {
+    totalCompletedBookingAmt = sum2[0].totalAmount;
+    totalCompletedBookingCount = sum2[0].count;
+  }
+
+  // Save Booking information
+  user.bookings = {
+    amount: (totalBookingAmt || 0) + (totalCompletedBookingAmt || 0),
+    count: (totalBookingCount || 0) + (totalCompletedBookingCount || 0),
+    bookings,
+    completedBookings
+  }
+
+  return user;
+}
+
 
 const list = async (req, res) => {
   let user = req.user;
   let {permissions} = user.role;
-  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_USERS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
     }).end();
   }
 
+  let countries = await Country.find({});
   let active_page = 1;
+  let keyword = req.query.q;
+  let country = req.query.country;
+  let where = {};
+
   if(req.query.page){
     active_page = req.query.page;
   }
-  let keyword = req.query.q;
-  let role = req.query.role;
-
-  let where = {};
-
-  // // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
-  // if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
-  //   where._id = {
-  //     $in: user.properties
-  //   }
-  // }
 
   // Filter: Keywords
   if (keyword) {
     where['$or'] = [
       {name: new RegExp(keyword, 'i')},
-      {email: new RegExp(keyword, 'i')},
-      {legal_name: new RegExp(keyword, 'i')},
-      {address_1: new RegExp(keyword, 'i')},
-      {address_2: new RegExp(keyword, 'i')},
-      {location: new RegExp(keyword, 'i')}
+      {email: new RegExp(keyword, 'i')}
     ]
   }
 
-  // Filter: Role
-  if (role) {
-    where.role = role
-  }
+  // // Filter country
+  // if (country) {
+  //   const matchingCountry = countries.find(c => c._id.toString() === country);
+  //   if (matchingCountry) {
+  //     where.country = new RegExp(matchingCountry.country.toLowerCase(), 'i');
+  //   }
+  // }
 
   // Sorting
   let sort = { _id: 1 };
@@ -107,10 +147,8 @@ const list = async (req, res) => {
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
-  const [properties, roles, administrators, itemCount] = await Promise.all([
-    hasResourceAccess ? Property.find() : Promise.resolve([]),
-    hasResourceAccess ? Role.find() : Promise.resolve([]),
-    Administrator
+  let [list, itemCount] = await Promise.all([
+    User
       .find(where)
       .select('+email')
       .sort(sort)
@@ -119,13 +157,15 @@ const list = async (req, res) => {
       .skip(req.skip)
       .lean()
       .exec(),
-      Administrator.countDocuments(where)
+      User.countDocuments(where)
   ]);
+
   const pageCount = Math.ceil(itemCount / req.query.limit);
+  list = await Promise.all(list.map(getExtraUserInformation))
+
   let data = {
-    list: administrators,
-    properties: properties,
-    roles: roles,
+    list: list,
+    countries: countries,
     itemCount: itemCount,
     pageCount: pageCount,
     pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
@@ -134,26 +174,10 @@ const list = async (req, res) => {
   res.status(200).send(data).end();
 };
 
-const getMe = async (req, res) => {
-  let user = req.user;
-  let {permissions} = user.role;
-  let where = {
-    _id: user._id
-  };
-  const administrator = await Administrator
-    .findOne(where)
-    .select('+email')
-    .populate(resourcePopulations)
-    .lean()
-    .exec()
-  ;
-  res.status(200).send(administrator).end();
-};
-
 const getById = async (req, res) => {
   let user = req.user;
   let {permissions} = user.role;
-  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_USERS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
@@ -164,10 +188,9 @@ const getById = async (req, res) => {
   };
 
   try {
-    const [resource] = await Promise.all([
-      Administrator
+    let [resource] = await Promise.all([
+      User
         .findOne(where)
-        .select('+email')
         .populate(resourcePopulations)
         .lean()
         .exec()
@@ -179,7 +202,9 @@ const getById = async (req, res) => {
       }).end();
     }
 
+    resource = await getExtraUserInformation(resource);
     res.status(200).send(resource).end();
+
   } catch (e) {
     return res.status(500).send({
       message: 'Sorry, there was an error in performing this operation'
@@ -191,7 +216,7 @@ const create = async (req, res) => {
   const user = req.user;
   const {permissions} = user.role;
   const resourceData = req.body;
-  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_USERS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
@@ -206,7 +231,7 @@ const create = async (req, res) => {
     });
     resourceData.password = await bcrypt.hashSync(password, 10);
 
-    const resource = new Administrator(resourceData);
+    const resource = new User(resourceData);
     await resource.save()
 
     if (resource) {
@@ -225,12 +250,11 @@ const create = async (req, res) => {
   }
 };
 
-
 const modify = async (req, res) => {
   const user = req.user;
   const {permissions} = user.role;
   const updatedData = req.body;
-  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_USERS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
@@ -242,14 +266,14 @@ const modify = async (req, res) => {
 
   try {
     // Return updated doc
-    const resource = await Administrator
+    let resource = await User
       .findOneAndUpdate(where, { $set: updatedData }, { new: true })
-      .select('+email')
       .populate(resourcePopulations)
       .exec()
     ;
 
     if (resource) {
+      resource = await getExtraUserInformation(resource);
       res.status(200).send(resource).end();
     } else {
       res.status(404).send({
@@ -268,7 +292,7 @@ const remove = async (req, res) => {
   const user = req.user;
   const {permissions} = user.role;
   const updatedData = req.body;
-  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_USERS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
@@ -280,7 +304,7 @@ const remove = async (req, res) => {
 
   try {
     // Return updated doc
-    const resource = await Administrator
+    const resource = await User
       .deleteOne(where)
       .exec()
     ;
@@ -300,61 +324,11 @@ const remove = async (req, res) => {
   }
 };
 
-const sendWelcomeEmail = async (req, res) => {
-  let app_url = config.app_url;
-  const administratorId = req.params.id;
-  try {
-
-    const administrator = await Administrator.findOne({_id: administratorId}).select('+email').select('+password');
-    if (administrator) {
-      const password = generator.generate({
-        length: 10,
-        numbers: true
-      });
-      console.log('password', password);
-      console.log('before', administrator.password);
-      administrator.password = await bcrypt.hashSync(password, 10);
-      console.log('after', administrator.password);
-      await administrator.save();
-
-      let html_body = await readFile(currentDirPath + '/../../../emails/welcome.html', 'utf8')
-      html_body = html_body.replace('{{USERNAME}}', administrator.email);
-      html_body = html_body.replace('{{PASSWORD}}', password);
-      html_body = html_body.replace('{{URL}}', app_url);     
-      msg = {
-        to: administrator.email,
-        bcc: [{ email: config.website_admin_bcc_email }],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
-        subject: "STAYHOPPER: Account has been created!",
-        text: "Congratulations! Your account has been created",
-        html: html_body
-      };
-
-      sgMail.send(msg);
-      res.status(200).send({
-        message: 'Email sent successfully!'
-      }).end();
-    } else {
-      res.status(404).send({
-        message: 'Sorry, resource does not exist'
-      }).end();
-    }
-  } catch (e) {
-    console.log('e', e);
-    res.status(500).send({
-      message: 'Sorry, there was an error in performing this operation'
-    }).end();
-  }
-}
-
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
-router.get("/me", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getMe);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getById);
-router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
+// router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
-router.post('/send-welcome-email/:id', jwtMiddleware.administratorAuthenticationRequired, sendWelcomeEmail);
 
 
 module.exports = router;

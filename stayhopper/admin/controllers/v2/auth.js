@@ -120,22 +120,23 @@ router.post("/reset-password", async (req, res) => {
 });
 
 
-router.post('/change-password', async (req, res) => {
-  const admin = await Administrator.findOne({ _id: req.body.id }).select('+password')
-  const passwordSchema = {
-    old_password: joi.string().required(),
-    new_password: joi.string().required(),
-    confirm_password: joi.string().required(),
-    id: joi.string().required(),
-  }
-  const valid = joi.validate(req.body, passwordSchema, { abortEarly: false });
-  if (req.body.new_password != req.body.confirm_password) {
-    return res.status(200).json({ 'status': 0, 'message': 'Password and Confirm password must be same' });
-  }
+router.post('/change-password', jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+  let errors = [];
+  try {
+    const passwordSchema = {
+      old_password: joi.string().required(),
+      new_password: joi.string().required(),
+      confirm_password: joi.string().required()
+    }
+    const admin = await Administrator.findOne({ _id: req.user._id }).select('+password')
+    const valid = joi.validate(req.body, passwordSchema, { abortEarly: false });
+    if (req.body.new_password != req.body.confirm_password) {
+      return res.status(200).json({ 'status': 0, 'message': 'Password and Confirm password must be same' });
+    }
 
-  const valid1 = await bcrypt.compare(req.body.old_password, admin.password);
-  if (valid1) {
-      let errors = [];
+    const valid1 = await bcrypt.compare(req.body.old_password, admin.password);
+
+    if (valid1) {
       if (valid.error) {
         errors = valid.error.details.map((error) => {
           return error.message;
@@ -147,20 +148,19 @@ router.post('/change-password', async (req, res) => {
 
       admin.password = req.body.new_password;
 
-      try {
-        const result = await admin.save();
-        if (result) {
-          return res.json({ 'status': 1, 'message': 'Password updated successfully', 'data': result });
-        }
-      } catch (error) {
-        console.log(error)
-        for (field in error.errors) {
-          errors.push(error.errors[field].message);
-        }
-        return res.json({ status: 0, errors: errors });
+      const result = await admin.save();
+      if (result) {
+        return res.json({ 'status': 1, 'message': 'Password updated successfully', 'data': result });
       }
-  } else {
-    return res.json({ 'status': 0, 'message': 'Current Password not matching.' })
+    } else {
+      return res.json({ 'status': 0, 'message': 'Current Password not matching.' })
+    }
+  } catch (error) {
+    console.log(error)
+    for (field in error.errors) {
+      errors.push(error.errors[field].message);
+    }
+    return res.json({ status: 0, errors: errors });
   }
 })
 

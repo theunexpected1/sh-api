@@ -103,12 +103,14 @@ app.use('/userreviews', requireLogin, userReviewsController);
 /** Sh 2.0 */
 const authControllerV2 = require('../controllers/v2/auth');
 const administratorsControllerV2 = require('../controllers/v2/administrators');
+const usersControllerV2 = require('../controllers/v2/users');
 const propertiesControllerV2 = require("../controllers/v2/properties");
 const lookupsControllerV2 = require('../controllers/v2/lookups');
 
 app.use("/v2/auth", authControllerV2);
 app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
 app.use("/v2/administrators", (req, res, next) => next(), administratorsControllerV2);
+app.use("/v2/users", (req, res, next) => next(), usersControllerV2);
 app.use("/v2/lookups", (req, res, next) => next(), lookupsControllerV2);
 
 module.exports = app;
