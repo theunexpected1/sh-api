@@ -74,7 +74,7 @@ let upload = pify(
 
 const preCreateOrUpdate = async (req, res, resourceData) => {
   try {
-    await upload(req, res);
+    // await upload(req, res);
     // Set the newly uploaded file in the resource body
     if (req.files && req.files.length > 0) {
       resourceData.image = req.files[0].path || null;
@@ -241,8 +241,8 @@ const remove = async (req, res) => {
 
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
-router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
-router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, modify);
+router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
+router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
 
 module.exports = router;
