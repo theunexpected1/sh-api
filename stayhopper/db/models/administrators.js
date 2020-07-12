@@ -95,6 +95,9 @@ AdministratorSchema.methods.validPassword = async function(password) {
 
 AdministratorSchema.pre('save', function (next) {
   var admin = this;
+  // Executed only for change-password as we call admin.save() there
+  // In case of amdinistrator -> modify, we do findOneAndUpdate(), so the pre save hooks dont trigger
+  // If we wish to harmonize this, the password hashing should be part of change-password call and not as a hook
   if (admin.password) {
     bcrypt.hash(admin.password, 10, function (err, hash) {
       if (err) {

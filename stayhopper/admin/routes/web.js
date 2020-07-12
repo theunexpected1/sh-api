@@ -107,6 +107,8 @@ const usersControllerV2 = require('../controllers/v2/users');
 const userRatingsControllerV2 = require('../controllers/v2/user-ratings');
 const propertiesControllerV2 = require("../controllers/v2/properties");
 const lookupsControllerV2 = require('../controllers/v2/lookups');
+const countriesControllerV2 = require('../controllers/v2/countries');
+const citiesControllerV2 = require('../controllers/v2/cities');
 
 app.use("/v2/auth", authControllerV2);
 app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
@@ -114,5 +116,8 @@ app.use("/v2/administrators", (req, res, next) => next(), administratorsControll
 app.use("/v2/users", (req, res, next) => next(), usersControllerV2);
 app.use("/v2/user-ratings", (req, res, next) => next(), userRatingsControllerV2);
 app.use("/v2/lookups", (req, res, next) => next(), lookupsControllerV2);
+
+app.use("/v2/countries", (req, res, next) => next(), countriesControllerV2);
+app.use("/v2/cities", (req, res, next) => next(), citiesControllerV2);
 
 module.exports = app;
