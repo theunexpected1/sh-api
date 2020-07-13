@@ -23,10 +23,7 @@ const config = require("config");
 // const _ = require("underscore");
 // const { where } = require("underscore");
 
-const Country = require("../../../db/models/countries");
-const City = require("../../../db/models/cities");
 const Role = require("../../../db/models/roles");
-const Property = require("../../../db/models/properties");
 const jwtMiddleware = require("../../../middleware/jwt");
 
 const listLookup = (ModelClass, selections, populations) => async (req, res) => {
@@ -38,13 +35,6 @@ const listLookup = (ModelClass, selections, populations) => async (req, res) => 
   }
 
   const where = {};
-
-  if (ModelClass === City) {
-    const country = req.query.country;
-    if (country) {
-      where.country = country;
-    }
-  }
 
   // Sorting
   let sort = { _id: 1 };
@@ -77,17 +67,6 @@ const listLookup = (ModelClass, selections, populations) => async (req, res) => 
   res.status(200).send(data).end();
 };
 
-const countryPopulations = '';
-const countrySelections = '_id country'
-
-const cityPopulations = '';
-const citySelections = '_id name country'
-
-const propertySelections = '_id name rooms';
-
-router.get("/countries", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), listLookup(Country, countrySelections, countryPopulations));
-router.get("/cities", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), listLookup(City, citySelections, cityPopulations));
 router.get("/roles", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), listLookup(Role));
-router.get("/properties", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), listLookup(Property, propertySelections));
 
 module.exports = router;
