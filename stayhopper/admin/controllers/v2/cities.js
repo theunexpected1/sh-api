@@ -7,6 +7,7 @@ const paginate = require("express-paginate");
 const config = require("config");
 
 const City = require("../../../db/models/cities");
+const Country = require("../../../db/models/countries");
 const jwtMiddleware = require("../../../middleware/jwt");
 
 
@@ -108,7 +109,8 @@ const list = async (req, res) => {
         sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
       }
 
-      const [list, itemCount] = await Promise.all([
+      const [countries, list, itemCount] = await Promise.all([
+        Country.find({}).sort({country: 1}),
         ModuleModel
           .find(where)
           .select(selections || '')
@@ -127,6 +129,7 @@ const list = async (req, res) => {
         itemCount: itemCount,
         pageCount: pageCount,
         pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
+        countries,
         active_page
       };
       res.status(200).send(data).end();
