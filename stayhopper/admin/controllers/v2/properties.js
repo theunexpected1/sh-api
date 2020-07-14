@@ -5,86 +5,85 @@ const express = require("express");
 const router = express.Router();
 const multer = require("multer");
 const pify = require("pify");
-const generator = require("generate-password");
+const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
 
 const Property = require("../../../db/models/properties");
 const Room = require("../../../db/models/rooms");
+const Role = require("../../../db/models/roles");
 const HotelAdmin = require("../../../db/models/hoteladmins");
-const User = require("../../../db/models/users");
-const PropertyTypes = require("../../../db/models/propertytypes");
-const PropertyRatings = require("../../../db/models/propertyratings");
-const Countries = require("../../../db/models/countries");
-const Currency = require("../../../db/models/currencies");
-const City = require("../../../db/models/cities");
+const Administrator = require("../../../db/models/administrators");
 const UserBooking = require("../../../db/models/userbookings");
 
-const path = require("path");
 const _ = require("underscore");
 const jwtMiddleware = require("../../../middleware/jwt");
 
-const propertiesCrump = require("../../../middleware/propertiesCrump");
-const { where } = require("underscore");
+// START: Customize
+const ModuleTitle = "Property";
+const ModuleModel = Property;
+const selections = '';
+const populations = [
+  {
+    path: "rating"
+  },
+  {
+    path: "company"
+  },
+  {
+    path: "rooms"
+  },
+  {
+    path: "type"
+  },
+  {
+    path: "contactinfo.country"
+  },
+  {
+    path: "contactinfo.city"
+  }
+];
 
-const createSchema = {
-  name: joi
-    .string()
-    .min(3)
-    .required(),
-  type: joi
-    .string()
-    .min(8)
-    .required(),
-  rating: joi.string().required(),
-  contact_person: joi.string().required(),
-  legal_name: joi.string().required(),
-  country: joi.string().required(),
-  city: joi.string().required(),
-  email: joi.string().required(),
-  mobile: joi.string().required(),
-  trade_licence_number: joi.string(),
-  trade_licence_validity: joi.string()
-};
+const hasPermissions = (req, res) => {
+  // Permissions
 
-const property_active_bookings = async property_id => {
-  return await UserBooking.find({
-    property: property_id
-  }).count();
-};
-
-router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), async (req, res) => {
   let user = req.user;
   let {permissions} = user.role;
-  const hasPropertiesAccess = permissions.indexOf(config.permissions.LIST_PROPERTIES) > -1;
-  const hasAllPropertiesAccess = permissions.indexOf(config.permissions.LIST_ALL_PROPERTIES) > -1;
-  const hasOwnPropertiesAccess = permissions.indexOf(config.permissions.LIST_OWN_PROPERTIES) > -1;
-  if (!hasPropertiesAccess) {
+  const hasResourceAccess = permissions.indexOf(config.permissions.LIST_PROPERTIES) > -1;
+  if (hasResourceAccess) {
+    return true;
+  } else {
     res.status(401).send({
       message: 'Sorry, you do not have access to this resource'
     }).end();
+    return false;
   }
+}
 
-  let active_page = 1;
-  if(req.query.page){
-    active_page = req.query.page;
-  }
+const prepareQueryForListing = (req) => {
+
+  // Further permissions
+  let user = req.user;
+  let {permissions} = user.role;
+  const hasAllPropertiesAccess = permissions.indexOf(config.permissions.LIST_ALL_PROPERTIES) > -1;
+  const hasOwnPropertiesAccess = permissions.indexOf(config.permissions.LIST_OWN_PROPERTIES) > -1;
+
+  const where = {};
 
   let select_company = req.query.company;
   let keyword = req.query.q;
   let approved = req.query.approved;
   let published = req.query.published;
-  let where = {};
-
-  if (select_company) {
-    where.company = select_company;
-  }
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
     where._id = {
       $in: user.properties
     }
+  }
+
+  if (select_company) {
+    where.company = select_company;
   }
 
   // Filter: Keywords
@@ -96,73 +95,161 @@ router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.midd
   }
 
   // Filter Approval status
-  if (approved !== '') {
+  if (approved || approved === false) {
     where.approved = approved;
   }
 
   // Filter Publish status
-  if (published !== '') {
+  if (published || published === false) {
     where.published = published;
   }
 
-  // Sorting
-  let sort = { _id: 1 };
-  if (req.query.order && req.query.orderBy) {
-    sort = {};
-    sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
-  }
+  return where;
+}
 
-  console.log('properties: where', where);
-  const [hoteladmins, properties, itemCount] = await Promise.all([
-    hasAllPropertiesAccess ? HotelAdmin.find() : Promise.resolve([]),
-    Property
-      .find(where)
-      .sort(sort)
-      .populate("company")
-      .populate("rooms")
-      .populate("type")
-      .populate("rating")
-      .limit(req.query.limit)
-      .skip(req.skip)
-      .lean()
-      .exec(),
-    Property.countDocuments(where)
-  ]);
-  try {
-    for (var i = 0; i < properties.length; i++) {
-      let rooms = await Room.aggregate([
-        {
-          $match: { property_id: db.Types.ObjectId(properties[i]._id) }
-        },
-        {
-          $group: {
-            _id: "$property_id",
-            totalRooms: { $sum: "$number_rooms" }
-          }
-        },
-        { $limit: 1 }
-      ]);
-      let total_rooms = 0;
-      if (rooms.length > 0) {
-        total_rooms = rooms[0].totalRooms;
-      }
-      properties[i].total_rooms = total_rooms;
-    }
-  } catch (error) {
-    console.log(error);
+const storage = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/files/properties");
+  },
+  filename: (req, file, cb) => {
+    var ext = path.extname(file.originalname);
+    var filename = file.fieldname + "-" + Date.now() + ext;
+    cb(null, filename);
   }
-  const pageCount = Math.ceil(itemCount / req.query.limit);
-  let data = {
-    list: properties,
-    hoteladmins: hoteladmins,
-    select_company: select_company,
-    itemCount: itemCount,
-    pageCount: pageCount,
-    pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
-    search: req.query.search,
-    active_page
-  };
-  res.status(200).send(data).end();
 });
+
+let upload = pify(
+  multer({ storage: storage }).fields([
+    { name: "trade_licence_attachment" },
+    { name: "passport_attachment" }
+  ])
+);
+
+const preCreateOrUpdate = async (req, res, resourceData) => {
+  try {
+    // await upload(req, res);
+    // Set the newly uploaded file in the resource body
+    if (req.files && req.files.length > 0) {
+      resourceData.image = req.files[0].path || null;
+    }
+    return resourceData;
+  } catch (e) {
+    console.log('e', e);
+    throw new Error("Could not upload");
+  }
+}
+
+
+const getExtraResourceInformation = async (resource) => {
+  let rooms = await Room.aggregate([
+    {
+      $match: { property_id: db.Types.ObjectId(resource._id) }
+    },
+    {
+      $group: {
+        _id: "$property_id",
+        totalRooms: { $sum: "$number_rooms" }
+      }
+    },
+    { $limit: 1 }
+  ]);
+  let total_rooms = 0;
+  if (rooms.length > 0) {
+    total_rooms = rooms[0].totalRooms;
+  }
+  resource.total_rooms = total_rooms;
+  return resource;
+}
+
+// END: Customize
+
+
+// Generic Listing+CRUD
+
+// const property_active_bookings = async property_id => {
+//   return await UserBooking.find({
+//     property: property_id
+//   }).count();
+// };
+
+const list = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      // Further permissions
+      let user = req.user;
+      let {permissions} = user.role;
+      const hasAllPropertiesAccess = permissions.indexOf(config.permissions.LIST_ALL_PROPERTIES) > -1;
+      const hasOwnPropertiesAccess = permissions.indexOf(config.permissions.LIST_OWN_PROPERTIES) > -1;
+
+      // Where condition
+      const where = prepareQueryForListing(req);
+
+      // Pagination
+      let active_page = 1;
+      if (req.query.page) {
+        active_page = req.query.page;
+      }
+
+      // Sorting
+      let sort = { _id: 1 };
+      if (req.query.order && req.query.orderBy) {
+        sort = {};
+        sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
+      }
+
+      // Ensure to filter by hotel admin (not super admin)
+      // Hotel Admin role is one who
+      // - can access OWN Properties
+      // - cannot access ALL Properties
+      let hotelAdminRole = await Role.findOne({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
+      if (hotelAdminRole) {
+        hotelAdminRole = hotelAdminRole._id;
+      }
+
+      let [hotelAdmins, list, itemCount] = await Promise.all([
+        hasAllPropertiesAccess ? Administrator.find({role: hotelAdminRole}) : Promise.resolve([]),
+        ModuleModel
+          .find(where)
+          .select(selections || '')
+          .populate(populations || '')
+          .sort(sort)
+          .limit(req.query.limit)
+          .skip(req.skip)
+          .lean()
+          .exec(),
+        ModuleModel.countDocuments(where)
+      ]);
+      list = await Promise.all(list.map(getExtraResourceInformation))
+
+      const pageCount = Math.ceil(itemCount / req.query.limit);
+      let data = {
+        list: list,
+        hotelAdmins,
+        itemCount: itemCount,
+        pageCount: pageCount,
+        pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
+        active_page
+      };
+      res.status(200).send(data).end();
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+};
+
+const getById = async (req, res) => {}
+const create = async (req, res) => {}
+const modify = async (req, res) => {}
+const remove = async (req, res) => {}
+
+
+router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
+router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getById);
+router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
+router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
+router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
 
 module.exports = router;
