@@ -58,6 +58,11 @@ const usersSchema = new db.Schema({
     promocodes: [String],
     device_type:String,
     device_token:String
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 usersSchema.plugin(uniqueValidator, { message: "{PATH} to be unique." });

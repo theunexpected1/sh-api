@@ -10,7 +10,12 @@ const citiesSchema = new db.Schema({
         type: Boolean,
         default: false
     }
-});
+}, {
+    timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+    }
+  });
 
 citiesModel = db.model('cities', citiesSchema);
 module.exports = citiesModel;

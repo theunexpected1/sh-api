@@ -33,6 +33,11 @@ const userRatingSchema = new db.Schema({
         type: Boolean,
         default: false
     },
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 userRatingModel = db.model('userratings', userRatingSchema);

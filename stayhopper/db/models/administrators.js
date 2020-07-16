@@ -84,6 +84,11 @@ const AdministratorSchema = new db.Schema({
     type : db.Schema.Types.ObjectId,
     ref : "properties"
   }]
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  }
 });
 
 AdministratorSchema.plugin(uniqueValidator, { message: '{PATH} to be unique.' });

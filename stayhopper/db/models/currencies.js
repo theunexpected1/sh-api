@@ -10,7 +10,12 @@ const currencySchema = new db.Schema({
     image: {
         type: String
     }
-});
+}, {
+    timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+    }
+  });
 
 termsModel = db.model('currencies', currencySchema);
 module.exports = termsModel;

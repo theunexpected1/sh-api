@@ -146,6 +146,11 @@ const propertySchema = new db.Schema({
     type: String,
     required: [true, "Legal Name is required"]
   },
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  }
 });
 // propertySchema.index({ location: "2dsphere" });
 propertySchema.query.withinMiles = function(coords, miles) {

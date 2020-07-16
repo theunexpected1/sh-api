@@ -8,7 +8,12 @@ const propertyTypesSchema = new db.Schema({
     image:{
         type: String
     }
-});
+}, {
+    timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+    }
+  });
 
 propertyTypesModel = db.model('property_types', propertyTypesSchema);
 module.exports = propertyTypesModel;

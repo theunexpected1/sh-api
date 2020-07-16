@@ -8,7 +8,12 @@ const propertyRatingsSchema = new db.Schema({
     value: {
         type: Number
     }
-});
+}, {
+    timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+    }
+  });
 
 propertyRatingsModel = db.model('property_ratings', propertyRatingsSchema);
 module.exports = propertyRatingsModel;
