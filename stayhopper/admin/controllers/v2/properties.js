@@ -58,6 +58,12 @@ const populations = [
   },
   {
     path: "currency"
+  },
+  {
+    path: "payment.country"
+  },
+  {
+    path: "payment.currency"
   }
 ];
 
