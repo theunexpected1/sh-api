@@ -42,7 +42,7 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
 
 // Generic Listing+CRUD
 const list = async (req, res) => {
-  if (hasPermissions(req, res)) {
+  // if (hasPermissions(req, res)) {
     try {
       // Where condition
       const where = prepareQueryForListing(req);
@@ -88,7 +88,7 @@ const list = async (req, res) => {
         message: 'Sorry, there was an error in performing this action'
       }).end();
     }
-  }
+  // }
 };
 
 const single = async (req, res) => {
@@ -160,6 +160,8 @@ const modify = async (req, res) => {
       if (resource) {
         Object.keys(resourceData).map(key => resource[key] = resourceData[key]);
         await resource.save();
+        await ModuleModel.populate(resource, populations);
+
         res.status(200).send(resource).end();
       } else {
         res.status(404).send({

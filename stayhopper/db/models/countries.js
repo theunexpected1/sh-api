@@ -6,11 +6,11 @@ const countriesSchema = new db.Schema({
     isd_code:  String,
     image: String
 }, {
-    timestamps: {
-      createdAt: 'createdAt',
-      updatedAt: 'updatedAt'
-    }
-  });
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  }
+});
 
 countriesModel = db.model('countries', countriesSchema);
 module.exports = countriesModel;

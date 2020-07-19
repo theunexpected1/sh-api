@@ -73,6 +73,7 @@ const list = async (req, res) => {
   }
   let keyword = req.query.q;
   let role = req.query.role;
+  let rolesQuery = req.query.roles;
 
   let where = {};
 
@@ -98,6 +99,13 @@ const list = async (req, res) => {
   // Filter: Role
   if (role) {
     where.role = role
+  }
+
+  // Filter: multiple Roles
+  if (rolesQuery) {
+    where.role = {
+      $in: rolesQuery.split(',')
+    }
   }
 
   // Sorting

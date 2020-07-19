@@ -93,13 +93,25 @@ const nearBySchema = new db.Schema({
     default: null
   }
 })
+
 var uniqueValidator = require("mongoose-unique-validator");
+const SecondaryAdministratorSchema = {
+  type: db.Schema.Types.ObjectId,
+  ref: "administrators"
+};
+
 const propertySchema = new db.Schema({
   company: {
     type: db.Schema.Types.ObjectId,
     ref: "hotel_admins",
-    required: [true, "Contact Person is required"]
+    required: [false, "Contact Person is required"]
   },
+  administrator: {
+    type: db.Schema.Types.ObjectId,
+    ref: "administrators",
+    required: [true, "Administrator is required"]
+  },
+  secondaryAdministrators: [SecondaryAdministratorSchema],
   name: {
     type: String,
     required: [true, "Property Name is required"]
@@ -127,6 +139,24 @@ const propertySchema = new db.Schema({
   images: [String],
   featured: [String],
   contactinfo: adminSchema,
+  currency: {
+    type: db.Schema.Types.ObjectId,
+    ref: "currencies",
+    required: [true, "Currency is required"]
+  },
+  primaryReservationEmail: {
+    type: String,
+    required: true
+  },
+  secondaryReservationEmails: {
+    type: String,
+    default: ''
+  },
+  weekends: {
+    type: [String],
+    enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
+    default: ['fri', 'sat']
+  },
   approved: {
     type: Boolean,
     default: false

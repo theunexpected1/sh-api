@@ -9,6 +9,11 @@ const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
 
+const PropertyType = require("../../../db/models/propertytypes");
+const PropertyRating = require("../../../db/models/propertyratings");
+const Country = require("../../../db/models/countries");
+const City = require("../../../db/models/cities");
+
 const Property = require("../../../db/models/properties");
 const Room = require("../../../db/models/rooms");
 const Role = require("../../../db/models/roles");
@@ -31,6 +36,9 @@ const populations = [
     path: "company"
   },
   {
+    path: "administrator"
+  },
+  {
     path: "rooms"
   },
   {
@@ -41,6 +49,15 @@ const populations = [
   },
   {
     path: "contactinfo.city"
+  },
+  // {
+  //   path: "country"
+  // },
+  // {
+  //   path: "city"
+  // },
+  {
+    path: "currency"
   }
 ];
 
@@ -74,16 +91,15 @@ const prepareQueryForListing = (req) => {
   let keyword = req.query.q;
   let approved = req.query.approved;
   let published = req.query.published;
+  let country = req.query.country;
+  let city = req.query.city;
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
-    where._id = {
-      $in: user.properties
-    }
-  }
-
-  if (select_company) {
-    where.company = select_company;
+    where['$or'] = [
+      {administrator: user._id},
+      // Add staff roles here
+    ]
   }
 
   // Filter: Keywords
@@ -92,6 +108,18 @@ const prepareQueryForListing = (req) => {
       {name: new RegExp(keyword, 'i')},
       {description: new RegExp(keyword, 'i')}
     ]
+  }
+
+  if (select_company) {
+    where.company = select_company;
+  }
+
+  if (country) {
+    where['contactinfo.country'] = country;
+  }
+
+  if (city) {
+    where['contactinfo.city'] = city;
   }
 
   // Filter Approval status
@@ -104,6 +132,7 @@ const prepareQueryForListing = (req) => {
     where.published = published;
   }
 
+  // console.log('where', where);
   return where;
 }
 
@@ -120,18 +149,43 @@ const storage = multer.diskStorage({
 
 let upload = pify(
   multer({ storage: storage }).fields([
-    { name: "trade_licence_attachment" },
-    { name: "passport_attachment" }
+    { name: "trade_licence[trade_licence_attachment]" },
+    { name: "trade_licence[passport_attachment]" }
   ])
 );
 
 const preCreateOrUpdate = async (req, res, resourceData) => {
   try {
-    // await upload(req, res);
+
+    resourceData.trade_licence = resourceData.trade_licence || {};
     // Set the newly uploaded file in the resource body
-    if (req.files && req.files.length > 0) {
-      resourceData.image = req.files[0].path || null;
+    if (req.files['trade_licence[trade_licence_attachment]']) {
+      resourceData.trade_licence.trade_licence_attachment = req.files['trade_licence[trade_licence_attachment]'][0].path || null;
     }
+
+    if (req.files['trade_licence[passport_attachment]']) {
+      resourceData.trade_licence.passport_attachment = req.files['trade_licence[passport_attachment]'][0].path || null;
+    }
+
+    // Parse if necessary
+    // - weekends
+    if (resourceData.weekends && typeof resourceData.weekends === 'string') {
+      resourceData.weekends = resourceData.weekends.split(',').map(we => we.trim().toLowerCase());
+    }
+    // - secondaryReservationEmails
+    if (resourceData.secondaryReservationEmails) {
+      resourceData.secondaryReservationEmails = resourceData.secondaryReservationEmails.toLowerCase();
+    }
+
+    // if (!resourceData.location) {
+    //   resourceData.location = {
+    //     "type" : "Point",
+    //     "coordinates" : [
+    //       55.297738, 
+    //       25.253621
+    //     ]
+    //   }
+    // }
     return resourceData;
   } catch (e) {
     console.log('e', e);
@@ -201,13 +255,15 @@ const list = async (req, res) => {
       // Hotel Admin role is one who
       // - can access OWN Properties
       // - cannot access ALL Properties
-      let hotelAdminRole = await Role.findOne({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
-      if (hotelAdminRole) {
-        hotelAdminRole = hotelAdminRole._id;
+      let hotelAdminRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
+      let hotelAdminRoleIds = [];
+      if (hotelAdminRoles) {
+        hotelAdminRoleIds = hotelAdminRoles.map(role => role._id);
       }
 
-      let [hotelAdmins, list, itemCount] = await Promise.all([
-        hasAllPropertiesAccess ? Administrator.find({role: hotelAdminRole}) : Promise.resolve([]),
+      let [hotelAdmins, countries, list, itemCount] = await Promise.all([
+        hasAllPropertiesAccess ? Administrator.find({role: {$in: hotelAdminRoleIds}}) : Promise.resolve([]),
+        Country.find({}),
         ModuleModel
           .find(where)
           .select(selections || '')
@@ -225,6 +281,7 @@ const list = async (req, res) => {
       let data = {
         list: list,
         hotelAdmins,
+        countries,
         itemCount: itemCount,
         pageCount: pageCount,
         pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
@@ -240,14 +297,111 @@ const list = async (req, res) => {
   }
 };
 
-const getById = async (req, res) => {}
-const create = async (req, res) => {}
-const modify = async (req, res) => {}
-const remove = async (req, res) => {}
+const single = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let where = {_id: req.params.id};
+      const [resource] = await Promise.all([
+        ModuleModel
+          .findOne(where)
+          .select(selections)
+          .populate(populations)
+          .lean()
+          .exec()
+      ]);
+
+      if (!resource) {
+        return res.status(404).send({
+          message: `${ModuleTitle} does not exist`
+        }).end();
+      }
+
+      res.status(200).send(resource).end();
+    } catch (e) {
+      return res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+
+const create = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      // Pre call could be anything to be done before a POST / PUT is performed
+      // This could also be empty
+      let resourceData = req.body;
+      resourceData = await preCreateOrUpdate(req, res, resourceData);
+
+      const resource = new ModuleModel(resourceData);
+      await resource.save()
+
+      if (resource) {
+        res.status(200).send(resource).end();
+      } else {
+        res.status(500).send({
+          message: 'Sorry, there was an error in performing this action'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action',
+        error: e
+      }).end();
+    }
+  }
+}
+
+const modify = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      // Pre call could be anything to be done before a POST / PUT is performed
+      // This could also be empty
+      let resourceData = req.body;
+      resourceData = await preCreateOrUpdate(req, res, resourceData);
+
+      let where = {_id: req.params.id};  
+      const resource = await ModuleModel.findOne(where);
+      if (resource) {
+        Object.keys(resourceData).map(key => resource[key] = resourceData[key]);
+        await resource.save();
+        await ModuleModel.populate(resource, populations);
+        res.status(200).send(resource).end();
+      } else {
+        res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+const remove = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    let where = {_id: req.params.id};
+    try {
+      // Return updated doc
+      const resource = await ModuleModel.deleteOne(where).exec();
+      res.status(200).send(resource).end();
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this operation'
+      }).end();
+    }
+  }
+}
 
 
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
-router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getById);
+router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);

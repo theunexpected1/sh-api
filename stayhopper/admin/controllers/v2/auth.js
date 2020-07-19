@@ -49,22 +49,23 @@ router.post("/authorized", jwtMiddleware.administratorAuthenticationRequired, (r
 router.post("/migrate-admins", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
 
   const HotelAdmin = require("../../../db/models/hoteladmins");
-  let hotelAdmins = await HotelAdmin.find()
-    .limit(100)
-    .skip(0)
-    .exec()
-  ;
+  let hotelAdmins = await HotelAdmin.find().exec();
 
   try {
-    hotelAdmins.map(hotelAdmin => {
+    hotelAdmins.map(async hotelAdmin => {
       const newAdminData = hotelAdmin.toJSON();
       delete newAdminData._id;
       delete newAdminData.__v;
       newAdminData.name = hotelAdmin.contact_person;
       newAdminData.role = "5efc8ef65694cbf9675b28a3";
-      const newAdmin = new Administrator(newAdminData);
-      console.log('Admin', newAdmin.name, 'migrated');
-      newAdmin.save();
+      const administratorWithSameEmail = await Administrator.findOne({email: hotelAdmin.email}).exec();
+      if (administratorWithSameEmail) {
+        console.log('Skipping as user already exists', hotelAdmin.email);
+      } else {
+        const newAdmin = new Administrator(newAdminData);
+        console.log(`Admin "${newAdmin.name} (${newAdmin.email})" migrated`);
+        newAdmin.save();
+      }
     });
   } catch (e) {
     console.log('error in ', newAdmin.name, e);
@@ -72,6 +73,51 @@ router.post("/migrate-admins", jwtMiddleware.administratorAuthenticationRequired
 
   res.status(200).json({});
 })
+
+router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const Property = require("../../../db/models/properties");
+  const Currency = require("../../../db/models/currencies");
+  const HotelAdmin = require("../../../db/models/hoteladmins");
+
+  // Ensure we run only once
+  let properties = await Property.find({administrator: {$exists: false}}).exec();
+  let currencyAED = await Currency.findOne({name: new RegExp('dirham', 'i')});
+
+  // Pending:
+  // 1. copy contactinfo.email to primaryReservationEmail
+  // 2. set AED as default currency
+  // 3. - get 'property.company' (hotel_admins)'s email address
+  //    - find administrator with same email address
+  //    - set administrator as 'property.administrator' (administrators)
+  // 4.
+
+    try {
+      properties
+        .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
+        .map(async property => {
+          console.log('property', property.name);
+          const propertyHotelAdmin = await HotelAdmin.findOne({_id: property.company}).exec();
+          const migratedAdministratorWithSameEmail = propertyHotelAdmin
+            ? await Administrator.findOne({email: propertyHotelAdmin.email}).exec()
+            : ''
+          ;
+
+          // , {name: 1, company: 1, administrator: 1, email: 1, primaryReservationEmail:1, currency: 1}
+
+          property.primaryReservationEmail = property.contactinfo.email;
+          property.currency = currencyAED ? currencyAED._id : '';
+          property.administrator = migratedAdministratorWithSameEmail ? migratedAdministratorWithSameEmail._id : '';
+          await property.save();
+        })
+      ;
+    } catch (e) {
+      console.log('error in ', newAdmin.name, e);
+    }
+
+  res.status(200).json({});
+});
+
 router.post("/logout", (req, res) => {
   console.log('Success');
   res.status(200).json({});
