@@ -112,6 +112,8 @@ const citiesControllerV2 = require('../controllers/v2/cities');
 const currenciesControllerV2 = require('../controllers/v2/currencies');
 const propertyTypesControllerV2 = require('../controllers/v2/property-types');
 const propertyRatingsControllerV2 = require('../controllers/v2/property-ratings');
+const policiesControllerV2 = require('../controllers/v2/policies');
+const termsControllerV2 = require('../controllers/v2/terms');
 
 app.use("/v2/auth", authControllerV2);
 app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
@@ -125,5 +127,7 @@ app.use("/v2/cities", (req, res, next) => next(), citiesControllerV2);
 app.use("/v2/currencies", (req, res, next) => next(), currenciesControllerV2);
 app.use("/v2/property-types", (req, res, next) => next(), propertyTypesControllerV2);
 app.use("/v2/property-ratings", (req, res, next) => next(), propertyRatingsControllerV2);
+app.use("/v2/policies", (req, res, next) => next(), policiesControllerV2);
+app.use("/v2/terms", (req, res, next) => next(), termsControllerV2);
 
 module.exports = app;
