@@ -50,12 +50,12 @@ const populations = [
   {
     path: "contactinfo.city"
   },
-  // {
-  //   path: "country"
-  // },
-  // {
-  //   path: "city"
-  // },
+  {
+    path: "policies"
+  },
+  {
+    path: "terms"
+  },
   {
     path: "currency"
   }
