@@ -172,6 +172,7 @@ const create = async (req, res) => {
 
       const resource = new ModuleModel(resourceData);
       await resource.save()
+      await ModuleModel.populate(resource, populations);
 
       if (resource) {
         res.status(200).send(resource).end();
