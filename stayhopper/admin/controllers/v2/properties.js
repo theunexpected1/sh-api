@@ -177,7 +177,10 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
     // - weekends
     if (resourceData.weekends && typeof resourceData.weekends === 'string') {
       resourceData.weekends = resourceData.weekends.split(',').map(we => we.trim().toLowerCase());
+    } else {
+      resourceData.weekends = [];
     }
+
     // - secondaryReservationEmails
     if (resourceData.secondaryReservationEmails) {
       resourceData.secondaryReservationEmails = resourceData.secondaryReservationEmails.toLowerCase();
