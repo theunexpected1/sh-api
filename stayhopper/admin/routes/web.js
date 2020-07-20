@@ -106,6 +106,7 @@ const administratorsControllerV2 = require('../controllers/v2/administrators');
 const usersControllerV2 = require('../controllers/v2/users');
 const userRatingsControllerV2 = require('../controllers/v2/user-ratings');
 const propertiesControllerV2 = require("../controllers/v2/properties");
+const roomsControllerV2 = require("../controllers/v2/rooms");
 const lookupsControllerV2 = require('../controllers/v2/lookups');
 const countriesControllerV2 = require('../controllers/v2/countries');
 const citiesControllerV2 = require('../controllers/v2/cities');
@@ -115,8 +116,16 @@ const propertyRatingsControllerV2 = require('../controllers/v2/property-ratings'
 const policiesControllerV2 = require('../controllers/v2/policies');
 const termsControllerV2 = require('../controllers/v2/terms');
 
+const roomNamesControllerV2 = require('../controllers/v2/room-names');
+const roomTypesControllerV2 = require('../controllers/v2/room-types');
+const bedNumbersControllerV2 = require('../controllers/v2/bed-numbers');
+const bedTypesControllerV2 = require('../controllers/v2/bed-types');
+const servicesControllerV2 = require('../controllers/v2/services');
+const guestNumbersControllerV2 = require('../controllers/v2/guest-numbers');
+
 app.use("/v2/auth", authControllerV2);
 app.use("/v2/properties", (req, res, next) => next(), propertiesControllerV2);
+app.use("/v2/rooms", (req, res, next) => next(), roomsControllerV2);
 app.use("/v2/administrators", (req, res, next) => next(), administratorsControllerV2);
 app.use("/v2/users", (req, res, next) => next(), usersControllerV2);
 app.use("/v2/user-ratings", (req, res, next) => next(), userRatingsControllerV2);
@@ -129,5 +138,12 @@ app.use("/v2/property-types", (req, res, next) => next(), propertyTypesControlle
 app.use("/v2/property-ratings", (req, res, next) => next(), propertyRatingsControllerV2);
 app.use("/v2/policies", (req, res, next) => next(), policiesControllerV2);
 app.use("/v2/terms", (req, res, next) => next(), termsControllerV2);
+
+app.use("/v2/room-names", (req, res, next) => next(), roomNamesControllerV2);
+app.use("/v2/room-types", (req, res, next) => next(), roomTypesControllerV2);
+app.use("/v2/bed-numbers", (req, res, next) => next(), bedNumbersControllerV2);
+app.use("/v2/bed-types", (req, res, next) => next(), bedTypesControllerV2);
+app.use("/v2/services", (req, res, next) => next(), servicesControllerV2);
+app.use("/v2/guest-numbers", (req, res, next) => next(), guestNumbersControllerV2);
 
 module.exports = app;

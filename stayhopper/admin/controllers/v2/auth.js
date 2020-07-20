@@ -118,6 +118,33 @@ router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequ
   res.status(200).json({});
 });
 
+router.post("/migrate-rooms", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const Room = require("../../../db/models/rooms");
+
+  // Ensure we run only once
+  let rooms = await Room.find({number_of_guests: {$exists: false}}).exec();
+
+  // Pending:
+  // 1. Number of guests (migrate from number to object) 
+
+    try {
+      rooms
+        .filter(r => r._id.toString() === '5c0ce7258607b05625233208')
+        .map(async room => {
+          console.log('room', room._id);
+
+          // Pending: 1.
+          await room.save();
+        })
+      ;
+    } catch (e) {
+      console.log('error in ', newAdmin.name, e);
+    }
+
+  res.status(200).json({});
+});
+
 router.post("/logout", (req, res) => {
   console.log('Success');
   res.status(200).json({});
