@@ -154,8 +154,7 @@ const propertySchema = new db.Schema({
   },
   weekends: {
     type: [String],
-    enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat'],
-    default: ['fri', 'sat']
+    enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
   },
   approved: {
     type: Boolean,
