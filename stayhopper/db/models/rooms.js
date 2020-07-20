@@ -37,6 +37,10 @@ const roomsSchema = new db.Schema({
   number_guests: {
     type: Number
   },
+  number_of_guests: {
+    type: db.Schema.Types.ObjectId,
+    ref: "guest_numbers"
+  },
   number_beds: {
     type: Number
   },
@@ -54,6 +58,10 @@ const roomsSchema = new db.Schema({
   },
   extraslot_cleaning: {
     type: Number
+  },
+  hours_cleaning: {
+    type: Number,
+    default: 0
   },
   price: pricingSchema,
   services: [{ type: db.Schema.Types.ObjectId, ref: "services" }],

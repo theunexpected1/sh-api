@@ -5,9 +5,17 @@ const guestNumbersSchema = new db.Schema({
     name: {
         type: String
     },
-    value:{
+
+    // adult
+    value: {
         type: Number
     },
+
+    // child
+    childrenValue: {
+        type: Number
+    },
+
     image: {
         type: String
     }
