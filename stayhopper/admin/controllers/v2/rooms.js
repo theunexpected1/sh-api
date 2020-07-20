@@ -72,7 +72,6 @@ const prepareQueryForListing = (req) => {
     where.property_id = propertyId;
   }
 
-  console.log('where', where);
   return where;
 }
 
@@ -114,6 +113,11 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
     // if (req.files['trade_licence[trade_licence_attachment]']) {
     //   resourceData.trade_licence.trade_licence_attachment = req.files['trade_licence[trade_licence_attachment]'][0].path || null;
     // }
+
+    // Ensure no extra beds are provided if the option is disabled
+    if (!resourceData.extrabed_option) {
+      resourceData.extrabed_number = 0;
+    }
 
     return resourceData;
   } catch (e) {
@@ -222,6 +226,7 @@ const create = async (req, res) => {
 
       const resource = new ModuleModel(resourceData);
       await resource.save()
+      await ModuleModel.populate(resource, populations);
 
       if (resource) {
         res.status(200).send(resource).end();
@@ -285,11 +290,115 @@ const remove = async (req, res) => {
   }
 }
 
+/** Rates */
+const createRate = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let resourceData = req.body || {};
+
+      let where = {_id: req.params.id};
+      const resource = await ModuleModel.findOne(where);
+      if (resource) {
+        resource.rates = resource.rates || [];
+        resource.rates.push(resourceData)
+        await resource.save()
+        res.status(200).send(resource).end();
+      } else {
+        res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action',
+        error: e
+      }).end();
+    }
+  }
+}
+
+const modifyRate = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let resourceData = req.body || {};
+      if (!req.params.rateId) {
+        return res.status(500).send({
+          message: 'Sorry, no Rate specified to modify'
+        });
+      }
+
+      let where = {
+        _id: req.params.id,
+        'rates._id': req.params.rateId
+      };
+
+      const resource = await ModuleModel.findOne(where);
+      if (resource) {
+        const rate = resource.rates.id(req.params.rateId);
+        rate.set(resourceData);
+        await resource.save();
+        await ModuleModel.populate(resource, populations);
+        res.status(200).send(resource).end();
+      } else {
+        res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action',
+        error: e
+      }).end();
+    }
+  }
+}
+
+const removeRate = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      if (!req.params.rateId) {
+        return res.status(500).send({
+          message: 'Sorry, no Rate specified to modify'
+        });
+      }
+
+      let where = {
+        _id: req.params.id,
+        'rates._id': req.params.rateId
+      };
+
+      const resource = await ModuleModel.findOne(where);
+      if (resource) {
+        resource.rates.pull(req.params.rateId);
+        await resource.save();
+        await ModuleModel.populate(resource, populations);
+
+        res.status(200).send(resource).end();
+      } else {
+        res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this operation'
+      }).end();
+    }
+  }
+}
+
 
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
+
+router.post("/:id/rates", jwtMiddleware.administratorAuthenticationRequired, upload, createRate);
+router.put("/:id/rates/:rateId", jwtMiddleware.administratorAuthenticationRequired, upload, modifyRate);
+router.delete("/:id/rates/:rateId", jwtMiddleware.administratorAuthenticationRequired, removeRate);
 
 module.exports = router;
