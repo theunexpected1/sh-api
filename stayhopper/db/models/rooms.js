@@ -38,19 +38,19 @@ const hoursSchema = new db.Schema({
 const ratesSchema = new db.Schema({
   name: String,
   weekday: {
-    hours24: {
+    fullDay: {
       type: Number
     },
-    fullDay: {
+    standardDay: {
       type: Number
     },
     hours: hoursSchema,
   },
   weekend: {
-    hours24: {
+    fullDay: {
       type: Number
     },
-    fullDay: {
+    standardDay: {
       type: Number
     },
     hours: hoursSchema,
@@ -69,8 +69,8 @@ const ratesSchema = new db.Schema({
 })
 
 // Access:
-// room.rates..weekday.hours24
-// room.rates.fullDay
+// room.rates.weekday.fullDay
+// room.rates.standardDay
 // room.rates.hours.h0
 // room.rates.hours.h1
 // room.rates.hours['h0']
@@ -137,66 +137,72 @@ const roomsSchema = new db.Schema({
   services: [{ type: db.Schema.Types.ObjectId, ref: "services" }],
   images: [String],
   featured: [String],
-});
-
-roomsSchema.pre('save', function (next) {
-  var room = this;
-
-  // Add Default Room Rates (Short Term & Long Term)
-  if (room.isNew) {
-    const defaultRate = {
-      hours24: 0,
-      fullDay: 0,
-      hours: {
-        h0: 0,
-        h1: 0,
-        h2: 0,
-        h3: 0,
-        h4: 0,
-        h5: 0,
-        h6: 0,
-        h7: 0,
-        h8: 0,
-        h9: 0,
-        h10: 0,
-        h11: 0,
-        h12: 0,
-        h13: 0,
-        h14: 0,
-        h15: 0,
-        h16: 0,
-        h17: 0,
-        h18: 0,
-        h19: 0,
-        h20: 0,
-        h21: 0,
-        h22: 0,
-        h23: 0
-      }
-    };
-
-    const defaultShortTermRates = {
-      weekday: defaultRate,
-      weekend: defaultRate,
-      isDefault: true,
-      rateType: 'short-term' // or 'long-term'
-    }
-    const defaultLongTermRates = {
-      weekday: defaultRate,
-      weekend: defaultRate,
-      isDefault: true,
-      rateType: 'long-term' // or 'long-term'
-    }
-
-    room.rates = [
-      defaultShortTermRates,
-      defaultLongTermRates
-    ];
-    next();
-  } else {
-    next();
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 });
+
+// Avoid adding default rates, let the hotels set this themselves
+// roomsSchema.pre('save', function (next) {
+//   var room = this;
+
+//   // Add Default Room Rates (Short Term & Long Term)
+//   if (room.isNew) {
+//     const defaultRate = {
+//       fullDay: 0,
+//       standardDay: 0,
+//       hours: {
+//         h0: 0,
+//         h1: 0,
+//         h2: 0,
+//         h3: 0,
+//         h4: 0,
+//         h5: 0,
+//         h6: 0,
+//         h7: 0,
+//         h8: 0,
+//         h9: 0,
+//         h10: 0,
+//         h11: 0,
+//         h12: 0,
+//         h13: 0,
+//         h14: 0,
+//         h15: 0,
+//         h16: 0,
+//         h17: 0,
+//         h18: 0,
+//         h19: 0,
+//         h20: 0,
+//         h21: 0,
+//         h22: 0,
+//         h23: 0
+//       }
+//     };
+
+//     const defaultShortTermRates = {
+//       weekday: defaultRate,
+//       weekend: defaultRate,
+//       isDefault: true,
+//       rateType: 'short-term' // or 'long-term'
+//     }
+//     const defaultLongTermRates = {
+//       weekday: defaultRate,
+//       weekend: defaultRate,
+//       isDefault: true,
+//       rateType: 'long-term' // or 'long-term'
+//     }
+
+//     room.rates = [
+//       defaultShortTermRates,
+//       defaultLongTermRates
+//     ];
+//     next();
+//   } else {
+//     next();
+//   }
+// });
 
 roomsModel = db.model("rooms", roomsSchema);
 module.exports = roomsModel;

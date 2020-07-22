@@ -47,6 +47,68 @@ const populations = [
   }
 ];
 
+const singlePopulations = [
+  {
+    path: "property_id",
+    populate: [
+      {
+        path: "rating"
+      },
+      {
+        path: "company"
+      },
+      {
+        path: "administrator"
+      },
+      {
+        path: "rooms"
+      },
+      {
+        path: "type"
+      },
+      {
+        path: "contactinfo.country"
+      },
+      {
+        path: "contactinfo.city"
+      },
+      {
+        path: "policies"
+      },
+      {
+        path: "terms"
+      },
+      {
+        path: "currency"
+      },
+      {
+        path: "payment.country"
+      },
+      {
+        path: "payment.currency"
+      }
+    ]
+  },
+  {
+    path: "property"
+  },
+  {
+    path: "room_type"
+  },
+  {
+    path: "room_name"
+  },
+  {
+    path: "bed_type"
+  },
+  {
+    path: "services"
+  },
+  {
+    path: 'number_of_guests'
+  }
+];
+
 const hasPermissions = (req, res) => {
   // Permissions
 
@@ -195,7 +257,7 @@ const single = async (req, res) => {
         ModuleModel
           .findOne(where)
           .select(selections)
-          .populate(populations)
+          .populate(singlePopulations)
           .lean()
           .exec()
       ]);
@@ -226,7 +288,7 @@ const create = async (req, res) => {
 
       const resource = new ModuleModel(resourceData);
       await resource.save()
-      await ModuleModel.populate(resource, populations);
+      await ModuleModel.populate(resource, singlePopulations);
 
       if (resource) {
         res.status(200).send(resource).end();
@@ -258,7 +320,7 @@ const modify = async (req, res) => {
       if (resource) {
         Object.keys(resourceData).map(key => resource[key] = resourceData[key]);
         await resource.save();
-        await ModuleModel.populate(resource, populations);
+        await ModuleModel.populate(resource, singlePopulations);
         res.status(200).send(resource).end();
       } else {
         res.status(404).send({
@@ -299,10 +361,11 @@ const createRate = async (req, res) => {
       let where = {_id: req.params.id};
       const resource = await ModuleModel.findOne(where);
       if (resource) {
-        resource.rates = resource.rates || [];
-        resource.rates.push(resourceData)
+        const rate = resource.rates.create(resourceData);
+        resource.rates.push(rate);
         await resource.save()
-        res.status(200).send(resource).end();
+
+        res.status(200).send(rate).end();
       } else {
         res.status(404).send({
           message: 'Sorry, resource does not exist'
@@ -338,8 +401,7 @@ const modifyRate = async (req, res) => {
         const rate = resource.rates.id(req.params.rateId);
         rate.set(resourceData);
         await resource.save();
-        await ModuleModel.populate(resource, populations);
-        res.status(200).send(resource).end();
+        res.status(200).send(rate).end();
       } else {
         res.status(404).send({
           message: 'Sorry, resource does not exist'
@@ -373,7 +435,6 @@ const removeRate = async (req, res) => {
       if (resource) {
         resource.rates.pull(req.params.rateId);
         await resource.save();
-        await ModuleModel.populate(resource, populations);
 
         res.status(200).send(resource).end();
       } else {
