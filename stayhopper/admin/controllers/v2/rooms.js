@@ -596,9 +596,9 @@ const listAvailability = async (req, res) => {
       });
 
       let data = {
-        list: slots,
-        slotStatuses,
-        slotStatusesRanges
+        list: slotStatusesRanges,
+        // slotStatuses,
+        slots
       };
       res.status(200).send(data).end();
     } catch (e) {
