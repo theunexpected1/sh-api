@@ -95,7 +95,7 @@ const nearBySchema = new db.Schema({
 })
 
 var uniqueValidator = require("mongoose-unique-validator");
-const SecondaryAdministratorSchema = {
+const AllAdministratorsSchema = {
   type: db.Schema.Types.ObjectId,
   ref: "administrators"
 };
@@ -111,7 +111,7 @@ const propertySchema = new db.Schema({
     ref: "administrators",
     required: [true, "Administrator is required"]
   },
-  secondaryAdministrators: [SecondaryAdministratorSchema],
+  allAdministrators: [AllAdministratorsSchema],
   name: {
     type: String,
     required: [true, "Property Name is required"]

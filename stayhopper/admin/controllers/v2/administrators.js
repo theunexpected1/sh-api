@@ -1,3 +1,4 @@
+const mongoose = require('mongoose');
 // const db = require("../../../db/mongodb");
 // const joi = require("joi");
 // const bcrypt = require("bcrypt");
@@ -57,6 +58,21 @@ const resourcePopulations = [
   }
 ];
 
+const propertiesPopulations = [
+  {
+    path: "rooms"
+  },
+  {
+    path: "type"
+  },
+  {
+    path: "company"
+  },
+  {
+    path: "rating"
+  }
+]
+
 const list = async (req, res) => {
   let user = req.user;
   let {permissions} = user.role;
@@ -73,6 +89,7 @@ const list = async (req, res) => {
   }
   let keyword = req.query.q;
   let role = req.query.role;
+  let shouldGetProperties = req.query.getProperties;
   let rolesQuery = req.query.roles;
 
   let where = {};
@@ -115,7 +132,7 @@ const list = async (req, res) => {
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
-  const [properties, roles, administrators, itemCount] = await Promise.all([
+  let [properties, roles, administrators, itemCount] = await Promise.all([
     hasResourceAccess ? Property.find() : Promise.resolve([]),
     hasResourceAccess ? Role.find() : Promise.resolve([]),
     Administrator
@@ -127,8 +144,35 @@ const list = async (req, res) => {
       .skip(req.skip)
       .lean()
       .exec(),
-      Administrator.countDocuments(where)
+    Administrator.countDocuments(where)
   ]);
+
+  // Filter: Get Properties also?
+  if (shouldGetProperties) {
+    const getPropertiesForAdmin = async (admin) => {
+      const query = {
+        $or: [
+          {
+            allAdministrators: {
+              $in: [admin._id]
+            }
+          },
+          {
+            administrator: admin._id
+          }
+        ]
+      };
+      admin.properties = await Property.find(query);;
+      return admin;
+    }
+    administrators = await Promise.all(administrators.map(getPropertiesForAdmin))
+  } else {
+    administrators = administrators.map(a => {
+      a.properties = [];
+      return a;
+    })
+  }
+
   const pageCount = Math.ceil(itemCount / req.query.limit);
   let data = {
     list: administrators,
@@ -187,6 +231,19 @@ const getById = async (req, res) => {
       }).end();
     }
 
+    const propertiesQuery = {
+      $or: [
+        {
+          allAdministrators: {
+            $in: [resource._id]
+          }
+        },
+        {
+          administrator: resource._id
+        }
+      ]
+    };
+    resource.properties = await Property.find(propertiesQuery).populate(propertiesPopulations);
     res.status(200).send(resource).end();
   } catch (e) {
     return res.status(500).send({

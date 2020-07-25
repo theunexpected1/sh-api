@@ -39,6 +39,12 @@ const populations = [
     path: "administrator"
   },
   {
+    path: "allAdministrators",
+    populate: {
+      path: 'role'
+    }
+  },
+  {
     path: "rooms"
   },
   {
@@ -261,17 +267,22 @@ const list = async (req, res) => {
       }
 
       // Ensure to filter by hotel admin (not super admin)
-      // Hotel Admin role is one who
+      // Hotel Admin role, or Receptionist role is one who
       // - can access OWN Properties
       // - cannot access ALL Properties
       let hotelAdminRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
-      let hotelAdminRoleIds = [];
+      let receptionistRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES', 'LIST_INVOICES']}});
+      console.log('receptionistRoles', receptionistRoles);
+      let ids = [];
       if (hotelAdminRoles) {
-        hotelAdminRoleIds = hotelAdminRoles.map(role => role._id);
+        ids = ids.concat(hotelAdminRoles.map(role => role._id));
+      }
+      if (receptionistRoles) {
+        ids = ids.concat(receptionistRoles.map(role => role._id));
       }
 
       let [hotelAdmins, countries, list, itemCount] = await Promise.all([
-        hasAllPropertiesAccess ? Administrator.find({role: {$in: hotelAdminRoleIds}}) : Promise.resolve([]),
+        hasAllPropertiesAccess ? Administrator.find({role: {$in: ids}}) : Promise.resolve([]),
         Country.find({}),
         ModuleModel
           .find(where)
