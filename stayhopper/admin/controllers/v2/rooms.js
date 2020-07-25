@@ -687,10 +687,11 @@ const changeAvailability = async (req, res) => {
                 });
               });
 
-              // console.log('booking', booking._id)
+              // console.log('booking', booking._id);
               // console.log('pulling from booking', pull);
               // console.log('deleteBookLogSlotIds', deleteBookLogSlotIds);
 
+              console.time(`UnblockAction ${date}`);
               await pull.map(async p => {
                 await Booking.update(
                   { _id: booking._id },
@@ -698,15 +699,25 @@ const changeAvailability = async (req, res) => {
                 );
                 // dbBookingOperationsCount++;
                 // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
-                await BookLog.deleteOne({
-                  slot: db.Types.ObjectId(p.slot),
-                  room: db.Types.ObjectId(room._id),
-                  date: date,
-                  number: parseInt(p.number)
-                });
+
+                // await BookLog.deleteOne({
+                //   slot: db.Types.ObjectId(p.slot),
+                //   room: db.Types.ObjectId(room._id),
+                //   date: date,
+                //   number: parseInt(p.number)
+                // });
+
                 // dbBookingLogOperationsCount++;
                 // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
               });
+
+              await BookLog.deleteMany({
+                slot: {$in: pull.map(p => db.Types.ObjectId(p.slot))},
+                room: room._id,
+                date: date,
+                number: {$in: pull.map(p => parseInt(p.number))}
+              });
+              console.timeEnd(`UnblockAction ${date}`);
 
               // Unblocked
             }
@@ -727,26 +738,45 @@ const changeAvailability = async (req, res) => {
           }
 
           if (action === 'block') {
-            nos.map(async no => {
-              await slotIds.map(async slotId => {
-                let bookinglog = new BookLog();
-                bookinglog.property = room.property_id;
-                bookinglog.room = room._id;
-                bookinglog.slot = slotId;
-                bookinglog.number = no;
-                bookinglog.date = date;
-                bookinglog.timestamp = new Date(
+
+            // nos.map(async no => {
+            //   await slotIds.map(async slotId => {
+            //     let bookinglog = new BookLog();
+            //     bookinglog.property = room.property_id;
+            //     bookinglog.room = room._id;
+            //     bookinglog.slot = slotId;
+            //     bookinglog.number = no;
+            //     bookinglog.date = date;
+            //     bookinglog.timestamp = new Date(
+            //       moment(new Date(date)).format("YYYY-MM-DD")
+            //     );
+            //     await bookinglog.save();
+            //     // dbBookingLogOperationsCount++;
+            //     // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
+            //   })
+            // })
+
+            const records = [];
+            nos.map(no => {
+              slotIds.map(slotId => {
+                const record = {};
+                record.property = room.property_id;
+                record.room = room._id;
+                record.slot = slotId;
+                record.number = no;
+                record.date = date;
+                record.timestamp = new Date(
                   moment(new Date(date)).format("YYYY-MM-DD")
                 );
-                await bookinglog.save();
-                // dbBookingLogOperationsCount++;
-                // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
-              })
-            })
-
+                records.push(record);
+              });
+            });
+            console.time(`BlockAction - ${date}`);
+            await BookLog.create(records);
             await booking.save();
-            // dbBookingOperationsCount++;
+            console.timeEnd(`BlockAction - ${date}`);
 
+            // dbBookingOperationsCount++;
             // Blocked!
             // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
           }
@@ -761,7 +791,6 @@ const changeAvailability = async (req, res) => {
             message: 'Time slots are unblocked successfully'
           }).end();
         }
-
       } else {
         return res.json({
           status: 0,
