@@ -616,114 +616,152 @@ const changeAvailability = async (req, res) => {
     try {
       const room_id = req.body.room;
       const property_id = req.body.property;
-      const date = req.body.date;
-      const slotsData = req.body.slots;
+
+      const dates = req.body.dates;
+      const slotIds = req.body.slotIds;
       const action = req.params.action;
-      const slotIds = slotsData.map(s => s._id);
+      const nos = req.body.nos;
+
+      // console.log('dates', dates);
+      // console.log('slotIds', slotIds);
+      // console.log('nos', nos);
 
       let room = await Room.findOne({ _id: room_id }).sort({ _id: 1 });
       let slots = await Slot.find({_id: {$in:slotIds}}).sort({ _id: 1 }).exec();
+      // let dbBookingOperationsCount = 0;
+      // let dbBookingLogOperationsCount = 0;
+      // console.log('set dbBookingOperationsCount to 0', dbBookingOperationsCount);
+      // console.log('set dbBookingLogOperationsCount to 0', dbBookingLogOperationsCount);
 
-      if (room && slots && slots.length && date) {
-        let where = {
-          room: room._id,
-          date: date
-        };
-        let booking = await Booking.findOne(where);
-        if (!booking) {
-          booking = new Booking();
-        }
+      if (room && slots && slots.length && dates && dates.length) {
 
-        booking.property = room.property_id;
-        booking.room = room._id;
-        booking.date = date;
+        await dates.map(async date => {
+          let where = {
+            room: room._id,
+            date: date
+          };
+          let booking = await Booking.findOne(where);
+          if (!booking) {
+            booking = new Booking();
+          }
 
-        if (booking.slots) {
+          booking.property = room.property_id;
+          booking.room = room._id;
+          booking.date = date;
 
-          if (action === 'block') {
-            for (i in slotsData) {
-              booking.slots.push({
-                slot: slotsData[i]._id,
-                number: slotsData[i].no,
-                status: "BLOCKED"
+          if (booking.slots) {
+            if (action === 'block') {
+              nos.map(no => {
+                slotIds.map(slotId => {
+                  booking.slots.push({
+                    slot: slotId,
+                    number: no,
+                    status: "BLOCKED"
+                  });
+                });
               });
-            }
-            
-          } else if (action === 'unblock') {
-            let pull = [];
-            let deleteBookLogSlotIds = []
-            for (i in slotsData) {
-              const blockedSlotsInBooking = booking.slots
-                .filter(bookingSlot => {
-                  return bookingSlot.slot == slotsData[i]['_id'] &&
-                    bookingSlot.number === slotsData[i]['no'] &&
-                    bookingSlot.status == "BLOCKED"
+            } else if (action === 'unblock') {
+              let pull = [];
+              let deleteBookLogSlotIds = []
+
+              nos.map(no => {
+                slotIds.map(slotId => {
+                  const blockedSlotsInBooking = booking.slots
+                    .filter(bookingSlot => {
+                      return bookingSlot.slot == slotId &&
+                        bookingSlot.number === no &&
+                        bookingSlot.status == "BLOCKED"
+                      ;
+                    })
+                    .map(s => {
+                      return {
+                        slot: slotId,
+                        number: no
+                      }
+                    })
                   ;
-                })
-                .map(s => {
-                  return {
-                    number: slotsData[i]['no'],
-                    slot: slotsData[i]['_id']
-                  }
-                })
-              ;
 
-              const pullArr = JSON.parse(JSON.stringify(blockedSlotsInBooking));
-              deleteBookLogSlotIds = deleteBookLogSlotIds.concat(pullArr.map(p => p.slot));
-              pull = pull.concat(blockedSlotsInBooking);
-            }
-
-            // console.log('booking', booking._id);
-            // console.log('pulling from booking', pull);
-            // console.log('deleteBookLogSlotIds', deleteBookLogSlotIds);
-
-            pull.map(async p => {
-              await Booking.update(
-                { _id: booking._id },
-                { $pull: { slots: { number: p.number, slot: p.slot} } }
-              );
-              await BookLog.deleteOne({
-                slot: db.Types.ObjectId(p.slot),
-                room: db.Types.ObjectId(room._id),
-                date: date,
-                number: parseInt(p.number)
+                  const pullArr = JSON.parse(JSON.stringify(blockedSlotsInBooking));
+                  deleteBookLogSlotIds = deleteBookLogSlotIds.concat(pullArr.map(p => p.slot));
+                  pull = pull.concat(blockedSlotsInBooking);
+                });
               });
-            });
-            res.status(200).send({
-              message: 'Time slots are unblocked successfully'
-            }).end();
+
+              // console.log('booking', booking._id)
+              // console.log('pulling from booking', pull);
+              // console.log('deleteBookLogSlotIds', deleteBookLogSlotIds);
+
+              await pull.map(async p => {
+                await Booking.update(
+                  { _id: booking._id },
+                  { $pull: { slots: { number: p.number, slot: p.slot} } }
+                );
+                // dbBookingOperationsCount++;
+                // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
+                await BookLog.deleteOne({
+                  slot: db.Types.ObjectId(p.slot),
+                  room: db.Types.ObjectId(room._id),
+                  date: date,
+                  number: parseInt(p.number)
+                });
+                // dbBookingLogOperationsCount++;
+                // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
+              });
+
+              // Unblocked
+            }
+          } else {
+            if (action === 'block') {
+              // console.log(action, '!booking.slots, bookingId', booking._id);
+              nos.map(no => {
+                slotIds.map(slotId => {
+                  booking.slots.push({
+                    slot: slotId,
+                    number: no,
+                    status: "BLOCKED"
+                  });
+                });
+              });
+              // console.log('booking.slots', booking.slots);
+            }
           }
-        } else {
+
           if (action === 'block') {
-            for (i in slotsData) {
-              booking.slots.push({
-                slot: slotsData[i]._id,
-                number: slotsData[i].no,
-                status: "BLOCKED"
-              });
-            }
+            nos.map(async no => {
+              await slotIds.map(async slotId => {
+                let bookinglog = new BookLog();
+                bookinglog.property = room.property_id;
+                bookinglog.room = room._id;
+                bookinglog.slot = slotId;
+                bookinglog.number = no;
+                bookinglog.date = date;
+                bookinglog.timestamp = new Date(
+                  moment(new Date(date)).format("YYYY-MM-DD")
+                );
+                await bookinglog.save();
+                // dbBookingLogOperationsCount++;
+                // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
+              })
+            })
+
+            await booking.save();
+            // dbBookingOperationsCount++;
+
+            // Blocked!
+            // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
           }
-        }
+        });
 
         if (action === 'block') {
-          for (i in slotsData) {
-            let bookinglog = new BookLog();
-            bookinglog.property = room.property_id;
-            bookinglog.room = room._id;
-            bookinglog.slot = slotsData[i]._id;
-            bookinglog.number = slotsData[i].no;
-            bookinglog.date = date;
-            bookinglog.timestamp = new Date(
-              moment(new Date(date)).format("YYYY-MM-DD")
-            );
-            await bookinglog.save();
-          }
-
-          await booking.save();
           res.status(200).send({
             message: 'Time slots are blocked successfully'
           }).end();
+        } else {
+          res.status(200).send({
+            message: 'Time slots are unblocked successfully'
+          }).end();
         }
+
       } else {
         return res.json({
           status: 0,
