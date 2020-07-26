@@ -181,8 +181,10 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
 
     // Parse if necessary
     // - weekends
-    if (resourceData.weekends && typeof resourceData.weekends === 'string') {
-      resourceData.weekends = resourceData.weekends.split(',').map(we => we.trim().toLowerCase());
+    if (resourceData.weekends) {
+      if (typeof resourceData.weekends === 'string') {
+        resourceData.weekends = resourceData.weekends.split(',').map(we => we.trim().toLowerCase());
+      }
     } else {
       resourceData.weekends = [];
     }
@@ -272,7 +274,6 @@ const list = async (req, res) => {
       // - cannot access ALL Properties
       let hotelAdminRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
       let receptionistRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES', 'LIST_INVOICES']}});
-      console.log('receptionistRoles', receptionistRoles);
       let ids = [];
       if (hotelAdminRoles) {
         ids = ids.concat(hotelAdminRoles.map(role => role._id));
