@@ -622,20 +622,26 @@ const changeAvailability = async (req, res) => {
       const action = req.params.action;
       const nos = req.body.nos;
 
-      // console.log('dates', dates);
-      // console.log('slotIds', slotIds);
-      // console.log('nos', nos);
-
       let room = await Room.findOne({ _id: room_id }).sort({ _id: 1 });
       let slots = await Slot.find({_id: {$in:slotIds}}).sort({ _id: 1 }).exec();
-      // let dbBookingOperationsCount = 0;
-      // let dbBookingLogOperationsCount = 0;
-      // console.log('set dbBookingOperationsCount to 0', dbBookingOperationsCount);
-      // console.log('set dbBookingLogOperationsCount to 0', dbBookingLogOperationsCount);
 
       if (room && slots && slots.length && dates && dates.length) {
+        const bookLogInsertRecords = [];
+        let shouldExecuteBookLogInsert = false;
+        let shouldExecuteBookLogDelete = false;
 
-        await dates.map(async date => {
+        // Method 1
+        let bookLogDeleteRecordsQuery = [];
+
+        // Method 2
+        // const bookLogDeleteRecordsQuery = {
+        //   $or: []
+        // };
+
+        await Promise.all(dates.map(async date => {
+          const dateStampFormat = new Date(
+            moment(new Date(date)).format("YYYY-MM-DD")
+          );
           let where = {
             room: room._id,
             date: date
@@ -643,144 +649,159 @@ const changeAvailability = async (req, res) => {
           let booking = await Booking.findOne(where);
           if (!booking) {
             booking = new Booking();
+            booking.slots = [];
           }
 
           booking.property = room.property_id;
           booking.room = room._id;
           booking.date = date;
 
-          if (booking.slots) {
+          // Has slots
+          if (booking.slots && booking.slots.length) {
             if (action === 'block') {
               nos.map(no => {
-                slotIds.map(slotId => {
+                const unavailableSlotIds = booking.slots
+                  .filter(slot => slot.status !== "BLOCKED" && slot.number === no)
+                  .map(slot => slot._id)
+                ;
+                const availableSlots = slotIds.filter(slotId => unavailableSlotIds.indexOf(slotId) === -1);
+
+                availableSlots.map(slotId => {
+                  // Block Booking.slots
                   booking.slots.push({
                     slot: slotId,
                     number: no,
                     status: "BLOCKED"
                   });
+
+                  // Save BookLogs
+                  const record = {
+                    property: room.property_id,
+                    room: room._id,
+                    slot: slotId,
+                    number: no,
+                    date: date,
+                    timestamp: dateStampFormat
+                  };
+                  bookLogInsertRecords.push(record);
+                  shouldExecuteBookLogInsert = true;
                 });
               });
+
+              console.time(`Sc1. BlockAction - ${date}`);
+              await booking.save();
+              console.timeEnd(`Sc1. BlockAction - ${date}`);
+
             } else if (action === 'unblock') {
-              let pull = [];
-              let deleteBookLogSlotIds = []
+              let updatedBookingSlots = [];
 
-              nos.map(no => {
-                slotIds.map(slotId => {
-                  const blockedSlotsInBooking = booking.slots
-                    .filter(bookingSlot => {
-                      return bookingSlot.slot == slotId &&
-                        bookingSlot.number === no &&
-                        bookingSlot.status == "BLOCKED"
-                      ;
-                    })
-                    .map(s => {
-                      return {
-                        slot: slotId,
-                        number: no
-                      }
-                    })
-                  ;
+              const individualBookingLogs = {
+                $or: []
+              };
 
-                  const pullArr = JSON.parse(JSON.stringify(blockedSlotsInBooking));
-                  deleteBookLogSlotIds = deleteBookLogSlotIds.concat(pullArr.map(p => p.slot));
-                  pull = pull.concat(blockedSlotsInBooking);
-                });
-              });
+              updatedBookingSlots = updatedBookingSlots.concat(
+                booking.slots
+                  .filter( bookingSlot => {
+                    const isAValidBookingSlot = !(
+                      slotIds.indexOf(bookingSlot.slot.toString()) > -1 &&
+                      nos.indexOf(bookingSlot.number) > -1 &&
+                      bookingSlot.status == "BLOCKED")
+                    ;
 
-              // console.log('booking', booking._id);
-              // console.log('pulling from booking', pull);
-              // console.log('deleteBookLogSlotIds', deleteBookLogSlotIds);
+                    if (!isAValidBookingSlot) {
+                      shouldExecuteBookLogDelete = true;
+                      // Method 1
+                      individualBookingLogs['$or'].push({
+                        room: room._id,
+                        slot: bookingSlot.slot,
+                        date: date,
+                        number: bookingSlot.number
+                      });
 
-              console.time(`UnblockAction ${date}`);
-              await pull.map(async p => {
-                await Booking.update(
-                  { _id: booking._id },
-                  { $pull: { slots: { number: p.number, slot: p.slot} } }
-                );
-                // dbBookingOperationsCount++;
-                // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
+                      // Method 2
+                      // bookLogDeleteRecordsQuery['$or'].push({
+                      //   room: room._id,
+                      //   slot: bookingSlot.slot,
+                      //   date: date,
+                      //   number: bookingSlot.number
+                      // })
+                    }
 
-                // await BookLog.deleteOne({
-                //   slot: db.Types.ObjectId(p.slot),
-                //   room: db.Types.ObjectId(room._id),
-                //   date: date,
-                //   number: parseInt(p.number)
-                // });
+                    return isAValidBookingSlot;
+                  })
+                )
+              ;
 
-                // dbBookingLogOperationsCount++;
-                // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
-              });
+              // console.time(`UnblockAction Save Individual Bookings per date ${date}`);
+              // Method 1 - Prepare IDs with single Find()
+              const bls = await BookLog.find(individualBookingLogs).lean();
+              if (bls && bls.length) {
+                bookLogDeleteRecordsQuery = bookLogDeleteRecordsQuery.concat(bls.map(bookingLog => bookingLog._id));
+              }
+              // console.log('batch bookLogDeleteRecordsQuery', bookLogDeleteRecordsQuery);
+              console.log('batch bookLogDeleteRecordsQuery.length', bookLogDeleteRecordsQuery.length);
 
-              await BookLog.deleteMany({
-                slot: {$in: pull.map(p => db.Types.ObjectId(p.slot))},
-                room: room._id,
-                date: date,
-                number: {$in: pull.map(p => parseInt(p.number))}
-              });
-              console.timeEnd(`UnblockAction ${date}`);
+              // Method 2 - Prepare IDs with multiple findOnes()
+              // await Promise.all(bookingLogQueriesToDelete.map(async bl => {
+              //   const bookingLog = await BookLog.findOne(bl).lean();
+              //   if (bookingLog) {
+              //     bookLogDeleteRecordsQuery.push(bookingLog._id);
+              //   }
+              // }));
+              // console.log('batch bookLogDeleteRecordsQuery', bookLogDeleteRecordsQuery.length);
+              // console.timeEnd(`UnblockAction Save Individual Bookings per date ${date}`);
 
-              // Unblocked
+              booking.slots = updatedBookingSlots;
+              await booking.save();
             }
           } else {
             if (action === 'block') {
-              // console.log(action, '!booking.slots, bookingId', booking._id);
               nos.map(no => {
                 slotIds.map(slotId => {
+                  // Block Booking.slots
                   booking.slots.push({
                     slot: slotId,
                     number: no,
                     status: "BLOCKED"
                   });
+
+                  // Save BookLogs
+                  const record = {
+                    property: room.property_id,
+                    room: room._id,
+                    slot: slotId,
+                    number: no,
+                    date: date,
+                    timestamp: dateStampFormat
+                  };
+                  bookLogInsertRecords.push(record);
+                  shouldExecuteBookLogInsert = true;
                 });
               });
               // console.log('booking.slots', booking.slots);
+              console.time(`Sc2. BlockAction - ${date}`);
+              await booking.save();
+              console.timeEnd(`Sc2. BlockAction - ${date}`);
             }
           }
+        }));
 
-          if (action === 'block') {
+        if (shouldExecuteBookLogInsert) {
+          await BookLog.insertMany(bookLogInsertRecords);
+        }
 
-            // nos.map(async no => {
-            //   await slotIds.map(async slotId => {
-            //     let bookinglog = new BookLog();
-            //     bookinglog.property = room.property_id;
-            //     bookinglog.room = room._id;
-            //     bookinglog.slot = slotId;
-            //     bookinglog.number = no;
-            //     bookinglog.date = date;
-            //     bookinglog.timestamp = new Date(
-            //       moment(new Date(date)).format("YYYY-MM-DD")
-            //     );
-            //     await bookinglog.save();
-            //     // dbBookingLogOperationsCount++;
-            //     // console.log('dbBookingLogOperationsCount', dbBookingLogOperationsCount);
-            //   })
-            // })
+        if (shouldExecuteBookLogDelete) {
+          console.time(`UnblockAction DeleteMany`);
+          // Method 1
+          await BookLog.deleteMany({
+            _id: {$in: bookLogDeleteRecordsQuery}
+          });
 
-            const records = [];
-            nos.map(no => {
-              slotIds.map(slotId => {
-                const record = {};
-                record.property = room.property_id;
-                record.room = room._id;
-                record.slot = slotId;
-                record.number = no;
-                record.date = date;
-                record.timestamp = new Date(
-                  moment(new Date(date)).format("YYYY-MM-DD")
-                );
-                records.push(record);
-              });
-            });
-            console.time(`BlockAction - ${date}`);
-            await BookLog.create(records);
-            await booking.save();
-            console.timeEnd(`BlockAction - ${date}`);
-
-            // dbBookingOperationsCount++;
-            // Blocked!
-            // console.log('dbBookingOperationsCount', dbBookingOperationsCount);
-          }
-        });
+          // Method 2
+          // console.log('bookLogDeleteRecordsQuery.length', bookLogDeleteRecordsQuery['$or'].length);
+          // await BookLog.deleteMany(bookLogDeleteRecordsQuery);
+          console.timeEnd(`UnblockAction DeleteMany`);
+        }
 
         if (action === 'block') {
           res.status(200).send({
