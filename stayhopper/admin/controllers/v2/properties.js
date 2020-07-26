@@ -194,15 +194,6 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
       resourceData.secondaryReservationEmails = resourceData.secondaryReservationEmails.toLowerCase();
     }
 
-    // if (!resourceData.location) {
-    //   resourceData.location = {
-    //     "type" : "Point",
-    //     "coordinates" : [
-    //       55.297738, 
-    //       25.253621
-    //     ]
-    //   }
-    // }
     return resourceData;
   } catch (e) {
     console.log('e', e);
