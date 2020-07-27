@@ -148,6 +148,7 @@ const prepareQueryForListing = (req) => {
   return where;
 }
 
+// Upload for Properties documents
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/files/properties");
@@ -165,6 +166,40 @@ let upload = pify(
     { name: "trade_licence[passport_attachment]" }
   ])
 );
+
+
+
+// Upload for Nearby Places
+const storageNearby = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/img/nearby");
+  },
+  filename: (req, file, cb) => {
+    var ext = path.extname(file.originalname);
+    var filename = file.fieldname + "-" + Date.now() + ext;
+    cb(null, filename);
+  }
+});
+
+let uploadNearby = pify(
+  multer({
+    storage: storageNearby,
+    fileFilter: function(req, file, callback) {
+      var ext = path.extname(file.originalname);
+      if (
+        ext !== ".svg" &&
+        ext !== ".png" &&
+        ext !== ".jpg" &&
+        ext !== ".gif" &&
+        ext !== ".jpeg"
+      ) {
+        return callback(new Error("Only images are allowed"));
+      }
+      callback(null, true);
+    }
+  }).array("image")
+);
+
 
 const preCreateOrUpdate = async (req, res, resourceData) => {
   try {
@@ -413,10 +448,91 @@ const remove = async (req, res) => {
 }
 
 
+
+/** Nearby */
+
+
+const createNearby = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+
+      if (!resource) {
+        return res.status(404).send({
+          message: `${ModuleTitle} does not exist`
+        }).end();
+      }
+
+      let name = req.body.name;
+      if (!name) {
+        return res.json({
+          status: 0,
+          message: "Nearby location name is required"
+        });
+      }
+
+      image = req.body.image;
+      if (req.files && req.files.length > 0) {
+        image = req.files[0].path || null;
+      }
+      let nearby = { name, image};
+      const nearbyRecord = resource.nearby.create(nearby);
+      resource.nearby.push(nearbyRecord);
+      await resource.save()
+      return res.status(200).send(nearbyRecord).end();
+
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action',
+        error: e
+      }).end();
+    }
+  }
+};
+
+const removeNearby = async(req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      if (!req.params.nearbyId) {
+        return res.status(500).send({
+          message: 'Sorry, invalid nearby place specified to remove'
+        });
+      }
+
+      let where = {
+        _id: req.params.id,
+        'nearby._id': req.params.nearbyId
+      };
+      
+      const resource = await ModuleModel.findOne(where);
+      if (resource) {
+        resource.nearby.pull(req.params.nearbyId);
+        await resource.save();
+        res.status(200).send(resource).end();
+      } else {
+        res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this operation'
+      }).end();
+    }
+  }
+}
+
+
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
+
+router.post("/:id/nearby", jwtMiddleware.administratorAuthenticationRequired, uploadNearby, createNearby);
+router.delete("/:id/nearby/:nearbyId", jwtMiddleware.administratorAuthenticationRequired, removeNearby);
 
 module.exports = router;
