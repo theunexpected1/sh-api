@@ -94,6 +94,13 @@ const nearBySchema = new db.Schema({
   }
 })
 
+const chargesSchema = new db.Schema({
+  name: String,
+  id: String,
+  chargeType: String,
+  value: Number
+}, {_id: false})
+
 var uniqueValidator = require("mongoose-unique-validator");
 const AllAdministratorsSchema = {
   type: db.Schema.Types.ObjectId,
@@ -165,6 +172,7 @@ const propertySchema = new db.Schema({
     default: false
   },
   payment: paymentSchema,
+  charges: [chargesSchema],
   nearby : [nearBySchema],
   location: {
     type: { type: String },
