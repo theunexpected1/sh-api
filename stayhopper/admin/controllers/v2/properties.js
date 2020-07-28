@@ -8,6 +8,8 @@ const pify = require("pify");
 const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
+const sharp = require('sharp');
+const request = require('request');
 
 const PropertyType = require("../../../db/models/propertytypes");
 const PropertyRating = require("../../../db/models/propertyratings");
@@ -198,6 +200,38 @@ let uploadNearby = pify(
       callback(null, true);
     }
   }).array("image")
+);
+
+
+// Upload for Photos
+const storagePhotos = multer.diskStorage({
+  destination: (req, file, cb) => {
+    cb(null, "public/files/original/properties");
+  },
+  filename: (req, file, cb) => {
+    var ext = path.extname(file.originalname);
+    var filename = file.fieldname + "-" + Date.now() + ext;
+    cb(null, filename);
+  }
+});
+
+let uploadPhotos = pify(
+  multer({
+    storage: storagePhotos,
+    fileFilter: function(req, file, callback) {
+      var ext = path.extname(file.originalname);
+      if (
+        ext !== ".svg" &&
+        ext !== ".png" &&
+        ext !== ".jpg" &&
+        ext !== ".gif" &&
+        ext !== ".jpeg"
+      ) {
+        return callback(new Error("Only images are allowed"));
+      }
+      callback(null, true);
+    }
+  }).array("file")
 );
 
 
@@ -526,6 +560,127 @@ const removeNearby = async(req, res) => {
 }
 
 
+/** Photos */
+const createPhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = null;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      if (req.files && resource) {
+        let api_url = config.api_url;
+        filename = path.basename(req.files[0].path);
+        if (filename) {
+          const resizer = sharp()
+            .resize(800)
+            .toFile('public/files/properties/' + filename, async (err, info) => {
+              console.log('err: ', err);
+              console.log('info: ', info);
+
+              if (err) {
+                res.status(500).send({
+                  message: 'Sorry, there was an error in performing this action'
+                }).end();
+              } else {
+                image = 'public/files/properties/'+filename;
+
+                let images = resource.images;
+                // let featured_images = resource.featured;
+                // if((typeof featured_images != 'undefined' && featured_images.length <= 0) || typeof featured_images == 'undefined'){
+                //   featured_images = [image]
+                //   resource.featured = featured_images;
+                //   featured = true;
+                // }
+                if (images) {
+                  images.push(image);
+                } else {
+                  images = [image];
+                }
+                resource.images = images;
+                await resource.save();
+                res.status(200).send({
+                  images: resource.images,
+                  featured: resource.featured
+                }).end();
+              }
+            })
+          ;
+          request(api_url + req.files[0].path).pipe(resizer);
+        } else {
+          res.status(500).send({
+            message: 'Sorry, there was an error in performing this action'
+          }).end();
+        }
+      } else {
+        return res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+const removePhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = req.body.image;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      if (resource.images && resource.images.length > 0) {
+        let index = null;
+        images = resource.images.filter(i => i !== image);
+        resource.images = images;
+        await resource.save();
+        res.status(200).send({
+          images: resource.images,
+          featured: resource.featured
+        }).end();
+      } else {
+        res.status(404).send({
+          message: `Resource does not exist`
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+const featurePhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = req.body.image;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      let status = 1;
+      let featured = [image];
+      resource.featured = featured;
+      let images = resource.images;
+      images = _.without(images, image);      
+      images.unshift(image);
+      resource.images = images;
+      await resource.save();
+      res.status(200).send({
+        images: resource.images,
+        featured: resource.featured
+      }).end();
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
@@ -534,5 +689,10 @@ router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove)
 
 router.post("/:id/nearby", jwtMiddleware.administratorAuthenticationRequired, uploadNearby, createNearby);
 router.delete("/:id/nearby/:nearbyId", jwtMiddleware.administratorAuthenticationRequired, removeNearby);
+
+router.post("/:id/photos", jwtMiddleware.administratorAuthenticationRequired, uploadPhotos, createPhoto);
+router.post("/:id/photos/feature", jwtMiddleware.administratorAuthenticationRequired, featurePhoto);
+// post, not delete, because we're sending image url in post data
+router.post("/:id/photos/remove", jwtMiddleware.administratorAuthenticationRequired, removePhoto);
 
 module.exports = router;

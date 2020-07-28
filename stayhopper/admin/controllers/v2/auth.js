@@ -90,13 +90,15 @@ router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequ
   // 3. - get 'property.company' (hotel_admins)'s email address
   //    - find administrator with same email address
   //    - set administrator as 'property.administrator' (administrators)
-  // 4.
+  //    - Set administrator in allAdministrators as well
+  // 4. set property charges into the new format
 
     try {
       properties
-        .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
+        // Test with Zain International
+        // .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
         .map(async property => {
-          console.log('property', property.name);
+          console.log('Attempting... Property', property.name);
           const propertyHotelAdmin = await HotelAdmin.findOne({_id: property.company}).exec();
           const migratedAdministratorWithSameEmail = propertyHotelAdmin
             ? await Administrator.findOne({email: propertyHotelAdmin.email}).exec()
@@ -104,11 +106,50 @@ router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequ
           ;
 
           // , {name: 1, company: 1, administrator: 1, email: 1, primaryReservationEmail:1, currency: 1}
-
+          // 1.
           property.primaryReservationEmail = property.contactinfo.email;
+          // 2.
           property.currency = currencyAED ? currencyAED._id : '';
+          // 3.
           property.administrator = migratedAdministratorWithSameEmail ? migratedAdministratorWithSameEmail._id : '';
+          property.allAdministrators = [property.administrator];
+          // 4.
+          const charges = [];
+          if (property.payment) {
+            if (property.payment.excluding_vat) {
+              charges.push({
+                name: 'VAT',
+                id: 'vat',
+                chargeType: 'percentage',
+                value: parseInt(property.payment.excluding_vat.replace('%', '').replace('AED', '').trim())
+              })
+            }
+            if (property.payment.tourism_fee) {
+              charges.push({
+                name: 'Tourism Fee',
+                id: 'tourism_fee',
+                chargeType: 'value',
+                value: parseInt(property.payment.tourism_fee.replace('%', '').replace('AED', '').trim())
+              })
+            }if (property.payment.muncipality_fee) {
+              charges.push({
+                name: 'Municipality Fee',
+                id: 'muncipality_fee',
+                chargeType: 'percentage',
+                value: parseInt(property.payment.muncipality_fee.replace('%', '').replace('AED', '').trim())
+              })
+            }if (property.payment.service_charge) {
+              charges.push({
+                name: 'Property Service Charge',
+                id: 'service_charge',
+                chargeType: 'percentage',
+                value: parseInt(property.payment.service_charge.replace('%', '').replace('AED', '').trim())
+              })
+            }
+          }
+          property.charges = charges;
           await property.save();
+          console.log('Migrated Property', property.name);
         })
       ;
     } catch (e) {

@@ -33,7 +33,7 @@ const jwtMiddleware = require("../../../middleware/jwt");
 const resourcePopulations = [
   {
     path: 'property',
-    select: '_id name'
+    select: 'name'
   },
   {
     path: 'user'
@@ -123,17 +123,40 @@ const list = async (req, res) => {
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
+  let userRatings = await UserRating.find(where).sort(sort).populate(resourcePopulations).exec()
+  if (req.query.orderBy === 'property') {
+    const isAsc = req.query.order === 'asc';
+    userRatings = userRatings
+      .sort((a, b) => {
+        if (a.property.name.trim().toLowerCase() < b.property.name.trim().toLowerCase()) { return isAsc ? -1 : 1; }
+        if (a.property.name.trim().toLowerCase() > b.property.name.trim().toLowerCase()) { return isAsc ? 1 : -1; }
+        return 0;
+      })
+      .splice(req.skip, req.query.limit)
+    ;
+  } else {
+    userRatings = userRatings
+      .splice(req.skip, req.query.limit)
+    ;
+  }
+
+  /**
+   Manual sorting as we cannot traditionally sort by property.name
+   UserRating
+    .find(where)
+    .sort(sort)
+    .populate(resourcePopulations)
+    .limit(req.query.limit)
+    .skip(req.skip)
+    .lean()
+    .exec()
+  ;
+  */
+
   let [properties, list, itemCount] = await Promise.all([
     hasPropertiesAccess ? Property.find({}).sort({name: 1}).select('_id name') : Promise.resolve([]),
-    UserRating
-      .find(where)
-      .sort(sort)
-      .populate(resourcePopulations)
-      .limit(req.query.limit)
-      .skip(req.skip)
-      .lean()
-      .exec(),
-      UserRating.countDocuments(where)
+    Promise.resolve(userRatings),
+    UserRating.countDocuments(where)
   ]);
 
   const pageCount = Math.ceil(itemCount / req.query.limit);

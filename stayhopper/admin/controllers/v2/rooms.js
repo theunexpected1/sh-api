@@ -9,6 +9,8 @@ const pify = require("pify");
 const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
+const sharp = require('sharp');
+const request = require('request');
 
 const Country = require("../../../db/models/countries");
 
@@ -142,6 +144,7 @@ const prepareQueryForListing = (req) => {
   return where;
 }
 
+// Upload for Photos
 const storage = multer.diskStorage({
   destination: (req, file, cb) => {
     cb(null, "public/files/original/rooms");
@@ -174,12 +177,6 @@ let upload = pify(
 
 const preCreateOrUpdate = async (req, res, resourceData) => {
   try {
-
-    // resourceData.trade_licence = resourceData.trade_licence || {};
-    // // Set the newly uploaded file in the resource body
-    // if (req.files['trade_licence[trade_licence_attachment]']) {
-    //   resourceData.trade_licence.trade_licence_attachment = req.files['trade_licence[trade_licence_attachment]'][0].path || null;
-    // }
 
     // Ensure no extra beds are provided if the option is disabled
     if (!resourceData.extrabed_option) {
@@ -423,7 +420,7 @@ const removeRate = async (req, res) => {
     try {
       if (!req.params.rateId) {
         return res.status(500).send({
-          message: 'Sorry, no Rate specified to modify'
+          message: 'Sorry, no Rate specified to remove'
         });
       }
 
@@ -451,7 +448,6 @@ const removeRate = async (req, res) => {
     }
   }
 }
-
 
 
 /** Availability **/
@@ -504,7 +500,6 @@ const getSlotRanges = (slots, status, date) => {
 
   return ranges;
 }
-
 
 const listAvailability = async (req, res) => {
   if (hasPermissions(req, res)) {
@@ -609,7 +604,6 @@ const listAvailability = async (req, res) => {
     }
   }
 };
-
 
 const changeAvailability = async (req, res) => {
   if (hasPermissions(req, res)) {
@@ -828,7 +822,126 @@ const changeAvailability = async (req, res) => {
 }
 
 
+/** Photos */
+const createPhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = null;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      if (req.files && resource) {
+        let api_url = config.api_url;
+        filename = path.basename(req.files[0].path);
+        if (filename) {
+          const resizer = sharp()
+            .resize(800)
+            .toFile('public/files/rooms/' + filename, async (err, info) => {
+              console.log('err: ', err);
+              console.log('info: ', info);
 
+              if (err) {
+                res.status(500).send({
+                  message: 'Sorry, there was an error in performing this action'
+                }).end();
+              } else {
+                image = 'public/files/rooms/'+filename;
+
+                let images = resource.images;
+                // let featured_images = resource.featured;
+                // if((typeof featured_images != 'undefined' && featured_images.length <= 0) || typeof featured_images == 'undefined'){
+                //   featured_images = [image]
+                //   resource.featured = featured_images;
+                //   featured = true;
+                // }
+                if (images) {
+                  images.push(image);
+                } else {
+                  images = [image];
+                }
+                resource.images = images;
+                await resource.save();
+                res.status(200).send({
+                  images: resource.images,
+                  featured: resource.featured
+                }).end();
+              }
+            })
+          ;
+          request(api_url + req.files[0].path).pipe(resizer);
+        } else {
+          res.status(500).send({
+            message: 'Sorry, there was an error in performing this action'
+          }).end();
+        }
+      } else {
+        return res.status(404).send({
+          message: 'Sorry, resource does not exist'
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+const removePhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = req.body.image;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      if (resource.images && resource.images.length > 0) {
+        let index = null;
+        images = resource.images.filter(i => i !== image);
+        resource.images = images;
+        await resource.save();
+        res.status(200).send({
+          images: resource.images,
+          featured: resource.featured
+        }).end();
+      } else {
+        res.status(404).send({
+          message: `Resource does not exist`
+        }).end();
+      }
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
+
+const featurePhoto = async (req, res) => {
+  if (hasPermissions(req, res)) {
+    try {
+      let image = req.body.image;
+      let where = {_id: req.params.id};
+      let resource = await ModuleModel.findOne(where);
+      let status = 1;
+      let featured = [image];
+      resource.featured = featured;
+      let images = resource.images;
+      images = _.without(images, image);      
+      images.unshift(image);
+      resource.images = images;
+      await resource.save();
+      res.status(200).send({
+        images: resource.images,
+        featured: resource.featured
+      }).end();
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+}
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
@@ -841,6 +954,11 @@ router.delete("/:id/rates/:rateId", jwtMiddleware.administratorAuthenticationReq
 
 router.get("/:id/availability", jwtMiddleware.administratorAuthenticationRequired, upload, listAvailability);
 router.post("/:id/availability/:action", jwtMiddleware.administratorAuthenticationRequired, upload, changeAvailability);
+
+router.post("/:id/photos", jwtMiddleware.administratorAuthenticationRequired, upload, createPhoto);
+router.post("/:id/photos/feature", jwtMiddleware.administratorAuthenticationRequired, featurePhoto);
+// post, not delete, because we're sending image url in post data
+router.post("/:id/photos/remove", jwtMiddleware.administratorAuthenticationRequired, removePhoto);
 
 
 module.exports = router;
