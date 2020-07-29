@@ -471,22 +471,18 @@ const getSlotRanges = (slots, status, date, momentTimezoneStr) => {
 
   // Retain timezone of the property
   const momentDate = moment.tz(date, momentTimezoneStr);
-  console.log('momentTimezoneStr', momentTimezoneStr);
 
   // 2. Do Magic
   sortedSlots.map(slotItem => {
     if (!!slotItem[status]) {
       const labelSplit = slotItem.slot['label'].split(':');
-      // Moment
+      // Use Moment - To retain time zone for Property's Country
       const startMt = moment(momentDate);
-      console.log('(Moment) start new Date(date)', startMt.toDate());
       startMt.set({
         hours: labelSplit[0],
         minutes: labelSplit[1]
       });
-      console.log('(Moment) start setHours', labelSplit[0], labelSplit[1], startMt.toDate());
       const end = new Date(startMt.toDate().getTime() + thirtyMins);
-      console.log('(Moment) end ................', end);
       if (!rangeItem['start']) {
         rangeItem['start'] = startMt.toDate();
         rangeItem['end'] = end;
@@ -494,7 +490,7 @@ const getSlotRanges = (slots, status, date, momentTimezoneStr) => {
         rangeItem['end'] = end;
       }
 
-      // Date
+      // Use Date - to disregard time zone - Doesn't work as expected
       // const start = new Date(date);
       // console.log('start new Date(date)', start);
       // start.setHours(labelSplit[0], labelSplit[1], 0, 0);
