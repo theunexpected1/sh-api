@@ -110,26 +110,37 @@ const prepareQueryForListing = (req) => {
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
-    where['$or'] = [
-      {administrator: user._id},
-      // Add staff roles here
-    ]
+    where['$and'] = where['$and'] || [];
+    const uniqueOrQuery = [];
+
+    // Add staff roles here
+    uniqueOrQuery.push({administrator: user._id});
+    uniqueOrQuery.push({allAdministrators: {
+      $in: [user._id]
+    }});
+
+    where['$and'].push({$or: uniqueOrQuery});
   }
 
   // Filter: Keywords
   if (keyword) {
-    where['$or'] = where['$or'] || [];
-    where['$or'].push({name: new RegExp(keyword, 'i')});
-    where['$or'].push({description: new RegExp(keyword, 'i')});
+    where['$and'] = where['$and'] || [];
+    const uniqueOrQuery = [];
+    uniqueOrQuery.push({name: new RegExp(keyword, 'i')});
+    uniqueOrQuery.push({description: new RegExp(keyword, 'i')});
+
+    where['$and'].push({$or: uniqueOrQuery});
   }
 
   if (select_company) {
     // where.company = select_company;
-    where['$or'] = where['$or'] || [];
-    where['$or'].push({administrator: select_company});
-    where['$or'].push({allAdministrators: {
+    where['$and'] = where['$and'] || [];
+    const uniqueOrQuery = [];
+    uniqueOrQuery.push({administrator: select_company});
+    uniqueOrQuery.push({allAdministrators: {
       $in: [select_company]
     }});
+    where['$and'].push({$or: uniqueOrQuery});
   }
 
   if (country) {
