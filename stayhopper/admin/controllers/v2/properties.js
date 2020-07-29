@@ -258,6 +258,11 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
       resourceData.weekends = [];
     }
 
+    // Ensure location is a valid Geo type
+    if (resourceData.location && !resourceData.location.type) {
+      resourceData.location.type = 'Point';
+    }
+
     // - secondaryReservationEmails
     if (resourceData.secondaryReservationEmails) {
       resourceData.secondaryReservationEmails = resourceData.secondaryReservationEmails.toLowerCase();
