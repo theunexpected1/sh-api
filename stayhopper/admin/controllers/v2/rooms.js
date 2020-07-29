@@ -451,7 +451,7 @@ const removeRate = async (req, res) => {
 
 
 /** Availability **/
-const getSlotRanges = (slots, status, date) => {
+const getSlotRanges = (slots, status, date, momentTimezoneStr) => {
   const ranges = [];
   // 1. sort slots
   const sortedSlots = slots.sort((a, b) => {
@@ -469,12 +469,16 @@ const getSlotRanges = (slots, status, date) => {
   let rangeItem = JSON.parse(JSON.stringify(defaultRangeItem));
   const thirtyMins = 30 * 60 * 1000;
 
+  // Retain timezone of the property
+  const momentDate = moment.tz(date, momentTimezoneStr);
+  console.log('momentTimezoneStr', momentTimezoneStr);
+
   // 2. Do Magic
   sortedSlots.map(slotItem => {
     if (!!slotItem[status]) {
       const labelSplit = slotItem.slot['label'].split(':');
       // Moment
-      const startMt = moment.tz(date, "Asia/Dubai");
+      const startMt = moment(momentDate);
       console.log('(Moment) start new Date(date)', startMt.toDate());
       startMt.set({
         hours: labelSplit[0],
@@ -543,6 +547,24 @@ const listAvailability = async (req, res) => {
         }).end();
       }
 
+      // Get Timezone string
+      let tzs = moment.tz.zonesForCountry('ae');
+      const resourceCountry = resource.property_id && resource.property_id.contactinfo && resource.property_id.contactinfo.country
+        ? resource.property_id.contactinfo.country.country
+        : ''
+      ;
+
+      if (resourceCountry) {
+        if (['uae', 'united arab emirates'].indexOf(resourceCountry.toLowerCase()) > -1) {
+          tzs = moment.tz.zonesForCountry('ae');
+        } else if (['india'].indexOf(resourceCountry.toLowerCase()) > -1) {
+          tzs = moment.tz.zonesForCountry('in');
+        } else if (['vietnam'].indexOf(resourceCountry.toLowerCase()) > -1) {
+          tzs = moment.tz.zonesForCountry('vn');
+        }
+      }
+      let momentTimezoneStr = tzs.length ? tzs[0] : 'Asia/Dubai';
+
       const bookings = await Booking.findOne({ room: req.params.id, date: date }).populate("slots.slot");
       let bookingArray = [];
       if (typeof bookings != "undefined" && bookings != null) {
@@ -604,9 +626,9 @@ const listAvailability = async (req, res) => {
       }
 
       const slotStatusesRanges = slotStatuses.map(slotStatusesItem => {
-        const booked = getSlotRanges(slotStatusesItem, 'booked', date)
-        const reserved = getSlotRanges(slotStatusesItem, 'reserved', date)
-        const blocked = getSlotRanges(slotStatusesItem, 'blocked', date);
+        const booked = getSlotRanges(slotStatusesItem, 'booked', date, momentTimezoneStr)
+        const reserved = getSlotRanges(slotStatusesItem, 'reserved', date, momentTimezoneStr)
+        const blocked = getSlotRanges(slotStatusesItem, 'blocked', date, momentTimezoneStr);
         const combinedStatusRanges = [].concat(booked, reserved, blocked);
         return combinedStatusRanges;
       });
