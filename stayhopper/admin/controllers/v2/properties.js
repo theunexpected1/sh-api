@@ -118,14 +118,18 @@ const prepareQueryForListing = (req) => {
 
   // Filter: Keywords
   if (keyword) {
-    where['$or'] = [
-      {name: new RegExp(keyword, 'i')},
-      {description: new RegExp(keyword, 'i')}
-    ]
+    where['$or'] = where['$or'] || [];
+    where['$or'].push({name: new RegExp(keyword, 'i')});
+    where['$or'].push({description: new RegExp(keyword, 'i')});
   }
 
   if (select_company) {
-    where.company = select_company;
+    // where.company = select_company;
+    where['$or'] = where['$or'] || [];
+    where['$or'].push({administrator: select_company});
+    where['$or'].push({allAdministrators: {
+      $in: [select_company]
+    }});
   }
 
   if (country) {
