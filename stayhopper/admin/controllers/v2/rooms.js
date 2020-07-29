@@ -473,15 +473,36 @@ const getSlotRanges = (slots, status, date) => {
   sortedSlots.map(slotItem => {
     if (!!slotItem[status]) {
       const labelSplit = slotItem.slot['label'].split(':');
-      const start = new Date(date);
-      start.setHours(labelSplit[0], labelSplit[1], 0, 0);
-      const end = new Date(start.getTime() + thirtyMins);
+      // Moment
+      const startMt = moment.tz(date, "Asia/Dubai");
+      console.log('(Moment) start new Date(date)', startMt.toDate());
+      startMt.set({
+        hours: labelSplit[0],
+        minutes: labelSplit[1]
+      });
+      console.log('(Moment) start setHours', labelSplit[0], labelSplit[1], startMt.toDate());
+      const end = new Date(startMt.toDate().getTime() + thirtyMins);
+      console.log('(Moment) end ................', end);
       if (!rangeItem['start']) {
-        rangeItem['start'] = start;
+        rangeItem['start'] = startMt.toDate();
         rangeItem['end'] = end;
       } else {
         rangeItem['end'] = end;
       }
+
+      // Date
+      // const start = new Date(date);
+      // console.log('start new Date(date)', start);
+      // start.setHours(labelSplit[0], labelSplit[1], 0, 0);
+      // console.log('start setHours', labelSplit[0], labelSplit[1], start);
+      // const end = new Date(start.getTime() + thirtyMins);
+      // console.log('end ................', end);
+      // if (!rangeItem['start']) {
+      //   rangeItem['start'] = start;
+      //   rangeItem['end'] = end;
+      // } else {
+      //   rangeItem['end'] = end;
+      // }
       rangeItem.slots.push(slotItem.slot)
     } else {
       // Not valid? Chain active? Save data and break the chain
