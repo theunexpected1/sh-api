@@ -70,7 +70,8 @@ const adminSchema = new db.Schema({
     type: String
   },
   email: {
-    type: String
+    type: String,
+    required: [true, "Contact Email is required"]
   },
   mobile: {
     type: String

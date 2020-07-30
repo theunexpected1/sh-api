@@ -6,6 +6,11 @@ const slotsSchema = new db.Schema({
   no: {
     type: String
   }
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  }
 });
 
 slotsModel = db.model("slots", slotsSchema);
