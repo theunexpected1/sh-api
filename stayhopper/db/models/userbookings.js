@@ -123,10 +123,11 @@ const userbookingSchema = new db.Schema({
   },
   parent_id:{
     type:db.Schema.Types.ObjectId
-  },
-  paid:{
-    type:Boolean,
-    default:0
+  }
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 });
 

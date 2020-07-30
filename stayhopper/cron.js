@@ -4,6 +4,7 @@ const config = require("config");
 const UserBooking = require("./db/models/userbookings");
 const BookLog = require("./db/models/bookinglogs");
 const Booking = require("./db/models/bookings");
+const Invoice = require("./db/models/invoices");
 const User = require("./db/models/users");
 const CompletedBooking = require("./db/models/completedbookings");
 const FCM = require("fcm-node");
@@ -29,6 +30,285 @@ cron.schedule("*/30 * * * *", async () => {
   console.log({deleted:'deleted'});
 });
 
+const generateInvoices = async () => {
+  console.log('GENERATE INVOICES: START');
+
+  // DEBUG:START
+  const deleteInvoices = await Invoice.remove({});
+  console.log(`-- Deleted existing invoices...`, deleteInvoices);
+  console.log(`--`);
+  // DEBUG:END
+
+  // 1. Get Properties
+  const properties = await Property.find({}).populate([{path: "rooms"},{path: "contactinfo.country"}]);
+
+  // 2. Get Today's date (Should be 1st of a month)
+  // const todayUtcDateMoment = moment.utc(new Date('2020-03-01')); // Debug
+  const todayUtcDateMoment = moment.utc(new Date());
+
+  // 3. Get the previous month for billing
+  const invoiceForDateMoment = moment(todayUtcDateMoment).subtract(1, 'month').startOf('month');
+  const invoiceForDate = invoiceForDateMoment.toDate();
+  // console.log('invoiceForDate', invoiceForDate);
+
+  // 4. Generate Invoices for all properties for the month/year as per invoiceForDate
+  const invoices = await Promise.all(
+    properties
+      // .filter(property => property._id.toString() === '5def593b13234106c605b1d7')
+      .map(async property => await generateInvoiceForProperty(property._id, invoiceForDate))
+  );
+
+  // 5. Send Invoices for all properties to
+  // Super Admin
+  // Property
+  const communication = await Promise.all(invoices.map(sendInvoices));
+  console.log('GENERATE INVOICES: END');
+  return true;
+}
+
+const generateInvoiceForProperty = async (propertyId, invoiceForDate) => {
+
+  // Invoice Month should be June
+  const invoiceGenerationDateMoment = moment.utc(new Date());
+  const invoiceForDateMoment = moment(invoiceForDate);
+  const startDateMoment = moment(invoiceForDateMoment).startOf('month');
+  const endDateMoment = moment(invoiceForDateMoment).endOf('month');
+
+  const property = await Property
+    .findOne({_id: propertyId})
+    .populate([
+      {
+        path: "currency"
+      },
+      {
+        path: "payment.country"
+      }
+    ])
+  ;
+
+  if (!property) {
+    console.log('Property not found, so could not generate invoice')
+    return;
+  }
+
+  console.log(`1. Generating invoice for ${property.name.trim()} for ${startDateMoment.format("MMMM YYYY")}`);
+
+  let amount = 0;
+  let totalBookingsCount = 0;
+  let userBookingsIds = [];
+  let completedBookingsIds = [];
+  let bookingFeeForProperty = 0;
+  if (
+    property.contactinfo &&
+    property.contactinfo.country &&
+    property.contactinfo.country._id &&
+    property.currency
+  ) {
+    const bookingFeesForCountry = config.bookingFee[property.contactinfo.country._id];
+    const bookingFeeForCurrency = bookingFeesForCountry.find(bf => bf.currency === property.currency._id.toString())
+    if (bookingFeeForCurrency) {
+      bookingFeeForProperty = bookingFeeForCurrency.fee;
+    }
+  }
+
+  console.log('bookingFeeForProperty', bookingFeeForProperty);
+
+  // 1. User Bookings - get IDS and total amount
+  const userBookingsAggregate = [
+    {
+      $match: {
+        property: property._id,
+        date_booked: {
+          $gte: startDateMoment.toDate(),
+          $lt: endDateMoment.toDate()
+        },
+        paid: true
+      }
+    }, {
+      $project: {
+        "_id": 1,
+        "total_amt": 1
+      }
+    }, {
+      $group: {
+        _id: 'userBookings',
+        ids: {
+          $push: '$_id'
+        },
+        total_amt: {
+          $sum: '$total_amt'
+        }
+      }
+    }
+  ];
+  const propertyUserBookings = await UserBooking.aggregate(userBookingsAggregate);
+  // console.log('userBookingsAggregate', userBookingsAggregate);
+  // console.log('propertyUserBookings', propertyUserBookings);
+
+  // 2. Completed bookings - get IDS and total amount
+  const completedBookingsAggregate = [
+    {
+      $match: {
+        'propertyInfo.id': property._id,
+        paid: true
+      }
+    }, {
+      $match: {
+        date_booked: {
+          $gte: startDateMoment.toDate(),
+          $lt: endDateMoment.toDate()
+        }
+      }
+    }, {
+      $project: {
+        _id: 1,
+        date_booked: 1,
+        userbookings: 1,
+        propertyInfo: 1,
+        ub_id: 1,
+        total_amt: 1
+      }
+    }, {
+      $group: {
+        _id: 'completedBookings',
+        ids: {
+          $push: '$_id'
+        },
+        total_amt: {
+          $sum: '$total_amt'
+        }
+      }
+    }
+  ];
+  const propertyCompletedBookings = await CompletedBooking.aggregate(completedBookingsAggregate);
+  // console.log('completedBookingsAggregate', completedBookingsAggregate);
+  // console.log('propertyCompletedBookings', propertyCompletedBookings);
+  completedBookingsIds = propertyCompletedBookings.length ? propertyCompletedBookings[0].ids : [];
+
+  // 3. calculate from results
+  if (propertyUserBookings.length) {
+    userBookingsIds = propertyUserBookings[0].ids;
+    amount += (propertyUserBookings[0].ids.length * bookingFeeForProperty);
+    totalBookingsCount += propertyUserBookings[0].ids.length;
+  }
+  if (propertyCompletedBookings.length) {
+    completedBookingsIds = propertyCompletedBookings[0].ids;
+    amount += (propertyCompletedBookings[0].ids.length * bookingFeeForProperty);
+    totalBookingsCount += propertyCompletedBookings[0].ids.length;
+  }
+
+  const invoiceData = {
+    issueDate: invoiceGenerationDateMoment.toDate(),
+    invoiceForDateString: startDateMoment.format("YYYY-MM-DD"),
+    invoiceForMonthString: startDateMoment.format("MMMM YYYY"),
+    status: 'pending',
+    emailSentToSuperAdmin: false,
+    emailSentToProperty: false,
+    completedBookings: completedBookingsIds,
+    userBookings: userBookingsIds,
+    paymentUrl: 'https://extranet.stayhopper.com/payment/invoice/test',
+    property: property._id,
+    currency: property.currency,
+    amount: amount,
+    totalBookingsCount
+  };
+
+  const invoice = new Invoice(invoiceData);
+  await invoice.save();
+  await Invoice.populate(invoice, 'property currency completedBookings userBookings');
+  // console.log('- invoice', invoice);
+  console.log(`- Invoice Generated: ${invoice._id}. Amount ${invoice.currency.code} ${invoice.amount}. Bookings: ${invoice.userBookings.length + invoice.completedBookings.length}`);
+  return invoice;
+}
+
+const sendInvoices = async (invoice) => {
+  const adminEmail = config.invoice_email;
+  const propertyEmail = invoice.property && invoice.property.contactinfo && invoice.property.contactinfo.email;
+  console.log(`2. Sending invoice ${invoice._id} for ${invoice.property.name}`);
+  
+  const invoiceMonthYear = invoice.invoiceForMonthString;
+  const propertyName = invoice.property.name;
+  const paymentUrl = invoice.paymentUrl;
+  const paymentAmount = invoice.amount;
+  const currency = invoice.currency.code;
+  const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
+
+  // Disable sending
+  if (false) {
+  // // Enable Sending
+  // if (adminEmail) {
+    let html_body = fs.readFileSync("public/invoice-admin.html","utf8");
+    html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
+    html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
+    html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
+    html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
+    html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
+    html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
+
+    msg = {
+      to: adminEmail,
+      // bcc: [
+      //   { email: "saleeshprakash@gmail.com" },
+      //   { email: config.website_admin_bcc_email }
+      // ],
+      from: config.website_admin_from_email,
+      fromname: config.fromname,
+      subject: `STAYHOPPER: ${invoiceMonthYear} Invoice sent to property ${propertyName}`,
+      text: `${invoiceMonthYear} Invoice sent to property ${propertyName}`,
+      html: html_body
+    };
+    sgMail.send(msg);
+    console.log(`2.1 Email sent To Admin @ '${adminEmail}'`);
+  }
+
+  // Disable sending
+  if (false) {
+  // // Enable Sending
+  // if (propertyEmail) {
+    let html_body = fs.readFileSync("public/invoice-property.html","utf8");
+    html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
+    html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
+    html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
+    html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
+    html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
+    html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
+
+    msg = {
+      to: adminEmail,
+      // TODO: Production: Send to the property, and enable BCC for admin
+      // to: propertyEmail,
+      // bcc: [
+      //   { email: "saleeshprakash@gmail.com" },
+      //   { email: config.website_admin_bcc_email }
+      // ],
+      from: config.website_admin_from_email,
+      fromname: config.fromname,
+      subject: `STAYHOPPER: Your ${invoiceMonthYear} invoice is available`,
+      text: `Your ${invoiceMonthYear} invoice is available`,
+      html: html_body
+    };
+    sgMail.send(msg);
+    console.log(`2.2 Email sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
+  }
+}
+
+// Manually run Invoice process
+// generateInvoices();
+
+// Generate Invoices - 1st of every month for the previous month
+cron.schedule("0 0 1 * * ", async () => {
+  const generateInvoicesStatus = await generateInvoices();
+});
+
+// Reminder for Invoices - 7th of every month
+cron.schedule("0 0 7 * * ", async () => {
+  // const sendUnpaidInvoiceRemindersStatus = await sendUnpaidInvoiceReminders();
+});
+
+// Deactivate properties with unpaid Invoices - 9th of every month
+cron.schedule("0 0 9 * * ", async () => {
+  // const deactivateUnpaidPropertiesStatus = await deactivateUnpaidProperties();
+});
 
 // cron.schedule("* * * * * *", async () => {
 //   let today = moment().add(-2,'days').format('YYYY-MM-DD');
@@ -38,6 +318,7 @@ cron.schedule("*/30 * * * *", async () => {
 
 //@desc completed bookings
 cron.schedule("* * * * *", async () => {
+  // return;
   await UserBooking.deleteMany({paid:false,date_checkout:{$lte:new Date()}});
   bookings = await UserBooking.find({ date_checkout: { $lte: new Date() } })
     .populate({
@@ -295,6 +576,7 @@ cron.schedule("*/30 * * * *", async () => {
 
 //delete booking
 cron.schedule("* * * * *", async () => {
+  // return;
   let booking = await UserBooking.aggregate([
     {
       $match: {

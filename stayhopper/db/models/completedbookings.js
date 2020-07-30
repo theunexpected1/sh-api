@@ -56,6 +56,7 @@ const completedBookingsSchema = new db.Schema({
   checkin_date: String,
   date_checkin: Date,
   date_checkout: Date,
+  date_booked: Date,
   tax: Number,
   discount: Number,
   total_amt: Number,
@@ -69,6 +70,11 @@ const completedBookingsSchema = new db.Schema({
   paid:{
     type: Boolean,
     default:0
+  }
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 });
 

@@ -1,4 +1,25 @@
 {
   "app_url":"https://admin.sh.vrbrosllc.com/",
-  "api_url":"https://api.admin.sh.rahulv.com/"
+  "api_url":"https://api.admin.sh.rahulv.com/",
+  "bookingFee": {
+    "5b87b5e26ebfc73aed2589f7": [{
+      "commentsForAdmin": "UAE / AED",
+      "currency": "5b616c7556fa98278f681e4a",
+      "fee": 15
+    }, {
+      "commentsForAdmin": "UAE / RS",
+      "currency": "5f0cbd9dba4abaf8e4f45892",
+      "fee": 300
+    }],
+
+    "5f0c7437f90937c4c19a1adf": [{
+      "commentsForAdmin": "India / AED",
+      "currency": "5b616c7556fa98278f681e4a",
+      "fee": 15
+    }, {
+      "commentsForAdmin": "India / RS",
+      "currency": "5f0cbd9dba4abaf8e4f45892",
+      "fee": 300
+    }]
+  }
 }
