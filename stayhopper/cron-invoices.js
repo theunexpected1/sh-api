@@ -37,7 +37,8 @@ let invoicesCtrl = {
     // 4. Generate Invoices for all properties for the month/year as per invoiceForDate
     const invoices = await Promise.all(
       properties
-        .filter(property => property._id.toString() === '5def593b13234106c605b1d7')
+        // DEBUG: Uncomment below line to limit only to DARUS HOTEL as test property
+        // .filter(property => property._id.toString() === '5def593b13234106c605b1d7')
         .map(async property => await invoicesCtrl.generateInvoiceForProperty(property._id, invoiceForDate))
     );
 
