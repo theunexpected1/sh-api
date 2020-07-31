@@ -17,9 +17,9 @@ let invoicesCtrl = {
     console.log('GENERATE INVOICES: START');
 
     // DEBUG:START
-    // const deleteInvoices = await Invoice.remove({});
-    // console.log(`-- Deleted existing invoices...`, deleteInvoices);
-    // console.log(`--`);
+    const deleteInvoices = await Invoice.remove({});
+    console.log(`-- Deleted existing invoices...`, deleteInvoices);
+    console.log(`--`);
     // DEBUG:END
 
     // 1. Get Properties
@@ -35,12 +35,15 @@ let invoicesCtrl = {
     // console.log('invoiceForDate', invoiceForDate);
 
     // 4. Generate Invoices for all properties for the month/year as per invoiceForDate
-    const invoices = await Promise.all(
+    let invoices = await Promise.all(
       properties
         // DEBUG: Uncomment below line to limit only to DARUS HOTEL as test property
         // .filter(property => property._id.toString() === '5def593b13234106c605b1d7')
         .map(async property => await invoicesCtrl.generateInvoiceForProperty(property._id, invoiceForDate))
     );
+
+    // Remove invoices that are not generated (due to amount being 0 / no bookings)
+    invoices = invoices.filter(invoice => !!invoice)
 
     // 5. Send Invoices for all properties to
     // Super Admin
@@ -194,27 +197,31 @@ let invoicesCtrl = {
     }
 
 
-    const invoiceData = {
-      issueDate: invoiceGenerationDateMoment.toDate(),
-      invoiceForDateString: startDateMoment.format("YYYY-MM-DD"),
-      invoiceForMonthString: startDateMoment.format("MMMM YYYY"),
-      status: 'pending',
-      // invoiceSentToSuperAdmin: false,
-      invoiceSentToProperty: false,
-      completedBookings: completedBookingsIds,
-      userBookings: userBookingsIds,
-      paymentUrl: 'https://extranet.stayhopper.com/payment/invoice/test',
-      property: property._id,
-      currency: property.currency,
-      amount: amount,
-      totalBookingsCount
-    };
+    if (amount) {
+      const invoiceData = {
+        issueDate: invoiceGenerationDateMoment.toDate(),
+        invoiceForDate: startDateMoment.format("YYYY-MM-DD"),
+        invoiceForMonthString: startDateMoment.format("MMMM YYYY"),
+        status: 'pending',
+        // invoiceSentToSuperAdmin: false,
+        invoiceSentToProperty: false,
+        completedBookings: completedBookingsIds,
+        userBookings: userBookingsIds,
+        paymentUrl: 'https://extranet.stayhopper.com/payment/invoice/test',
+        property: property._id,
+        currency: property.currency,
+        amount: amount,
+        totalBookingsCount
+      };
 
-    const invoice = new Invoice(invoiceData);
-    await invoice.save();
-    await Invoice.populate(invoice, 'property currency completedBookings userBookings');
-    console.log(`- Invoice Generated: ${invoice._id}. Amount ${invoice.currency.code} ${invoice.amount}. Bookings: ${invoice.userBookings.length + invoice.completedBookings.length}`);
-    return invoice;
+      const invoice = new Invoice(invoiceData);
+      await invoice.save();
+      await Invoice.populate(invoice, 'property currency completedBookings userBookings');
+      console.log(`- Invoice Generated: ${invoice._id}. Amount ${invoice.currency.code} ${invoice.amount}. Bookings: ${invoice.userBookings.length + invoice.completedBookings.length}`);
+      return invoice;
+    } else {
+      return null;
+    }
   },
 
   sendInvoices: async (invoice, sendIndividualEmailToAdmin) => {
@@ -445,7 +452,7 @@ let invoicesCtrl = {
     }
   },
 
-  deactivateUnpaidProperties: async() => {
+  deactivatePropertiesWithUnpaidInvoices: async() => {
     const adminEmail = config.invoice_email;
     const pendingInvoices = await Invoice
       .find({
@@ -550,9 +557,9 @@ cron.schedule("0 0 7 * * ", async () => {
 });
 
 // Manually deactivate properties with unpaid Invoice
-// invoicesCtrl.deactivateUnpaidProperties();
+// invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
 
 // Deactivate properties with unpaid Invoices - 9th of every month
 cron.schedule("0 0 9 * * ", async () => {
-  const deactivateUnpaidPropertiesStatus = await invoicesCtrl.deactivateUnpaidProperties();
+  const deactivateUnpaidPropertiesStatus = await invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
 });
