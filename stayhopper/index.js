@@ -21,6 +21,7 @@ const testRouter = require('./routes/test');
 const requireLogin = require('./middleware/requiresLogin');
 const passportConfig = require('./middleware/passport-administrator');
 const cronjobs = require('./cron');
+const cronjobsForInvoices = require('./cron-invoices');
 const allowedCORS = require('./middleware/allowed-cors');
 
 app.use(helmet());

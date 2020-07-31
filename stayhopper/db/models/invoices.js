@@ -27,11 +27,11 @@ const invoiceSchema = new db.Schema({
     ref: "userbookings"
   }],
   totalBookingsCount: Number,
-  emailSentToSuperAdmin: {
+  invoiceSentToProperty: {
     type: Boolean,
     default: false
   },
-  emailSentToProperty: {
+  reminderSentToProperty: {
     type: Boolean,
     default: false
   },
@@ -44,6 +44,7 @@ const invoiceSchema = new db.Schema({
   },
   amount: {
     type: Number,
+    default: 0,
     required: [true, "Amount is required"]
   }
 });
