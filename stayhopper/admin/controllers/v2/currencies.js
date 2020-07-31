@@ -194,8 +194,8 @@ const remove = async (req, res) => {
   }
 }
 
-router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
-router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), single);
+router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), list);
+router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);

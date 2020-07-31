@@ -413,9 +413,9 @@ const sendWelcomeEmail = async (req, res) => {
   }
 }
 
-router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
-router.get("/me", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getMe);
-router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), getById);
+router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), list);
+router.get("/me", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), getMe);
+router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), getById);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);

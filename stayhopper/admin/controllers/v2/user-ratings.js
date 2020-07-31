@@ -214,7 +214,7 @@ const approval = async (req, res) => {
   }
 };
 
-router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), list);
+router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), list);
 router.put("/:id/approval/:status", jwtMiddleware.administratorAuthenticationRequired, approval);
 
 module.exports = router;

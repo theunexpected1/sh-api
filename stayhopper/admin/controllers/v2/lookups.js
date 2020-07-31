@@ -67,6 +67,6 @@ const listLookup = (ModelClass, selections, populations) => async (req, res) => 
   res.status(200).send(data).end();
 };
 
-router.get("/roles", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 50), listLookup(Role));
+router.get("/roles", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), listLookup(Role));
 
 module.exports = router;
