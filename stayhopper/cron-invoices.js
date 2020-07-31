@@ -17,9 +17,9 @@ let invoicesCtrl = {
     console.log('GENERATE INVOICES: START');
 
     // DEBUG:START
-    const deleteInvoices = await Invoice.remove({});
-    console.log(`-- Deleted existing invoices...`, deleteInvoices);
-    console.log(`--`);
+    // const deleteInvoices = await Invoice.remove({});
+    // console.log(`-- Deleted existing invoices...`, deleteInvoices);
+    // console.log(`--`);
     // DEBUG:END
 
     // 1. Get Properties
