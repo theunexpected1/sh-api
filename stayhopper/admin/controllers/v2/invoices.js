@@ -5,6 +5,7 @@ const pify = require("pify");
 const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
+const moment = require("moment");
 
 const db = require("../../../db/mongodb");
 const Invoice = require("../../../db/models/invoices");
@@ -55,6 +56,9 @@ const prepareQueryForListing = async (req) => {
   const hasOwnInvoicesAccess = permissions.indexOf(config.permissions.LIST_OWN_INVOICES) > -1;
 
   const where = {};
+  const property = req.query.property;
+  const date = req.query.date;
+  const status = req.query.status;
 
   // Filter: User's Invoices - Restrict to logged in user viewing their own Invoices if they dont have access to all
   if (hasOwnInvoicesAccess && !hasAllInvoicesAccess) {
@@ -74,8 +78,6 @@ const prepareQueryForListing = async (req) => {
       ]
     });
 
-    console.log('properties with access:', propertiesWithAccess.map(p => p._id));
-
     // Add staff roles here
     uniqueOrQuery.push({administrator: user._id});
     uniqueOrQuery.push({property: {
@@ -83,6 +85,22 @@ const prepareQueryForListing = async (req) => {
     }});
 
     where['$and'].push({$or: uniqueOrQuery});
+  }
+
+  // Filter: Property
+  if (property) {
+    where.property = property;
+  }
+
+  // Filter: Date
+  if (date) {
+    console.log('date', date);
+    where.invoiceForDate = moment(new Date(date)).startOf('month').format('YYYY-MM-DD');
+  }
+
+  // Filter: status
+  if (status) {
+    where.status = status;
   }
 
   return where;
@@ -101,6 +119,7 @@ const list = async (req, res) => {
     try {
       // Where condition
       const where = await prepareQueryForListing(req);
+      // console.log('where', JSON.stringify(where));
 
       // Pagination
       let active_page = 1;
@@ -115,7 +134,25 @@ const list = async (req, res) => {
         sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
       }
 
-      const [list, itemCount] = await Promise.all([
+      let resources = await ModuleModel.find(where).sort(sort).populate(populations).exec()
+      if (req.query.orderBy === 'property') {
+        const isAsc = req.query.order === 'asc';
+        resources = resources
+          .sort((a, b) => {
+            if (a.property.name.trim().toLowerCase() < b.property.name.trim().toLowerCase()) { return isAsc ? -1 : 1; }
+            if (a.property.name.trim().toLowerCase() > b.property.name.trim().toLowerCase()) { return isAsc ? 1 : -1; }
+            return 0;
+          })
+          .splice(req.skip, req.query.limit)
+        ;
+      } else {
+        resources = resources
+          .splice(req.skip, req.query.limit)
+        ;
+      }
+    
+      /**
+        Manual sorting as we cannot traditionally sort by property.name
         ModuleModel
           .find(where)
           .select(selections || '')
@@ -125,12 +162,22 @@ const list = async (req, res) => {
           .skip(req.skip)
           .lean()
           .exec(),
+       */
+
+      let user = req.user;
+      let {permissions} = user.role;
+      const hasAllInvoicesAccess = permissions.indexOf(config.permissions.LIST_ALL_INVOICES) > -1;
+
+      const [properties, list, itemCount] = await Promise.all([
+        hasAllInvoicesAccess ? Property.find({}).sort({name: 1}) : Promise.resolve([]),
+        Promise.resolve(resources),
         ModuleModel.countDocuments(where)
       ]);
 
       const pageCount = Math.ceil(itemCount / req.query.limit);
       let data = {
         list: list,
+        properties,
         itemCount: itemCount,
         pageCount: pageCount,
         pages: paginate.getArrayPages(req)(10, pageCount, req.query.page),
