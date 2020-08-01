@@ -583,7 +583,7 @@ let invoicesCtrl = {
 // specific date? pass as argument
 
 // Generate Invoices - 1st of every month for the previous month
-// cron.schedule("13 * 1 * *", async () => {
+// cron.schedule("0 0 2 * *", async () => {
 cron.schedule("0 0 1 * *", async () => {
   console.log('generateInvoicesStatus running at', new Date());
 
@@ -603,7 +603,7 @@ cron.schedule("0 0 1 * *", async () => {
 // invoicesCtrl.sendUnpaidInvoiceReminders();
 
 // Reminder for Invoices - 7th of every month
-// cron.schedule("14 * 1 * *", async () => {
+// cron.schedule("1 0 2 * *", async () => {
 cron.schedule("0 0 7 * *", async () => {
   console.log('sendUnpaidInvoiceRemindersStatus running at', new Date());
   const sendUnpaidInvoiceRemindersStatus = await invoicesCtrl.sendUnpaidInvoiceReminders();
@@ -613,7 +613,7 @@ cron.schedule("0 0 7 * *", async () => {
 // invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
 
 // Deactivate properties with unpaid Invoices - 9th of every month
-// cron.schedule("15 * 1 * *", async () => {
+// cron.schedule("2 0 2 * *", async () => {
 cron.schedule("0 0 9 * *", async () => {
   console.log('deactivateUnpaidPropertiesStatus running at', new Date());
   const deactivateUnpaidPropertiesStatus = await invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
