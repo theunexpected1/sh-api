@@ -212,6 +212,23 @@ const single = async (req, res) => {
         }).end();
       }
 
+      // Forbid accessing other's invoice
+      let user = req.user;
+      let {permissions} = user.role;
+      const hasAllInvoicesAccess = permissions.indexOf(config.permissions.LIST_ALL_INVOICES) > -1;
+      const hasOwnInvoicesAccess = permissions.indexOf(config.permissions.LIST_OWN_INVOICES) > -1;
+      if (hasOwnInvoicesAccess && !hasAllInvoicesAccess && resource.property) {
+        const propertyAllAdministrators = resource.property.allAdministrators.map(a => a.toString());
+        if (
+          resource.property.administrator.toString() !== req.user._id.toString() &&
+          propertyAllAdministrators.indexOf(req.user._id.toString()) === -1
+        ) {
+          res.status(401).send({
+            message: 'Sorry, you do not have access to this resource'
+          }).end();
+        }
+      }
+
       res.status(200).send(resource).end();
     } catch (e) {
       return res.status(500).send({
