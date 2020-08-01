@@ -1,5 +1,8 @@
 const db = require("../mongodb");
 const invoiceSchema = new db.Schema({
+  invoiceNo: {
+    type: String
+  },
   invoiceForDate: {
     type: String
   },
@@ -11,7 +14,7 @@ const invoiceSchema = new db.Schema({
   },
   status: {
     type: String,
-    enum: ['paid', 'pending', 'disabled']
+    enum: ['paid', 'pending']
   },
   property: {
     type: db.Schema.Types.ObjectId,
@@ -31,9 +34,15 @@ const invoiceSchema = new db.Schema({
     type: Boolean,
     default: false
   },
+  invoiceSentToPropertyDate: {
+    type: Date
+  },
   reminderSentToProperty: {
     type: Boolean,
     default: false
+  },
+  reminderSentToPropertyDate: {
+    type: Date
   },
   paymentUrl: {
     type: String
@@ -46,6 +55,11 @@ const invoiceSchema = new db.Schema({
     type: Number,
     default: 0,
     required: [true, "Amount is required"]
+  }
+}, {
+  timestamps: {
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   }
 });
 

@@ -13,28 +13,31 @@ sgMail.setApiKey(config.sendgrid_api);
 const fs = require("fs");
 
 let invoicesCtrl = {
-  generateInvoices: async () => {
+  generateInvoices: async (invoiceForDate) => {
     console.log('GENERATE INVOICES: START');
 
     // DEBUG:START
-    const deleteInvoices = await Invoice.remove({});
-    console.log(`-- Deleted existing invoices...`, deleteInvoices);
-    console.log(`--`);
+    // const deleteInvoices = await Invoice.remove({});
+    // console.log(`-- Deleted existing invoices...`, deleteInvoices);
+    // console.log(`--`);
     // DEBUG:END
 
     // 1. Get Properties
     const properties = await Property.find({}).populate([{path: "rooms"},{path: "contactinfo.country"}]);
 
-    // 2. Get Today's date (Should be 1st of a month)
-    // const todayUtcDateMoment = moment.utc(new Date('2020-03-01')); // Debug
-    const todayUtcDateMoment = moment.utc(new Date());
+    // 2. If no date provided, set the invoice date
+    if (!invoiceForDate) {
+      // Get Today's date (Should be 1st of a month)
+      // const todayUtcDateMoment = moment.utc(new Date('2020-03-01')); // Debug
+      const todayUtcDateMoment = moment.utc(new Date());
 
-    // 3. Get the previous month for billing
-    const invoiceForDateMoment = moment(todayUtcDateMoment).subtract(1, 'month').startOf('month');
-    const invoiceForDate = invoiceForDateMoment.toDate();
-    // console.log('invoiceForDate', invoiceForDate);
+      // Get the previous month for billing
+      const invoiceForDateMoment = moment(todayUtcDateMoment).subtract(1, 'month').startOf('month');
+      invoiceForDate = invoiceForDateMoment.toDate();
+      // console.log('invoiceForDate', invoiceForDate);
+    }
 
-    // 4. Generate Invoices for all properties for the month/year as per invoiceForDate
+    // 3. Generate Invoices for all properties for the month/year as per invoiceForDate
     let invoices = await Promise.all(
       properties
         // DEBUG: Uncomment below line to limit only to DARUS HOTEL as test property
@@ -45,17 +48,17 @@ let invoicesCtrl = {
     // Remove invoices that are not generated (due to amount being 0 / no bookings)
     invoices = invoices.filter(invoice => !!invoice)
 
-    // 5. Send Invoices for all properties to
+    // 4. Send Invoices for all properties to
     // Super Admin
     // Property
 
-    // Admin receives 1 email
+    // Admin receives 1 combined email
     const shouldSendCombinedEmailToAdmin = true;
     if (shouldSendCombinedEmailToAdmin) {
       const communicateCombinedEmailForSuperadmin = await invoicesCtrl.sendCombinedEmailToAdmin(invoices.filter(invoice => !!invoice.amount));
     }
 
-    // Property - Each Property receives invoice email
+    // Property - Each Property receives separate invoice email
     // Super Admin - If combined email sent, don't send individual emails, otherwise each property's invoice is sent to Super Admin
     const communicateEmails = await Promise.all(invoices
       .filter(invoice => !!invoice.amount)
@@ -198,7 +201,15 @@ let invoicesCtrl = {
 
 
     if (amount) {
+      // Unique invoice number based on year-month-propertyID
+      // If invoice exists for this date/property combination, keep appending '-{nexNumber}' (eg: '-1')
+      let invoiceNo = ['SH', startDateMoment.format("YYYY-MM"), property._id].join('-');
+      const existingInvoice = await Invoice.find({invoiceForDate: startDateMoment.format("YYYY-MM-DD")});
+      if (existingInvoice && existingInvoice.length) {
+        invoiceNo = [invoiceNo, existingInvoice.length].join('-');
+      }
       const invoiceData = {
+        invoiceNo,
         issueDate: invoiceGenerationDateMoment.toDate(),
         invoiceForDate: startDateMoment.format("YYYY-MM-DD"),
         invoiceForMonthString: startDateMoment.format("MMMM YYYY"),
@@ -297,6 +308,7 @@ let invoicesCtrl = {
       };
       sgMail.send(msg);
       invoice.invoiceSentToProperty = true;
+      invoice.invoiceSentToPropertyDate = new Date();
       isInvoiceUpdated = true;
       console.log(`2.2 Email sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
     }
@@ -367,48 +379,56 @@ let invoicesCtrl = {
       })
       .populate('property currency completedBookings userBookings')
     ;
+    let propertiesRemindersSentIds = [];
 
-    pendingInvoices.map(async invoice => {
-      const propertyEmail = invoice.property && invoice.property.contactinfo && invoice.property.contactinfo.email;
-      const invoiceMonthYear = invoice.invoiceForMonthString;
-      const propertyName = invoice.property.name;
-      const paymentUrl = invoice.paymentUrl;
-      const paymentAmount = invoice.amount;
-      const currency = invoice.currency.code;
-      const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
+    await Promise.all(
+      pendingInvoices.map(async invoice => {
+        const propertyEmail = invoice.property && invoice.property.contactinfo && invoice.property.contactinfo.email;
+        const invoiceMonthYear = invoice.invoiceForMonthString;
+        const propertyName = invoice.property.name;
+        const paymentUrl = invoice.paymentUrl;
+        const paymentAmount = invoice.amount;
+        const currency = invoice.currency.code;
+        const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
 
-      // Send reminder to property for payment
-      if (propertyEmail) {
-        let html_body = fs.readFileSync("public/invoice-emails/invoice-reminder-property.html","utf8");
-        html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
-        html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
-        html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
-        html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
-        html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
-        html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
+        // Send reminder to property for payment
+        if (propertyEmail) {
+          let html_body = fs.readFileSync("public/invoice-emails/invoice-reminder-property.html","utf8");
+          html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
+          html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
+          html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
+          html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
+          html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
+          html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
-        msg = {
-          to: adminEmail,
-          // TODO: Production: Send to the property, and enable BCC for admin
-          // to: propertyEmail,
+          msg = {
+            to: adminEmail,
+            // TODO: Production: Send to the property, and enable BCC for admin
+            // to: propertyEmail,
 
-          // bcc: [
-          //   { email: "saleeshprakash@gmail.com" },
-          //   { email: config.website_admin_bcc_email }
-          // ],
-          from: config.website_admin_from_email,
-          fromname: config.fromname,
-          subject: `STAYHOPPER: Outstanding balance for ${invoiceMonthYear} invoice`,
-          text: `Outstanding balance for ${invoiceMonthYear} invoice`,
-          html: html_body
-        };
-        sgMail.send(msg);
-        invoice.reminderSentToProperty = true;
-        await invoice.save();
-        console.log(`1. Reminder to pay for invoice ${invoiceMonthYear} sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
-      }
-    })
+            // bcc: [
+            //   { email: "saleeshprakash@gmail.com" },
+            //   { email: config.website_admin_bcc_email }
+            // ],
+            from: config.website_admin_from_email,
+            fromname: config.fromname,
+            subject: `STAYHOPPER: Outstanding balance for ${invoiceMonthYear} invoice`,
+            text: `Outstanding balance for ${invoiceMonthYear} invoice`,
+            html: html_body
+          };
+          sgMail.send(msg);
+          invoice.reminderSentToProperty = true;
+          invoice.reminderSentToPropertyDate = new Date();
+          propertiesRemindersSentIds.push(invoice.property._id.toString());
+          console.log(`1. Reminder to pay for invoice ${invoiceMonthYear} sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
+          return await invoice.save();
+        }
+        return invoice;
+      })
+    );
 
+    // unique
+    propertiesRemindersSentIds = [...new Set(propertiesRemindersSentIds)];
 
     // Send email to admin regarding reminders
     if (adminEmail && pendingInvoices.length) {
@@ -434,20 +454,20 @@ let invoicesCtrl = {
         // ],
         from: config.website_admin_from_email,
         fromname: config.fromname,
-        subject: `STAYHOPPER: Reminder to pay for ${invoiceMonthYear} invoice sent to ${pendingInvoices.length === 1
-          ? pendingInvoices.length + ' property'
-          : pendingInvoices.length + ' properties'}
+        subject: `STAYHOPPER: Reminder to pay for ${invoiceMonthYear} invoice sent to ${propertiesRemindersSentIds.length === 1
+          ? propertiesRemindersSentIds.length + ' property'
+          : propertiesRemindersSentIds.length + ' properties'}
         `,
-        text: `Reminder to pay for ${invoiceMonthYear} invoice sent to ${pendingInvoices.length === 1
-          ? pendingInvoices.length + ' property'
-          : pendingInvoices.length + ' properties'}
+        text: `Reminder to pay for ${invoiceMonthYear} invoice sent to ${propertiesRemindersSentIds.length === 1
+          ? propertiesRemindersSentIds.length + ' property'
+          : propertiesRemindersSentIds.length + ' properties'}
         `,
         html: html_body
       };
       sgMail.send(msg);
-      console.log(`2. Reminders to pay for ${invoiceMonthYear} invoices has been sent to ${pendingInvoices.length === 1
-        ? pendingInvoices.length + ' property'
-        : pendingInvoices.length + ' properties'}`
+      console.log(`2. Reminders to pay for (${pendingInvoices.length}) ${invoiceMonthYear} invoices has been sent to ${propertiesRemindersSentIds.length === 1
+        ? propertiesRemindersSentIds.length + ' property'
+        : propertiesRemindersSentIds.length + ' properties'}`
       );
     }
   },
@@ -461,50 +481,57 @@ let invoicesCtrl = {
       })
       .populate('property currency completedBookings userBookings')
     ;
+    let propertiesDeactivatedIds = [];
 
-    await pendingInvoices.map(async invoice => {
-      const propertyEmail = invoice.property && invoice.property.contactinfo && invoice.property.contactinfo.email;
-      const invoiceMonthYear = invoice.invoiceForMonthString;
-      const propertyName = invoice.property.name;
-      const paymentUrl = invoice.paymentUrl;
-      const paymentAmount = invoice.amount;
-      const currency = invoice.currency.code;
-      const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
-      const invoicesUrl = `${config.app_url}app/invoices`;
+    await Promise.all(
+      pendingInvoices.map(async invoice => {
+        const propertyEmail = invoice.property && invoice.property.contactinfo && invoice.property.contactinfo.email;
+        const invoiceMonthYear = invoice.invoiceForMonthString;
+        const propertyName = invoice.property.name;
+        const paymentUrl = invoice.paymentUrl;
+        const paymentAmount = invoice.amount;
+        const currency = invoice.currency.code;
+        const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
 
-      // Deactivate property, and send notification to property
-      if (propertyEmail) {
-        let html_body = fs.readFileSync("public/invoice-emails/invoice-deactivate-property.html","utf8");
-        html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
-        html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
-        html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
-        html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
-        html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
-        html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
+        // Deactivate property, and send notification to property
+        if (propertyEmail) {
+          let html_body = fs.readFileSync("public/invoice-emails/invoice-deactivate-property.html","utf8");
+          html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
+          html_body = html_body.replace(/\{\{PROPERTY_NAME\}\}/g, propertyName);
+          html_body = html_body.replace(/\{\{PAYMENT_URL\}\}/g, paymentUrl);
+          html_body = html_body.replace(/\{\{CURRENCY\}\}/g, currency);
+          html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
+          html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
-        msg = {
-          to: adminEmail,
-          // TODO: Production: Send to the property, and enable BCC for admin
-          // to: propertyEmail,
+          msg = {
+            to: adminEmail,
+            // TODO: Production: Send to the property, and enable BCC for admin
+            // to: propertyEmail,
 
-          // bcc: [
-          //   { email: "saleeshprakash@gmail.com" },
-          //   { email: config.website_admin_bcc_email }
-          // ],
-          from: config.website_admin_from_email,
-          fromname: config.fromname,
-          subject: `STAYHOPPER: Settle ${invoiceMonthYear} invoice to activate property`,
-          text: `Settle ${invoiceMonthYear} invoice to activate property`,
-          html: html_body
-        };
-        sgMail.send(msg);
-        console.log(`1. Property deactivated due to unpaid ${invoiceMonthYear} invoice, and notification sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
-      }
+            // bcc: [
+            //   { email: "saleeshprakash@gmail.com" },
+            //   { email: config.website_admin_bcc_email }
+            // ],
+            from: config.website_admin_from_email,
+            fromname: config.fromname,
+            subject: `STAYHOPPER: Settle ${invoiceMonthYear} invoice to activate property`,
+            text: `Settle ${invoiceMonthYear} invoice to activate property`,
+            html: html_body
+          };
+          sgMail.send(msg);
+          console.log(`1. Property deactivated due to unpaid ${invoiceMonthYear} invoice, and notification sent To Property @ '${propertyEmail}' (DEBUG: Sent to Admin only)`);
+        }
 
-      const property = await Property.findOne({_id: invoice.property._id});
-      property.approved = false;
-      return await property.save();
-    })
+        const property = await Property.findOne({_id: invoice.property._id});
+        property.approved = false;
+        propertiesDeactivatedIds.push(property._id.toString());
+        await property.save();
+        return invoice;
+      })
+    );
+
+    // unique
+    propertiesDeactivatedIds = [...new Set(propertiesDeactivatedIds)];
 
     // Send email to admin regarding reminders
     if (adminEmail && pendingInvoices.length) {
@@ -513,9 +540,9 @@ let invoicesCtrl = {
 
       let html_body = fs.readFileSync("public/invoice-emails/invoice-deactivate-admin.html","utf8");
       html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
-      html_body = html_body.replace(/\{\{PROPERTIES_COUNT_STR\}\}/g, pendingInvoices.length === 1
-        ? `${pendingInvoices.length} property`
-        : `${pendingInvoices.length} properties`
+      html_body = html_body.replace(/\{\{PROPERTIES_COUNT_STR\}\}/g, propertiesDeactivatedIds.length === 1
+        ? `${propertiesDeactivatedIds.length} property`
+        : `${propertiesDeactivatedIds.length} properties`
       );
       html_body = html_body.replace(/\{\{INVOICES_URL\}\}/g, invoicesUrl);
 
@@ -530,29 +557,46 @@ let invoicesCtrl = {
         // ],
         from: config.website_admin_from_email,
         fromname: config.fromname,
-        subject: `STAYHOPPER: ${pendingInvoices.length} properties have been deactivated due to non-payment`,
-        text: `${pendingInvoices.length} properties have been deactivated due to non-payment`,
+        subject: `STAYHOPPER: ${propertiesDeactivatedIds.length} properties have been deactivated due to non-payment`,
+        text: `${propertiesDeactivatedIds.length} properties have been deactivated due to non-payment`,
         html: html_body
       };
       sgMail.send(msg);
-      console.log(`2. ${pendingInvoices.length} properties deactived due to unpaid invoice for ${invoiceMonthYear}`);
+      console.log(`2. ${propertiesDeactivatedIds.length} properties deactived due to ${pendingInvoices.length} unpaid invoices for ${invoiceMonthYear}`);
     }
   }
 };
 
-// Manually Generate Invoices
-// invoicesCtrl.generateInvoices();
+
+// Manually Generate Invoices - for a specific date? or previous month?
+// invoicesCtrl.generateInvoices(new Date('06/01/2020'));
+// previous month? leave empty
+// specific date? pass as argument
 
 // Generate Invoices - 1st of every month for the previous month
-cron.schedule("0 0 1 * * ", async () => {
-  const generateInvoicesStatus = await invoicesCtrl.generateInvoices();
+// cron.schedule("0 1 2 * *", async () => {
+cron.schedule("0 0 1 * *", async () => {
+  console.log('generateInvoicesStatus running at', new Date());
+
+  // 1. Get Today's date (Should be 1st of a month)
+  // const todayUtcDateMoment = moment.utc(new Date('2020-03-01')); // Debug
+  const todayUtcDateMoment = moment.utc(new Date());
+
+  // 2. Get the previous month for billing
+  const invoiceForDateMoment = moment(todayUtcDateMoment).subtract(1, 'month').startOf('month');
+  const invoiceForDate = invoiceForDateMoment.toDate();
+  // console.log('invoiceForDate', invoiceForDate);
+
+  const generateInvoicesStatus = await invoicesCtrl.generateInvoices(invoiceForDate);
 });
 
 // Manually send Invoice Reminders
 // invoicesCtrl.sendUnpaidInvoiceReminders();
 
 // Reminder for Invoices - 7th of every month
-cron.schedule("0 0 7 * * ", async () => {
+// cron.schedule("0 2 2 * *", async () => {
+cron.schedule("0 0 7 * *", async () => {
+  console.log('sendUnpaidInvoiceRemindersStatus running at', new Date());
   const sendUnpaidInvoiceRemindersStatus = await invoicesCtrl.sendUnpaidInvoiceReminders();
 });
 
@@ -560,6 +604,8 @@ cron.schedule("0 0 7 * * ", async () => {
 // invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
 
 // Deactivate properties with unpaid Invoices - 9th of every month
-cron.schedule("0 0 9 * * ", async () => {
+// cron.schedule("0 3 2 * *", async () => {
+cron.schedule("0 0 9 * *", async () => {
+  console.log('deactivateUnpaidPropertiesStatus running at', new Date());
   const deactivateUnpaidPropertiesStatus = await invoicesCtrl.deactivatePropertiesWithUnpaidInvoices();
 });
