@@ -450,6 +450,7 @@ const getUserRatings = async (req, res) => {
         whereApproved['$and'].push({$or: uniqueOrQuery});
       }
 
+      whereUnapproved.approved = false;
       whereApproved.approved = true;
 
       const countUnapproved = await UserRating.countDocuments(whereUnapproved);
