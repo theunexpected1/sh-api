@@ -72,8 +72,6 @@ const prepareQueryForListing = async (req) => {
       ]
     });
 
-    // Add staff roles here
-    uniqueOrQuery.push({administrator: user._id});
     uniqueOrQuery.push({'propertyInfo.id': {
       $in: propertiesWithAccess.map(p => p._id)
     }});

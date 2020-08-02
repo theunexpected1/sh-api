@@ -109,6 +109,8 @@ const propertiesControllerV2 = require("../controllers/v2/properties");
 const roomsControllerV2 = require("../controllers/v2/rooms");
 const lookupsControllerV2 = require('../controllers/v2/lookups');
 
+const dashboardControllerV2 = require('../controllers/v2/dashboard');
+
 const invoicesControllerV2 = require('../controllers/v2/invoices');
 const bookingsControllerV2 = require('../controllers/v2/bookings');
 
@@ -137,6 +139,8 @@ app.use("/v2/administrators", (req, res, next) => next(), administratorsControll
 app.use("/v2/users", (req, res, next) => next(), usersControllerV2);
 app.use("/v2/user-ratings", (req, res, next) => next(), userRatingsControllerV2);
 app.use("/v2/lookups", (req, res, next) => next(), lookupsControllerV2);
+
+app.use("/v2/dashboard", (req, res, next) => next(), dashboardControllerV2);
 
 app.use("/v2/invoices", (req, res, next) => next(), invoicesControllerV2);
 app.use("/v2/bookings", (req, res, next) => next(), bookingsControllerV2);
