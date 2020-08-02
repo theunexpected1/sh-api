@@ -110,6 +110,7 @@ const roomsControllerV2 = require("../controllers/v2/rooms");
 const lookupsControllerV2 = require('../controllers/v2/lookups');
 
 const invoicesControllerV2 = require('../controllers/v2/invoices');
+const bookingsControllerV2 = require('../controllers/v2/bookings');
 
 const countriesControllerV2 = require('../controllers/v2/countries');
 const citiesControllerV2 = require('../controllers/v2/cities');
@@ -138,6 +139,7 @@ app.use("/v2/user-ratings", (req, res, next) => next(), userRatingsControllerV2)
 app.use("/v2/lookups", (req, res, next) => next(), lookupsControllerV2);
 
 app.use("/v2/invoices", (req, res, next) => next(), invoicesControllerV2);
+app.use("/v2/bookings", (req, res, next) => next(), bookingsControllerV2);
 
 app.use("/v2/countries", (req, res, next) => next(), countriesControllerV2);
 app.use("/v2/cities", (req, res, next) => next(), citiesControllerV2);
