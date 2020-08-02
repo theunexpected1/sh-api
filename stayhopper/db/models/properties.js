@@ -172,6 +172,7 @@ const propertySchema = new db.Schema({
     type: Boolean,
     default: false
   },
+  services: [{ type: db.Schema.Types.ObjectId, ref: "services" }],
   payment: paymentSchema,
   charges: [chargesSchema],
   nearby : [nearBySchema],

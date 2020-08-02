@@ -50,6 +50,9 @@ const populations = [
     path: "rooms"
   },
   {
+    path: "services"
+  },
+  {
     path: "type"
   },
   {
