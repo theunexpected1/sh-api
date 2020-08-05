@@ -1,6 +1,7 @@
 module.exports = function (req, res, next) {
 
 	var allowedOrigins = [
+		'http://localhost:3000',
 		'http://localhost:3001',
 		'http://localhost:5000',
     'http://local.stayhopper.com:3001',
