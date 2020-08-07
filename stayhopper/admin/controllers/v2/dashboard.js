@@ -12,6 +12,7 @@ const Invoice = require("../../../db/models/invoices");
 const Property = require("../../../db/models/properties");
 const User = require("../../../db/models/users");
 const CompletedBooking = require("../../../db/models/completedbookings");
+const UserBooking = require("../../../db/models/userbookings");
 const UserRating = require("../../../db/models/userratings");
 const jwtMiddleware = require("../../../middleware/jwt");
 
@@ -333,11 +334,13 @@ const getProperties = async (req, res) => {
       const hasFullDashboardAccess = permissions.indexOf(config.permissions.SHOW_FULL_DASHBOARD) > -1;
       const hasOwnDashboardAccess = permissions.indexOf(config.permissions.SHOW_OWN_DASHBOARD) > -1;
 
-      const where = {};
+      const whereTotal = {};
+      const whereLive = {};
 
       // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
       if (hasOwnDashboardAccess && !hasFullDashboardAccess) {
-        where['$and'] = where['$and'] || [];
+        whereTotal['$and'] = whereTotal['$and'] || [];
+        whereLive['$and'] = whereLive['$and'] || [];
         const uniqueOrQuery = [];
 
         // Add staff roles here
@@ -346,12 +349,17 @@ const getProperties = async (req, res) => {
           $in: [user._id]
         }});
 
-        where['$and'].push({$or: uniqueOrQuery});
+        whereTotal['$and'].push({$or: uniqueOrQuery});
+        whereLive['$and'].push({$or: uniqueOrQuery});
       }
 
-      const count = await Property.countDocuments(where);
+      whereLive.approved = true;
+      whereLive.published = true;
 
-      res.status(200).send({count}).end();
+      const count = await Property.countDocuments(whereTotal);
+      const countLive = await Property.countDocuments(whereLive);
+
+      res.status(200).send({count, countLive}).end();
     } catch (e) {
       return res.status(500).send({
         message: 'Sorry, there was an error in performing this action'
@@ -361,7 +369,7 @@ const getProperties = async (req, res) => {
 };
 
 
-const getCompletedBookings = async (req, res) => {
+const getBookings = async (req, res) => {
   if (hasPermissions(req, res)) {
     try {
 
@@ -373,10 +381,15 @@ const getCompletedBookings = async (req, res) => {
 
       const where = {};
 
+      const whereActive = {};
+      const whereCompleted = {};
+
       // Filter: User's Bookings - Restrict to logged in user viewing their own Bookings if they dont have access to all
       if (hasOwnDashboardAccess && !hasFullDashboardAccess) {
-        where['$and'] = where['$and'] || [];
-        const uniqueOrQuery = [];
+        whereCompleted['$and'] = whereCompleted['$and'] || [];
+        whereActive['$and'] = whereActive['$and'] || [];
+        const uniqueCompletedOrQuery = [];
+        const uniqueActiveOrQuery = [];
 
         // get properties that this user has access to, and then set those property IDs as a where clause for invoices
         const propertiesWithAccess = await Property.find({
@@ -391,16 +404,22 @@ const getCompletedBookings = async (req, res) => {
           ]
         });
 
-        uniqueOrQuery.push({'propertyInfo.id': {
+        uniqueCompletedOrQuery.push({'propertyInfo.id': {
+          $in: propertiesWithAccess.map(p => p._id)
+        }});
+        
+        uniqueActiveOrQuery.push({'proeprty': {
           $in: propertiesWithAccess.map(p => p._id)
         }});
 
-        where['$and'].push({$or: uniqueOrQuery});
+        whereCompleted['$and'].push({$or: uniqueCompletedOrQuery});
+        whereActive['$and'].push({$or: uniqueActiveOrQuery});
       }
 
-      const count = await CompletedBooking.countDocuments(where);
+      const countActive = await UserBooking.countDocuments(whereActive);
+      const countCompleted = await CompletedBooking.countDocuments(whereCompleted);
 
-      res.status(200).send({count}).end();
+      res.status(200).send({countActive, countCompleted}).end();
     } catch (e) {
       return res.status(500).send({
         message: 'Sorry, there was an error in performing this action'
@@ -545,7 +564,7 @@ const getInvoices = async (req, res) => {
   }
 };
 router.get("/properties", jwtMiddleware.administratorAuthenticationRequired, getProperties);
-router.get("/completed-bookings", jwtMiddleware.administratorAuthenticationRequired, getCompletedBookings);
+router.get("/bookings", jwtMiddleware.administratorAuthenticationRequired, getBookings);
 router.get("/user-ratings", jwtMiddleware.administratorAuthenticationRequired, getUserRatings);
 router.get("/users", jwtMiddleware.administratorAuthenticationRequired, getUsers);
 router.get("/invoices", jwtMiddleware.administratorAuthenticationRequired, getInvoices);
