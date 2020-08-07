@@ -107,9 +107,9 @@ const list = async (req, res) => {
       {name: new RegExp(keyword, 'i')},
       {email: new RegExp(keyword, 'i')},
       {legal_name: new RegExp(keyword, 'i')},
-      {address_1: new RegExp(keyword, 'i')},
-      {address_2: new RegExp(keyword, 'i')},
-      {location: new RegExp(keyword, 'i')}
+      // {address_1: new RegExp(keyword, 'i')},
+      // {address_2: new RegExp(keyword, 'i')},
+      // {location: new RegExp(keyword, 'i')}
     ]
   }
 

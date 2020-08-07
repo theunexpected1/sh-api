@@ -125,12 +125,12 @@ const prepareQueryForListing = (req) => {
     where['$and'].push({$or: uniqueOrQuery});
   }
 
-  // Filter: Keywords
+  // Filter: Keywords (only name, no description)
   if (keyword) {
     where['$and'] = where['$and'] || [];
     const uniqueOrQuery = [];
     uniqueOrQuery.push({name: new RegExp(keyword, 'i')});
-    uniqueOrQuery.push({description: new RegExp(keyword, 'i')});
+    // uniqueOrQuery.push({description: new RegExp(keyword, 'i')});
 
     where['$and'].push({$or: uniqueOrQuery});
   }
