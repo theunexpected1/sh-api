@@ -147,21 +147,89 @@ const list = async (req, res) => {
     sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
   }
 
-  let [list, itemCount] = await Promise.all([
-    User
-      .find(where)
-      .select('+email')
-      .sort(sort)
-      .populate(resourcePopulations)
-      .limit(req.query.limit)
-      .skip(req.skip)
-      .lean()
-      .exec(),
-      User.countDocuments(where)
+  let aggregateQuery = [];
+  
+  // where
+  aggregateQuery.push({
+    $match: where
+  });
+  
+  // joins
+  aggregateQuery.push({
+    $lookup: {
+      from: 'userbookings',
+      localField: '_id',
+      foreignField: 'user',
+      as: 'userBookings'
+    }
+  });
+  aggregateQuery.push({
+    $lookup: {
+      from: 'completed_bookings',
+      localField: '_id',
+      foreignField: 'user',
+      as: 'completedBookings'
+    }
+  });
+
+  // populations
+  aggregateQuery.push({
+    $project: {
+      _id: '$_id',
+      name: 1,
+      last_name: 1,
+      email: 1,
+      mobile: 1,
+      city: 1,
+      country: 1,
+      promocodes: 1,
+      image: 1,
+      favourites: 1,
+      status: 1,
+      device_token: 1,
+      device_type: 1,
+      device_type: 1,
+      bookings: {$add: [{$size: '$userBookings'}, {$size: '$completedBookings'}]},
+    }
+  });
+
+  // Sort
+  aggregateQuery.push({
+    $sort: sort
+  });
+
+  // skip
+  aggregateQuery.push({
+    $skip: req.skip
+  });
+
+  // limit
+  aggregateQuery.push({
+    $limit: req.query.limit
+  });
+
+  const resources = await User.aggregate(aggregateQuery).exec();
+  // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
+
+  /**
+   * Aggregationn, so skip manual
+   
+    // User
+    //   .find(where)
+    //   .select('+email')
+    //   .sort(sort)
+    //   .populate(resourcePopulations)
+    //   .limit(req.query.limit)
+    //   .skip(req.skip)
+    //   .lean()
+    //   .exec(),
+   */
+  const [list, itemCount] = await Promise.all([
+    Promise.resolve(resources),
+    User.countDocuments(where)
   ]);
 
   const pageCount = Math.ceil(itemCount / req.query.limit);
-  list = await Promise.all(list.map(getExtraUserInformation))
 
   let data = {
     list: list,

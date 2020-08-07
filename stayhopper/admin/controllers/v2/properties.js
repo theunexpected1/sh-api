@@ -181,7 +181,25 @@ const storage = multer.diskStorage({
 });
 
 let upload = pify(
-  multer({ storage: storage }).fields([
+  multer({
+    storage: storage,
+    fileFilter: function(req, file, callback) {
+      var ext = path.extname(file.originalname);
+      if (
+        ext !== ".docx" &&
+        ext !== ".doc" &&
+        ext !== ".pdf" &&
+        ext !== ".svg" &&
+        ext !== ".png" &&
+        ext !== ".jpg" &&
+        ext !== ".gif" &&
+        ext !== ".jpeg"
+      ) {
+        return callback(new Error("Only documents, PDFs, or images are allowed"));
+      }
+      callback(null, true);
+    }
+  }).fields([
     { name: "trade_licence[trade_licence_attachment]" },
     { name: "trade_licence[passport_attachment]" }
   ])
@@ -284,6 +302,10 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
     // - secondaryReservationEmails
     if (resourceData.secondaryReservationEmails) {
       resourceData.secondaryReservationEmails = resourceData.secondaryReservationEmails.toLowerCase();
+    }
+
+    if (resourceData && resourceData.payment && !resourceData.payment.country) {
+      delete resourceData.payment.country;
     }
 
     return resourceData;
