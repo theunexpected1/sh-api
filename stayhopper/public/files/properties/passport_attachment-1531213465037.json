@@ -1,0 +1,247 @@
+{"_id":{"$oid":"5b2f34d18a1758e640a6275e"},"country ":"Afghanistan ","code":"AF","isd_code\r":"+93\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6275f"},"country ":"Albania ","code":"AL","isd_code\r":"+355\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62760"},"country ":"Algeria ","code":"DZ","isd_code\r":"+213\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62761"},"country ":"American Samoa","code":"AS","isd_code\r":"+1-684\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62762"},"country ":"\"Andorra","code":" Principality of \"","isd_code\r":"AD"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62763"},"country ":"Angola","code":"AO","isd_code\r":"+244\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62764"},"country ":"Anguilla ","code":"AI","isd_code\r":"+1-264\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62765"},"country ":"Antarctica","code":"AQ","isd_code\r":"+672\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62766"},"country ":"Antigua and Barbuda","code":"AG","isd_code\r":"+1-268\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62767"},"country ":"Argentina ","code":"AR","isd_code\r":"+54\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62768"},"country ":"Armenia","code":"AM","isd_code\r":"+374\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62769"},"country ":"Aruba","code":"AW","isd_code\r":"+297\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276a"},"country ":"Australia","code":"AU","isd_code\r":"+61\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276b"},"country ":"Austria","code":"AT","isd_code\r":"+43\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276c"},"country ":"Azerbaijan or Azerbaidjan (Former Azerbaijan Soviet Socialist Republic)","code":"AZ","isd_code\r":"+994\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276d"},"country ":"\"Bahamas","code":" Commonwealth of The\"","isd_code\r":"BS"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276e"},"country ":"\"Bahrain","code":" Kingdom of (Former Dilmun)\"","isd_code\r":"BH"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6276f"},"country ":"Bangladesh (Former East Pakistan)","code":"BD","isd_code\r":"+880\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62770"},"country ":"Barbados ","code":"BB","isd_code\r":"+1-246\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62771"},"country ":"Belarus (Former Belorussian [Byelorussian] Soviet Socialist Republic)","code":"BY","isd_code\r":"+375\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62772"},"country ":"Belgium ","code":"BE","isd_code\r":"+32\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62773"},"country ":"Belize (Former British Honduras)","code":"BZ","isd_code\r":"+501\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62774"},"country ":"Benin (Former Dahomey)","code":"BJ","isd_code\r":"+229\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62775"},"country ":"Bermuda ","code":"BM","isd_code\r":"+1-441\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62776"},"country ":"\"Bhutan","code":" Kingdom of\"","isd_code\r":"BT"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62777"},"country ":"Bolivia ","code":"BO","isd_code\r":"+591\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62778"},"country ":"Bosnia and Herzegovina ","code":"BA","isd_code\r":"+387\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62779"},"country ":"Botswana (Former Bechuanaland)","code":"BW","isd_code\r":"+267\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277a"},"country ":"Bouvet Island (Territory of Norway)","code":"BV","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277b"},"country ":"Brazil ","code":"BR","isd_code\r":"+55\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277c"},"country ":"British Indian Ocean Territory (BIOT)","code":"IO","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277d"},"country ":"Brunei (Negara Brunei Darussalam) ","code":"BN","isd_code\r":"+673\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277e"},"country ":"Bulgaria ","code":"BG","isd_code\r":"+359\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6277f"},"country ":"Burkina Faso (Former Upper Volta)","code":"BF","isd_code\r":"+226\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62780"},"country ":"Burundi (Former Urundi)","code":"BI","isd_code\r":"+257\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62781"},"country ":"\"Cambodia","code":" Kingdom of (Former Khmer Republic","isd_code\r":" Kampuchea Republic)\""}
+{"_id":{"$oid":"5b2f34d18a1758e640a62782"},"country ":"Cameroon (Former French Cameroon)","code":"CM","isd_code\r":"+237\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62783"},"country ":"Canada ","code":"CA","isd_code\r":"+1\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62784"},"country ":"Cape Verde ","code":"CV","isd_code\r":"+238\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62785"},"country ":"Cayman Islands ","code":"KY","isd_code\r":"+1-345\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62786"},"country ":"Central African Republic ","code":"CF","isd_code\r":"+236\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62787"},"country ":"Chad ","code":"TD","isd_code\r":"+235\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62788"},"country ":"Chile ","code":"CL","isd_code\r":"+56\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62789"},"country ":"China ","code":"CN","isd_code\r":"+86\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278a"},"country ":"Christmas Island ","code":"CX","isd_code\r":"+53\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278b"},"country ":"Cocos (Keeling) Islands ","code":"CC","isd_code\r":"+61\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278c"},"country ":"Colombia ","code":"CO","isd_code\r":"+57\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278d"},"country ":"\"Comoros","code":" Union of the \"","isd_code\r":"KM"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278e"},"country ":"\"Congo","code":" Democratic Republic of the (Former Zaire) \"","isd_code\r":"CD"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6278f"},"country ":"\"Congo","code":" Republic of the\"","isd_code\r":"CG"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62790"},"country ":"Cook Islands (Former Harvey Islands)","code":"CK","isd_code\r":"+682\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62791"},"country ":"Costa Rica ","code":"CR","isd_code\r":"+506\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62792"},"country ":"Cote D'Ivoire (Former Ivory Coast) ","code":"CI","isd_code\r":"+225\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62793"},"country ":"Croatia (Hrvatska) ","code":"HR","isd_code\r":"+385\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62794"},"country ":"Cuba ","code":"CU","isd_code\r":"+53\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62795"},"country ":"Cyprus ","code":"CY","isd_code\r":"+357\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62796"},"country ":"Czech Republic","code":"CZ","isd_code\r":"+420\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62797"},"country ":"Czechoslavakia (Former) See CZ Czech Republic or Slovakia","code":"CS","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62798"},"country ":"Denmark ","code":"DK","isd_code\r":"+45\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62799"},"country ":"\"Djibouti (Former French Territory of the Afars and Issas","code":" French Somaliland)\"","isd_code\r":"DJ"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279a"},"country ":"Dominica ","code":"DM","isd_code\r":"+1-767\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279b"},"country ":"Dominican Republic ","code":"DO","isd_code\r":"+1-809 and +1-829� \r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279c"},"country ":"East Timor (Former Portuguese Timor)","code":"TP","isd_code\r":"+670\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279d"},"country ":"Ecuador ","code":"EC","isd_code\r":"+593 \r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279e"},"country ":"Egypt (Former United Arab Republic - with Syria)","code":"EG","isd_code\r":"+20\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6279f"},"country ":"El Salvador ","code":"SV","isd_code\r":"+503\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a0"},"country ":"Equatorial Guinea (Former Spanish Guinea)","code":"GQ","isd_code\r":"+240\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a1"},"country ":"Eritrea (Former Eritrea Autonomous Region in Ethiopia)","code":"ER","isd_code\r":"+291\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a2"},"country ":"Estonia (Former Estonian Soviet Socialist Republic)","code":"EE","isd_code\r":"+372\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a3"},"country ":"\"Ethiopia (Former Abyssinia","code":" Italian East Africa)\"","isd_code\r":"ET"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a4"},"country ":"Falkland Islands (Islas Malvinas) ","code":"FK","isd_code\r":"+500\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a5"},"country ":"Faroe Islands ","code":"FO","isd_code\r":"+298\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a6"},"country ":"Fiji ","code":"FJ","isd_code\r":"+679\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a7"},"country ":"Finland ","code":"FI","isd_code\r":"+358\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a8"},"country ":"France ","code":"FR","isd_code\r":"+33\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627a9"},"country ":"French Guiana or French Guyana ","code":"GF","isd_code\r":"+594\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627aa"},"country ":"French Polynesia (Former French Colony of Oceania)","code":"PF","isd_code\r":"+689\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ab"},"country ":"French Southern Territories and Antarctic Lands ","code":"TF","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ac"},"country ":"Gabon (Gabonese Republic)","code":"GA","isd_code\r":"+241\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ad"},"country ":"\"Gambia","code":" The \"","isd_code\r":"GM"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ae"},"country ":"Georgia (Former Georgian Soviet Socialist Republic)","code":"GE","isd_code\r":"+995\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627af"},"country ":"Germany ","code":"DE","isd_code\r":"+49\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b0"},"country ":"Ghana (Former Gold Coast)","code":"GH","isd_code\r":"+233\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b1"},"country ":"Gibraltar ","code":"GI","isd_code\r":"+350\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b2"},"country ":"Great Britain (United Kingdom) ","code":"GB","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b3"},"country ":"Greece ","code":"GR","isd_code\r":"+30\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b4"},"country ":"Greenland ","code":"GL","isd_code\r":"+299\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b5"},"country ":"Grenada ","code":"GD","isd_code\r":"+1-473\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b6"},"country ":"Guadeloupe","code":"GP","isd_code\r":"+590\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b7"},"country ":"Guam","code":"GU","isd_code\r":"+1-671\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b8"},"country ":"Guatemala ","code":"GT","isd_code\r":"+502\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627b9"},"country ":"Guinea (Former French Guinea)","code":"GN","isd_code\r":"+224\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ba"},"country ":"Guinea-Bissau (Former Portuguese Guinea)","code":"GW","isd_code\r":"+245\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627bb"},"country ":"Guyana (Former British Guiana)","code":"GY","isd_code\r":"+592\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627bc"},"country ":"Haiti ","code":"HT","isd_code\r":"+509\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627bd"},"country ":"Heard Island and McDonald Islands (Territory of Australia)","code":"HM","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627be"},"country ":"Holy See (Vatican City State)","code":"VA","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627bf"},"country ":"Honduras ","code":"HN","isd_code\r":"+504\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c0"},"country ":"Hong Kong ","code":"HK","isd_code\r":"+852\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c1"},"country ":"Hungary ","code":"HU","isd_code\r":"+36\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c2"},"country ":"Iceland ","code":"IS","isd_code\r":"+354\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c3"},"country ":"India ","code":"IN","isd_code\r":"+91\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c4"},"country ":"Indonesia (Former Netherlands East Indies; Dutch East Indies)","code":"ID","isd_code\r":"+62\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c5"},"country ":"\"Iran","code":" Islamic Republic of\"","isd_code\r":"IR"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c6"},"country ":"Iraq ","code":"IQ","isd_code\r":"+964\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c7"},"country ":"Ireland ","code":"IE","isd_code\r":"+353\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c8"},"country ":"Israel ","code":"IL","isd_code\r":"+972\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627c9"},"country ":"Italy ","code":"IT","isd_code\r":"+39\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ca"},"country ":"Jamaica ","code":"JM","isd_code\r":"+1-876\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627cb"},"country ":"Japan ","code":"JP","isd_code\r":"+81\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627cc"},"country ":"Jordan (Former Transjordan)","code":"JO","isd_code\r":"+962\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627cd"},"country ":"Kazakstan or Kazakhstan (Former Kazakh Soviet Socialist Republic)","code":"KZ","isd_code\r":"+7\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ce"},"country ":"Kenya (Former British East Africa)","code":"KE","isd_code\r":"+254\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627cf"},"country ":"Kiribati (Pronounced keer-ree-bahss) (Former Gilbert Islands)","code":"KI","isd_code\r":"+686\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d0"},"country ":"\"Korea","code":" Democratic People's Republic of (North Korea)\"","isd_code\r":"KP"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d1"},"country ":"\"Korea","code":" Republic of (South Korea) \"","isd_code\r":"KR"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d2"},"country ":"Kuwait ","code":"KW","isd_code\r":"+965\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d3"},"country ":"Kyrgyzstan (Kyrgyz Republic) (Former Kirghiz Soviet Socialist Republic)","code":"KG","isd_code\r":"+996\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d4"},"country ":"Lao People's Democratic Republic (Laos)","code":"LA","isd_code\r":"+856\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d5"},"country ":"Latvia (Former Latvian Soviet Socialist Republic)","code":"LV","isd_code\r":"+371\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d6"},"country ":"Lebanon ","code":"LB","isd_code\r":"+961\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d7"},"country ":"Lesotho (Former Basutoland)","code":"LS","isd_code\r":"+266\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d8"},"country ":"Liberia ","code":"LR","isd_code\r":"+231\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627d9"},"country ":"Libya (Libyan Arab Jamahiriya)","code":"LY","isd_code\r":"+218\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627da"},"country ":"Liechtenstein ","code":"LI","isd_code\r":"+423\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627db"},"country ":"Lithuania (Former Lithuanian Soviet Socialist Republic)","code":"LT","isd_code\r":"+370\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627dc"},"country ":"Luxembourg ","code":"LU","isd_code\r":"+352\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627dd"},"country ":"Macau ","code":"MO","isd_code\r":"+853\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627de"},"country ":"\"Macedonia","code":" The Former Yugoslav Republic of\"","isd_code\r":"MK"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627df"},"country ":"Madagascar (Former Malagasy Republic)","code":"MG","isd_code\r":"+261\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e0"},"country ":"\"Malawi (Former British Central African Protectorate","code":" Nyasaland)\"","isd_code\r":"MW"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e1"},"country ":"Malaysia ","code":"MY","isd_code\r":"+60\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e2"},"country ":"Maldives ","code":"MV","isd_code\r":"+960\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e3"},"country ":"Mali (Former French Sudan and Sudanese Republic) ","code":"ML","isd_code\r":"+223\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e4"},"country ":"Malta ","code":"MT","isd_code\r":"+356\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e5"},"country ":"Marshall Islands (Former Marshall Islands District - Trust Territory of the Pacific Islands)","code":"MH","isd_code\r":"+692\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e6"},"country ":"Martinique (French) ","code":"MQ","isd_code\r":"+596\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e7"},"country ":"Mauritania ","code":"MR","isd_code\r":"+222\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e8"},"country ":"Mauritius ","code":"MU","isd_code\r":"+230\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627e9"},"country ":"Mayotte (Territorial Collectivity of Mayotte)","code":"YT","isd_code\r":"+269\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ea"},"country ":"Mexico ","code":"MX","isd_code\r":"+52\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627eb"},"country ":"\"Micronesia","code":" Federated States of (Former Ponape","isd_code\r":" Truk"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ec"},"country ":"\"Moldova","code":" Republic of\"","isd_code\r":"MD"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ed"},"country ":"\"Monaco","code":" Principality of\"","isd_code\r":"MC"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ee"},"country ":"Mongolia (Former Outer Mongolia)","code":"MN","isd_code\r":"+976\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ef"},"country ":"Montserrat ","code":"MS","isd_code\r":"+1-664\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f0"},"country ":"Morocco ","code":"MA","isd_code\r":"+212\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f1"},"country ":"Mozambique (Former Portuguese East Africa)","code":"MZ","isd_code\r":"+258\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f2"},"country ":"\"Myanmar","code":" Union of (Former Burma)\"","isd_code\r":"MM"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f3"},"country ":"\"Namibia (Former German Southwest Africa","code":" South-West Africa)\"","isd_code\r":"NA"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f4"},"country ":"Nauru (Former Pleasant Island)","code":"NR","isd_code\r":"+674\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f5"},"country ":"Nepal ","code":"NP","isd_code\r":"+977\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f6"},"country ":"Netherlands ","code":"NL","isd_code\r":"+31\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f7"},"country ":"Netherlands Antilles (Former Curacao and Dependencies)","code":"AN","isd_code\r":"+599\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f8"},"country ":"New Caledonia ","code":"NC","isd_code\r":"+687\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627f9"},"country ":"New Zealand (Aotearoa) ","code":"NZ","isd_code\r":"+64\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627fa"},"country ":"Nicaragua ","code":"NI","isd_code\r":"+505\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627fb"},"country ":"Niger ","code":"NE","isd_code\r":"+227\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627fc"},"country ":"Nigeria ","code":"NG","isd_code\r":"+234\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627fd"},"country ":"Niue (Former Savage Island)","code":"NU","isd_code\r":"+683\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627fe"},"country ":"Norfolk Island ","code":"NF","isd_code\r":"+672\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a627ff"},"country ":"Northern Mariana Islands (Former Mariana Islands District - Trust Territory of the Pacific Islands)","code":"MP","isd_code\r":"+1-670\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62800"},"country ":"Norway ","code":"NO","isd_code\r":"+47\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62801"},"country ":"\"Oman","code":" Sultanate of (Former Muscat and Oman)\"","isd_code\r":"OM"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62802"},"country ":"Pakistan (Former West Pakistan)","code":"PK","isd_code\r":"+92\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62803"},"country ":"Palau (Former Palau District - Trust Terriroty of the Pacific Islands)","code":"PW","isd_code\r":"+680\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62804"},"country ":"Palestinian State (Proposed)","code":"PS","isd_code\r":"+970\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62805"},"country ":"Panama ","code":"PA","isd_code\r":"+507\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62806"},"country ":"Papua New Guinea (Former Territory of Papua and New Guinea)","code":"PG","isd_code\r":"+675\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62807"},"country ":"Paraguay ","code":"PY","isd_code\r":"+595\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62808"},"country ":"Peru ","code":"PE","isd_code\r":"+51\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62809"},"country ":"Philippines ","code":"PH","isd_code\r":"+63\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280a"},"country ":"Pitcairn Island","code":"PN","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280b"},"country ":"Poland ","code":"PL","isd_code\r":"+48\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280c"},"country ":"Portugal ","code":"PT","isd_code\r":"+351\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280d"},"country ":"Puerto Rico ","code":"PR","isd_code\r":"+1-787 or +1-939\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280e"},"country ":"\"Qatar","code":" State of \"","isd_code\r":"QA"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6280f"},"country ":"Reunion (French) (Former Bourbon Island)","code":"RE","isd_code\r":"+262\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62810"},"country ":"Romania ","code":"RO","isd_code\r":"+40\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62811"},"country ":"\"Russia - USSR (Former Russian Empire","code":" Union of Soviet Socialist Republics","isd_code\r":" Russian Soviet Federative Socialist Republic) Now RU - Russian Federation\""}
+{"_id":{"$oid":"5b2f34d18a1758e640a62812"},"country ":"Russian Federation ","code":"RU","isd_code\r":"+7\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62813"},"country ":"Rwanda (Rwandese Republic) (Former Ruanda)","code":"RW","isd_code\r":"+250\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62814"},"country ":"Saint Helena ","code":"SH","isd_code\r":"+290\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62815"},"country ":"Saint Kitts and Nevis (Former Federation of Saint Christopher and Nevis)","code":"KN","isd_code\r":"+1-869\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62816"},"country ":"Saint Lucia ","code":"LC","isd_code\r":"+1-758\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62817"},"country ":"Saint Pierre and Miquelon ","code":"PM","isd_code\r":"+508\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62818"},"country ":"Saint Vincent and the Grenadines ","code":"VC","isd_code\r":"+1-784\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62819"},"country ":"Samoa (Former Western Samoa)","code":"WS","isd_code\r":"+685\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281a"},"country ":"San Marino ","code":"SM","isd_code\r":"+378\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281b"},"country ":"Sao Tome and Principe ","code":"ST","isd_code\r":"+239\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281c"},"country ":"Saudi Arabia ","code":"SA","isd_code\r":"+966\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281d"},"country ":"\"Serbia","code":" Republic of\"","isd_code\r":"RS"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281e"},"country ":"Senegal ","code":"SN","isd_code\r":"+221\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6281f"},"country ":"Seychelles ","code":"SC","isd_code\r":"+248\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62820"},"country ":"Sierra Leone ","code":"SL","isd_code\r":"+232\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62821"},"country ":"Singapore ","code":"SG","isd_code\r":"+65\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62822"},"country ":"Slovakia","code":"SK","isd_code\r":"+421\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62823"},"country ":"Slovenia ","code":"SI","isd_code\r":"+386\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62824"},"country ":"Solomon Islands (Former British Solomon Islands)","code":"SB","isd_code\r":"+677\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62825"},"country ":"\"Somalia (Former Somali Republic","code":" Somali Democratic Republic) \"","isd_code\r":"SO"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62826"},"country ":"South Africa (Former Union of South Africa)","code":"ZA","isd_code\r":"+27\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62827"},"country ":"South Georgia and the South Sandwich Islands","code":"GS","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62828"},"country ":"Spain ","code":"ES","isd_code\r":"+34\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62829"},"country ":"\"Sri Lanka (Former Serendib","code":" Ceylon) \"","isd_code\r":"LK"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282a"},"country ":"Sudan (Former Anglo-Egyptian Sudan) ","code":"SD","isd_code\r":"+249\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282b"},"country ":"\"Suriname (Former Netherlands Guiana","code":" Dutch Guiana)\"","isd_code\r":"SR"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282c"},"country ":"Svalbard (Spitzbergen) and Jan Mayen Islands ","code":"SJ","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282d"},"country ":"\"Swaziland","code":" Kingdom of \"","isd_code\r":"SZ"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282e"},"country ":"Sweden ","code":"SE","isd_code\r":"+46\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6282f"},"country ":"Switzerland ","code":"CH","isd_code\r":"+41\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62830"},"country ":"Syria (Syrian Arab Republic) (Former United Arab Republic - with Egypt)","code":"SY","isd_code\r":"+963\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62831"},"country ":"Taiwan (Former Formosa)","code":"TW","isd_code\r":"+886\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62832"},"country ":"Tajikistan (Former Tajik Soviet Socialist Republic)","code":"TJ","isd_code\r":"+992\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62833"},"country ":"\"Tanzania","code":" United Republic of (Former United Republic of Tanganyika and Zanzibar)\"","isd_code\r":"TZ"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62834"},"country ":"Thailand (Former Siam)","code":"TH","isd_code\r":"+66\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62835"},"country ":"Togo (Former French Togoland)","code":"TG","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62836"},"country ":"Tokelau ","code":"TK","isd_code\r":"+690\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62837"},"country ":"\"Tonga","code":" Kingdom of (Former Friendly Islands)\"","isd_code\r":"TO"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62838"},"country ":"Trinidad and Tobago ","code":"TT","isd_code\r":"+1-868\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62839"},"country ":"Tromelin Island ","code":"TE","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283a"},"country ":"Tunisia ","code":"TN","isd_code\r":"+216\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283b"},"country ":"Turkey ","code":"TR","isd_code\r":"+90\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283c"},"country ":"Turkmenistan (Former Turkmen Soviet Socialist Republic)","code":"TM","isd_code\r":"+993\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283d"},"country ":"Turks and Caicos Islands ","code":"TC","isd_code\r":"+1-649\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283e"},"country ":"Tuvalu (Former Ellice Islands)","code":"TV","isd_code\r":"+688\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6283f"},"country ":"\"Uganda","code":" Republic of\"","isd_code\r":"UG"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62840"},"country ":"\"Ukraine (Former Ukrainian National Republic","code":" Ukrainian State","isd_code\r":" Ukrainian Soviet Socialist Republic)\""}
+{"_id":{"$oid":"5b2f34d18a1758e640a62841"},"country ":"\"United Arab Emirates (UAE) (Former Trucial Oman","code":" Trucial States)\"","isd_code\r":"AE"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62842"},"country ":"United Kingdom (Great Britain / UK)","code":"GB","isd_code\r":"+44\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62843"},"country ":"United States ","code":"US","isd_code\r":"+1\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62844"},"country ":"United States Minor Outlying Islands ","code":"UM","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62845"},"country ":"\"Uruguay","code":" Oriental Republic of (Former Banda Oriental","isd_code\r":" Cisplatine Province)\""}
+{"_id":{"$oid":"5b2f34d18a1758e640a62846"},"country ":"Uzbekistan (Former UZbek Soviet Socialist Republic)","code":"UZ","isd_code\r":"+998\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62847"},"country ":"Vanuatu (Former New Hebrides)","code":"VU","isd_code\r":"+678\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62848"},"country ":"Vatican City State (Holy See)","code":"VA","isd_code\r":"+418\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62849"},"country ":"Venezuela ","code":"VE","isd_code\r":"+58\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284a"},"country ":"Vietnam ","code":"VN","isd_code\r":"+84\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284b"},"country ":"\"Virgin Islands","code":" British \"","isd_code\r":"VI"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284c"},"country ":"\"Virgin Islands","code":" United States (Former Danish West Indies) \"","isd_code\r":"VQ"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284d"},"country ":"Wallis and Futuna Islands ","code":"WF","isd_code\r":"+681\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284e"},"country ":"Western Sahara (Former Spanish Sahara)","code":"EH","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a6284f"},"country ":"Yemen ","code":"YE","isd_code\r":"+967\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62850"},"country ":"Yugoslavia ","code":"YU","isd_code\r":"\r"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62851"},"country ":"\"Zaire (Former Congo Free State","code":" Belgian Congo","isd_code\r":" Congo/Leopoldville"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62852"},"country ":"\"Zambia","code":" Republic of (Former Northern Rhodesia) \"","isd_code\r":"ZM"}
+{"_id":{"$oid":"5b2f34d18a1758e640a62853"},"country ":"\"Zimbabwe","code":" Republic of (Former Southern Rhodesia","isd_code\r":" Rhodesia) \""}
+{"_id":{"$oid":"5b2f34d18a1758e640a62854"},"country ":"","code":null,"isd_code\r":null}
