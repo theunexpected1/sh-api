@@ -24,34 +24,34 @@ const AdministratorSchema = new db.Schema({
     required: [true, 'Password is required'],
     select: false
   },
-  // role: {
-  //   type: String,
-  //   enum: ['ADMIN', 'HOTEL_ADMIN'],
-  //   default: 'HOTEL_ADMIN'
-  // },
   role: {
     type: db.Schema.Types.ObjectId,
     ref: 'roles'
   },
   activationCode: {
-    type: String
+    type: String,
+    select: false
+  },
+  autoLoginCode: {
+    type: String,
+    select: false
   },
   contact_person: {
     type: String
   },
   legal_name: {
     type: String,
-    required: [true, 'Legal Name is required']
+    // required: [true, 'Legal Name is required']
   },
   country: {
     type: db.Schema.Types.ObjectId,
     ref:'countries',
-    required: [true, 'Country is required']
+    // required: [true, 'Country is required']
   },
   city: {
     type: db.Schema.Types.ObjectId,
     ref:'cities',
-    required: [true, 'City is required']
+    // required: [true, 'City is required']
   },
   address_1: {
     type: String
@@ -99,21 +99,22 @@ AdministratorSchema.methods.validPassword = async function(password) {
 };
 
 AdministratorSchema.pre('save', function (next) {
-  var admin = this;
-  // Executed only for change-password as we call admin.save() there
-  // In case of amdinistrator -> modify, we do findOneAndUpdate(), so the pre save hooks dont trigger
-  // If we wish to harmonize this, the password hashing should be part of change-password call and not as a hook
-  if (admin.password) {
-    bcrypt.hash(admin.password, 10, function (err, hash) {
-      if (err) {
-        return next(err);
-      }
-      admin.password = hash;
-      next();
-    })
-  } else {
-    next();
-  }
+  // var admin = this;
+  // // Executed only for change-password as we call admin.save() there
+  // // In case of amdinistrator -> modify, we do findOneAndUpdate(), so the pre save hooks dont trigger
+  // // If we wish to harmonize this, the password hashing should be part of change-password call and not as a hook
+  // if (admin.password) {
+  //   bcrypt.hash(admin.password, 10, function (err, hash) {
+  //     if (err) {
+  //       return next(err);
+  //     }
+  //     admin.password = hash;
+  //     next();
+  //   })
+  // } else {
+  //   next();
+  // }
+  next();
 });
 
 AdministratorModel = db.model('administrators', AdministratorSchema);

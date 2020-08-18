@@ -18,6 +18,16 @@ const User = require("../../../db/models/admins");
 const jwtMiddleware = require("../../../middleware/jwt");
 console.log('config.app_url', config.app_url);
 
+router.get("/ping", async (req, res) => {
+  res
+    .status(200)
+    .send({
+      status: 1,
+      message: "Ping success",
+    }).end()
+  ;
+});
+
 router.post("/login", passport.authenticate('local-administrator-login'), async (req, res) => {
   const token = jwt.sign(req.user.toJSON(), process.env.API_SECRET || 'secret');
   if (req.user) {
@@ -36,6 +46,41 @@ router.post("/login", passport.authenticate('local-administrator-login'), async 
       .json({
         status: 0,
         message: "Invalid Login credentials!"
+      })
+    ;
+  }
+});
+
+router.post("/auto-login", async (req, res) => {
+  const administrator = await Administrator
+    .findOne({
+      email: req.body.email,
+      autoLoginCode: req.body.autoLoginCode
+    })
+    .populate('role')
+    .select('+email')
+    .select('+password')
+  ;
+
+  if (administrator) {
+    const token = jwt.sign(administrator.toJSON(), process.env.API_SECRET || 'secret');
+    administrator.autoLoginCode = '';
+    await administrator.save();
+    res
+      .status(200)
+      .json({
+        status: 1,
+        message: "Login successful",
+        token: token,
+        user: administrator
+      })
+    ;
+  } else {
+    res
+      .status(200)
+      .json({
+        status: 0,
+        message: "Invalid Login token!"
       })
     ;
   }
@@ -260,7 +305,7 @@ router.post('/change-password', jwtMiddleware.administratorAuthenticationRequire
         return res.status(200).json({ 'status': 0, 'errors': errors });
       }
 
-      admin.password = req.body.new_password;
+      admin.password = await bcrypt.hashSync(req.body.new_password);
 
       const result = await admin.save();
       if (result) {

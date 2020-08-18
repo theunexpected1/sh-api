@@ -42,17 +42,17 @@ const adminSchema = new db.Schema({
   },
   legal_name: {
     type: String,
-    required: [true, "Legal Name is required"]
+    // required: [true, "Legal Name is required"]
   },
   country: {
     type: db.Schema.Types.ObjectId,
     ref: "countries",
-    required: [true, "Country is required"]
+    // required: [true, "Country is required"]
   },
   city: {
     type: db.Schema.Types.ObjectId,
     ref: "cities",
-    required: [true, "City is required"]
+    // required: [true, "City is required"]
   },
   address_1: {
     type: String
@@ -112,7 +112,7 @@ const propertySchema = new db.Schema({
   company: {
     type: db.Schema.Types.ObjectId,
     ref: "hotel_admins",
-    required: [false, "Contact Person is required"]
+    // required: [false, "Contact Person is required"]
   },
   administrator: {
     type: db.Schema.Types.ObjectId,
@@ -127,12 +127,12 @@ const propertySchema = new db.Schema({
   type: {
     type: db.Schema.Types.ObjectId,
     ref: "property_types",
-    required: [true, "Property Type is required"]
+    // required: [true, "Property Type is required"]
   },
   rating: {
     type: db.Schema.Types.ObjectId,
     ref: "property_ratings",
-    required: [true, "Property Rating is required"]
+    // required: [true, "Property Rating is required"]
   },
   description: {
     type: String
@@ -177,14 +177,26 @@ const propertySchema = new db.Schema({
   charges: [chargesSchema],
   nearby : [nearBySchema],
   location: {
-    type: { type: String },
+    type: {
+      type: String,
+      default: 'Point'
+    },
     coordinates: [Number]
    },
   user_rating: Number,
   legal_name: {
     type: String,
-    required: [true, "Legal Name is required"]
+    // required: [true, "Legal Name is required"]
   },
+  status: {
+    type: Boolean,
+    default: true
+  },
+  source: {
+    type: String,
+    enum: ['Website', 'Extranet'],
+    default: 'Extranet'
+  }
 }, {
   timestamps: {
     createdAt: 'createdAt',

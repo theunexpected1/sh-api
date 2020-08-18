@@ -298,6 +298,12 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
     if (resourceData.location && !resourceData.location.type) {
       resourceData.location.type = 'Point';
     }
+    if (!resourceData.location) {
+      resourceData.location = {
+        type: 'Point',
+        coordinates: [55.2277468, 25.0753483]
+      }
+    }
 
     // - secondaryReservationEmails
     if (resourceData.secondaryReservationEmails) {
@@ -377,7 +383,7 @@ const list = async (req, res) => {
       // Hotel Admin role, or Receptionist role is one who
       // - can access OWN Properties
       // - cannot access ALL Properties
-      let hotelAdminRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES']}});
+      let hotelAdminRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES', 'LIST_INVOICES'], $nin: ['LIST_ALL_PROPERTIES']}});
       let receptionistRoles = await Role.find({permissions: {$in: ['LIST_OWN_PROPERTIES'], $nin: ['LIST_ALL_PROPERTIES', 'LIST_INVOICES']}});
       let ids = [];
       if (hotelAdminRoles) {
