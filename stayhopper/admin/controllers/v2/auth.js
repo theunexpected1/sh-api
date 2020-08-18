@@ -305,7 +305,7 @@ router.post('/change-password', jwtMiddleware.administratorAuthenticationRequire
         return res.status(200).json({ 'status': 0, 'errors': errors });
       }
 
-      admin.password = await bcrypt.hashSync(req.body.new_password);
+      admin.password = await bcrypt.hashSync(req.body.new_password, 10);
 
       const result = await admin.save();
       if (result) {
