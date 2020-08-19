@@ -336,6 +336,8 @@ const getProperties = async (req, res) => {
 
       const whereTotal = {};
       const whereLive = {};
+      const whereSourceWebsite = {};
+      const whereSourceExtranet = {};
 
       // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
       if (hasOwnDashboardAccess && !hasFullDashboardAccess) {
@@ -355,11 +357,26 @@ const getProperties = async (req, res) => {
 
       whereLive.approved = true;
       whereLive.published = true;
+      whereSourceWebsite.source = 'Website';
+      whereSourceExtranet.$or = [{
+        source: ''
+      }, {
+          source: 'Extranet'
+      }, {
+          source: {$exists: false}
+      }];
 
       const count = await Property.countDocuments(whereTotal);
       const countLive = await Property.countDocuments(whereLive);
+      const countSourceExtranet = await Property.countDocuments(whereSourceExtranet);
+      const countSourceWebsite = await Property.countDocuments(whereSourceWebsite);
 
-      res.status(200).send({count, countLive}).end();
+      res.status(200).send({
+        count,
+        countLive,
+        countSourceExtranet,
+        countSourceWebsite
+      }).end();
     } catch (e) {
       return res.status(500).send({
         message: 'Sorry, there was an error in performing this action'
