@@ -110,6 +110,7 @@ const prepareQueryForListing = (req) => {
   let published = req.query.published;
   let country = req.query.country;
   let city = req.query.city;
+  let source = req.query.source;
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
@@ -152,6 +153,24 @@ const prepareQueryForListing = (req) => {
 
   if (city) {
     where['contactinfo.city'] = city;
+  }
+
+  // Source: Website or Extranet
+  if (source) {
+    where['$and'] = where['$and'] || [];
+    const uniqueOrQuery = [];
+
+    if (source === 'Extranet') {
+      uniqueOrQuery.push({source: 'Extranet'});
+      uniqueOrQuery.push({source: ''});
+      uniqueOrQuery.push({source: {$exists: false}});
+    } else if (source === 'Website') {
+      uniqueOrQuery.push({source: 'Website'});
+    }
+
+    if (uniqueOrQuery.length) {
+      where['$and'].push({$or: uniqueOrQuery});
+    }
   }
 
   // Filter Approval status

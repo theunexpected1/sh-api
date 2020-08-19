@@ -246,7 +246,7 @@ router.post("/reset-password", async (req, res) => {
       length: 10,
       numbers: true
     });
-    user.password = password;
+    user.password = await bcrypt.hashSync(password, 10);
     await user.save();
     let html_body = fs.readFileSync('public/reset_password.html', 'utf8');
     html_body = html_body.replace('{{EMAIL}}', user.email);
