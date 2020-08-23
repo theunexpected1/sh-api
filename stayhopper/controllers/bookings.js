@@ -279,8 +279,10 @@ router.post('/cancelbooking',async(req,res)=>{
     msg = {
       to: config.website_cancellation_email,
       bcc: [{ email: config.website_admin_bcc_email}],
-      from: config.website_admin_from_email,
-      fromname:config.fromname,
+      from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+      },
       subject: "STAYHOPPER: Booking cancellation request",
       text:
         "Booking cancellation request",

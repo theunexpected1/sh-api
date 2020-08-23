@@ -544,8 +544,10 @@ router.post("/", async (req, res) => {
                 { email: "saleeshprakash@gmail.com" },
                 { email: config.website_admin_bcc_email }
               ],
-              from: config.website_admin_from_email,
-              fromname: config.fromname,
+              from: {
+                email: config.website_admin_from_email,
+                name: config.fromname
+              },
               subject: "STAYHOPPER: New Booking Payment Alert",
               text: "Booking Payment Alert",
               html: html_body
@@ -1150,8 +1152,10 @@ router.post("/extendedbooking", async (req, res) => {
                       { email: "saleeshprakash@gmail.com" },
                       { email: config.website_admin_bcc_email }
                     ],
-                    from: config.website_admin_from_email,
-                    fromname: config.fromname,
+                    from: {
+                      email: config.website_admin_from_email,
+                      name: config.fromname
+                    },
                     subject: "STAYHOPPER: New Booking Payment Alert",
                     text: "Booking Payment Alert",
                     html: html_body

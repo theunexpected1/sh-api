@@ -75,8 +75,10 @@ const service = {
         msg = {
           to: administrator.email,
           bcc: [{ email: config.website_admin_bcc_email }],
-          from: config.website_admin_from_email,
-          fromname: config.fromname,
+          from: {
+            email: config.website_admin_from_email,
+            name: config.fromname
+          },
           subject: "STAYHOPPER: Account has been created!",
           text: "Congratulations! Your account has been created",
           html: html_body
@@ -519,8 +521,12 @@ const onboarding = async (req, res) => {
       msg = {
         to: resource.email,
         // bcc: [{ email: config.website_admin_bcc_email }],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
+        // from: config.website_admin_from_email,
+        // fromname: config.fromname,
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
         subject: "STAYHOPPER: Activation Code",
         text: "Use this activation code to proceed",
         html: html_body

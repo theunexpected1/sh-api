@@ -1027,8 +1027,10 @@ cron.schedule("* * * * *", async () => {
               { email: "saleeshprakash@gmail.com" },
               { email: config.website_admin_bcc_email }
             ],
-            from: config.website_admin_from_email,
-            fromname: config.fromname,
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
             subject: "STAYHOPPER: Your inventory update is live now",
             text: "Your inventory update is live now",
             html: html_body
@@ -1183,8 +1185,10 @@ cron.schedule("* * * * *", async () => {
               { email: "saleeshprakash@gmail.com" },
               { email: config.website_admin_bcc_email }
             ],
-            from: config.website_admin_from_email,
-            fromname: config.fromname,
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
             subject: "STAYHOPPER: Your inventory update is live now",
             text: "Your inventory update is live now",
             html: html_body

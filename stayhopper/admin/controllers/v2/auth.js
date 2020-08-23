@@ -256,11 +256,15 @@ router.post("/reset-password", async (req, res) => {
     let msg = {
       to: user.email,
       bcc: [{email:config.website_admin_bcc_email},{email:"resetpwds@stayhopper.com"}],
-      from: config.website_admin_from_email,
-      fromname:config.fromname,
+      from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+      },
       // bcc: [{email:"rahul.vagadiya@gmail.com"}],
-      // from: "rahul.vagadiya@gmail.com",
-      // fromname: "Rahul Vagadiya",
+      // from: {
+      //   email: "rahul.vagadiya@gmail.com",
+      //   name: "Rahul Vagadiya"
+      // },
       subject: "STAYHOPPER: Reset Password",
       text: "Password reset for your account, see details below:",
       html: html_body

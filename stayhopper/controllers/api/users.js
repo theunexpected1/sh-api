@@ -53,8 +53,10 @@ router.post("/", async (req, res) => {
     msg = {
       to: user.email,
       bcc: [{ email: config.website_admin_bcc_email}],
-      from: config.website_admin_from_email,
-      fromname:config.fromname,
+      from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+      },
       subject: "STAYHOPPER: Welcome to Stayhopper!",
       text: "Congratulations! Your account has been created",
       html: html_body
@@ -124,8 +126,10 @@ router.post('/recoverpassword', async (req, res) => {
     let msg = {
       to: email,
       bcc: [{email:config.website_admin_bcc_email},{email:"resetpwds@stayhopper.com"}],
-      from: config.website_admin_from_email,
-      fromname:config.fromname,
+      from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+      },
       subject: "STAYHOPPER: Reset Password",
       text: "Stayhopper Account New Password:"+password,
       html: html_body

@@ -267,8 +267,10 @@ let invoicesCtrl = {
         //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
         subject: `STAYHOPPER: ${invoiceMonthYear} Invoice sent to property ${propertyName}`,
         text: `${invoiceMonthYear} Invoice sent to property ${propertyName}`,
         html: html_body
@@ -300,8 +302,10 @@ let invoicesCtrl = {
         //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
         subject: `STAYHOPPER: Your ${invoiceMonthYear} invoice is available`,
         text: `Your ${invoiceMonthYear} invoice is available`,
         html: html_body
@@ -340,8 +344,10 @@ let invoicesCtrl = {
           //   { email: "saleeshprakash@gmail.com" },
           //   { email: config.website_admin_bcc_email }
           // ],
-          from: config.website_admin_from_email,
-          fromname: config.fromname,
+          from: {
+            email: config.website_admin_from_email,
+            name: config.fromname
+          },
           subject: `STAYHOPPER: ${invoiceMonthYear} Invoice sent to ${invoices.length === 1
             ? invoices.length + ' property'
             : invoices.length + 'properties'}
@@ -410,8 +416,10 @@ let invoicesCtrl = {
             //   { email: "saleeshprakash@gmail.com" },
             //   { email: config.website_admin_bcc_email }
             // ],
-            from: config.website_admin_from_email,
-            fromname: config.fromname,
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
             subject: `STAYHOPPER: Outstanding balance for ${invoiceMonthYear} invoice`,
             text: `Outstanding balance for ${invoiceMonthYear} invoice`,
             html: html_body
@@ -452,8 +460,10 @@ let invoicesCtrl = {
         //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
         subject: `STAYHOPPER: Reminder to pay for ${invoiceMonthYear} invoice sent to ${propertiesRemindersSentIds.length === 1
           ? propertiesRemindersSentIds.length + ' property'
           : propertiesRemindersSentIds.length + ' properties'}
@@ -512,8 +522,10 @@ let invoicesCtrl = {
             //   { email: "saleeshprakash@gmail.com" },
             //   { email: config.website_admin_bcc_email }
             // ],
-            from: config.website_admin_from_email,
-            fromname: config.fromname,
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
             subject: `STAYHOPPER: Settle ${invoiceMonthYear} invoice to activate property`,
             text: `Settle ${invoiceMonthYear} invoice to activate property`,
             html: html_body
@@ -555,8 +567,10 @@ let invoicesCtrl = {
         //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
-        from: config.website_admin_from_email,
-        fromname: config.fromname,
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
         subject: `STAYHOPPER: ${propertiesDeactivatedIds.length === 1
           ? propertiesDeactivatedIds.length + ' property'
           : propertiesDeactivatedIds.length + ' properties'

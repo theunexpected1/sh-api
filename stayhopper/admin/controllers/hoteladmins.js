@@ -1452,8 +1452,10 @@ router.get('/welcomemail/send', async (req, res) => {
   msg = {
     to: hoteladmin.email,
     bcc: [{ email: config.website_admin_bcc_email }],
-    from: config.website_admin_from_email,
-    fromname:config.fromname,
+    from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+    },
     subject: "STAYHOPPER: Account has been created!",
     text:
       "Congratulations! Your account has been created",

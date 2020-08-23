@@ -132,8 +132,10 @@ router.get('/success', async (req, res) => {
          let msg = {
            to: ub.guestinfo.email,
            bcc: [{email:config.website_admin_bcc_email},{email:"b2cbookings@stayhopper.com"}],
-           from: config.website_admin_from_email,
-           fromname:config.fromname,
+           from: {
+            email: config.website_admin_from_email,
+            name: config.fromname
+           },
            subject: "Stayhopper:Booking success",
            text: "Stayhopper booking success",
            html: html_body
@@ -173,8 +175,10 @@ router.get('/success', async (req, res) => {
          msg = {
             to: property.contactinfo.email,
             bcc: [{email:config.website_admin_bcc_email},{email:"hotelbookings@stayhopper.com"}],
-            from: config.website_admin_from_email,
-            fromname:config.fromname,
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
             subject: "Stayhopper:New Booking",
             text: "Sconfigtayhopper New Hotel Booking",
             html: html_body
