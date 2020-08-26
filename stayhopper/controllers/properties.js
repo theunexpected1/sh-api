@@ -131,7 +131,7 @@ const storage = multer.diskStorage({
     cb(null, "public/files/properties");
   },
   filename: (req, file, cb) => {
-    var ext = path.extname(file.originalname);
+    var ext = (path.extname(file.originalname) || '').toLowerCase();
     var filename = file.fieldname + "-" + Date.now() + ext;
     cb(null, filename);
   }

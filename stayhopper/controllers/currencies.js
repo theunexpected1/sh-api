@@ -21,7 +21,7 @@ const storage = multer.diskStorage({
     cb(null, "public/img/currencies");
   },
   filename: (req, file, cb) => {
-    var ext = path.extname(file.originalname);
+    var ext = (path.extname(file.originalname) || '').toLowerCase();
     var filename = file.fieldname + "-" + Date.now() + ext;
     cb(null, filename);
   }
@@ -31,7 +31,7 @@ let upload = pify(
   multer({
     storage: storage,
     fileFilter: function(req, file, callback) {
-      var ext = path.extname(file.originalname);
+      var ext = (path.extname(file.originalname) || '').toLowerCase();
       if (
         ext !== ".svg" &&
         ext !== ".png" &&

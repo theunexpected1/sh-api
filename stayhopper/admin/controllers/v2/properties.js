@@ -208,7 +208,7 @@ const storage = multer.diskStorage({
     cb(null, "public/files/properties");
   },
   filename: (req, file, cb) => {
-    var ext = path.extname(file.originalname);
+    var ext = (path.extname(file.originalname) || '').toLowerCase();
     var filename = file.fieldname + "-" + Date.now() + ext;
     cb(null, filename);
   }
@@ -218,7 +218,7 @@ let upload = pify(
   multer({
     storage: storage,
     fileFilter: function(req, file, callback) {
-      var ext = path.extname(file.originalname);
+      var ext = (path.extname(file.originalname) || '').toLowerCase();
       if (
         ext !== ".docx" &&
         ext !== ".doc" &&
@@ -247,7 +247,7 @@ const storageNearby = multer.diskStorage({
     cb(null, "public/img/nearby");
   },
   filename: (req, file, cb) => {
-    var ext = path.extname(file.originalname);
+    var ext = (path.extname(file.originalname) || '').toLowerCase();
     var filename = file.fieldname + "-" + Date.now() + ext;
     cb(null, filename);
   }
@@ -257,7 +257,7 @@ let uploadNearby = pify(
   multer({
     storage: storageNearby,
     fileFilter: function(req, file, callback) {
-      var ext = path.extname(file.originalname);
+      var ext = (path.extname(file.originalname) || '').toLowerCase();
       if (
         ext !== ".svg" &&
         ext !== ".png" &&
@@ -279,7 +279,7 @@ const storagePhotos = multer.diskStorage({
     cb(null, "public/files/original/properties");
   },
   filename: (req, file, cb) => {
-    var ext = path.extname(file.originalname);
+    var ext = (path.extname(file.originalname) || '').toLowerCase();
     var filename = file.fieldname + "-" + Date.now() + ext;
     cb(null, filename);
   }
@@ -289,7 +289,7 @@ let uploadPhotos = pify(
   multer({
     storage: storagePhotos,
     fileFilter: function(req, file, callback) {
-      var ext = path.extname(file.originalname);
+      var ext = (path.extname(file.originalname) || '').toLowerCase();
       if (
         ext !== ".svg" &&
         ext !== ".png" &&
