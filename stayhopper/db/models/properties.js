@@ -35,6 +35,25 @@ const paymentSchema = new db.Schema({
     type: String
   }
 });
+
+const agreementSchema = new db.Schema({
+  contactName: {
+    type: String
+  },
+  contactDesignation: {
+    type: String
+  },
+  contactEmail: {
+    type: String
+  },
+  signedDate: {
+    type: Date
+  },
+  isAgreementSigned: {
+    type: Boolean
+  }
+});
+
 const adminSchema = new db.Schema({
   contact_person: {
     type: String,
@@ -174,6 +193,7 @@ const propertySchema = new db.Schema({
   },
   services: [{ type: db.Schema.Types.ObjectId, ref: "services" }],
   payment: paymentSchema,
+  agreement: agreementSchema,
   charges: [chargesSchema],
   nearby : [nearBySchema],
   location: {

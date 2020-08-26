@@ -119,6 +119,32 @@ router.post("/migrate-admins", jwtMiddleware.administratorAuthenticationRequired
   res.status(200).json({});
 })
 
+router.post("/migrate-properties-agreement", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+  // 5. set existing properties with no "source" to have agreement.isSignedAgreement set to true
+  const Property = require("../../../db/models/properties");
+  // Ensure we run only once
+  let properties = await Property.find({agreement: {$exists: false}, source: {$exists: false}}).exec();
+
+  try {
+    properties
+      // Test with Zain International
+      // .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
+      .map(async property => {
+        console.log('Attempting... Property', property.name, property.agreement);
+
+        property.agreement = {};
+        property.agreement.isAgreementSigned = true;
+        await property.save();
+        console.log('Migrated Property', property.name);
+      })
+    ;
+  } catch (e) {
+    console.log('error in ', newAdmin.name, e);
+  }
+
+  res.status(200).json({});
+});
+
 router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
 
   const Property = require("../../../db/models/properties");

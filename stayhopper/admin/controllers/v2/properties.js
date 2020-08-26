@@ -111,6 +111,7 @@ const prepareQueryForListing = (req) => {
   let country = req.query.country;
   let city = req.query.city;
   let source = req.query.source;
+  let isAgreementSigned = req.query.isAgreementSigned;
 
   // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
   if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
@@ -169,6 +170,20 @@ const prepareQueryForListing = (req) => {
     }
 
     if (uniqueOrQuery.length) {
+      where['$and'].push({$or: uniqueOrQuery});
+    }
+  }
+
+  // Filter Partnership Agreement status
+  if (typeof isAgreementSigned !== 'undefined' && isAgreementSigned !== '') {
+    if (isAgreementSigned === true || isAgreementSigned === 'true') {
+      where['agreement.isAgreementSigned'] = true;
+    } else {
+      where['$and'] = where['$and'] || [];
+      const uniqueOrQuery = [];
+      uniqueOrQuery.push({agreement: {$exists: false}});
+      uniqueOrQuery.push({'agreement.isAgreementSigned': {$exists: false}});
+      uniqueOrQuery.push({'agreement.isAgreementSigned': false});
       where['$and'].push({$or: uniqueOrQuery});
     }
   }
@@ -439,6 +454,49 @@ const list = async (req, res) => {
         active_page
       };
       res.status(200).send(data).end();
+    } catch (e) {
+      console.log('e', e);
+      res.status(500).send({
+        message: 'Sorry, there was an error in performing this action'
+      }).end();
+    }
+  }
+};
+
+const hasAgreementSigned = async (req, res) => {
+
+  if (hasPermissions(req, res)) {
+    try {
+      // Further permissions
+      let user = req.user;
+      let {permissions} = user.role;
+      const hasAllPropertiesAccess = permissions.indexOf(config.permissions.LIST_ALL_PROPERTIES) > -1;
+      const hasOwnPropertiesAccess = permissions.indexOf(config.permissions.LIST_OWN_PROPERTIES) > -1;
+
+      // Where condition
+      const where = {};
+
+      // Filter: User's properties - Restrict to logged in user viewing their own properties if they dont have access to all
+      if (hasOwnPropertiesAccess && !hasAllPropertiesAccess) {
+        where['$and'] = where['$and'] || [];
+        const uniqueOrQuery = [];
+
+        // Add staff roles here
+        uniqueOrQuery.push({administrator: user._id});
+        uniqueOrQuery.push({allAdministrators: {
+          $in: [user._id]
+        }});
+
+        where['$and'].push({$or: uniqueOrQuery});
+      }
+
+      // Check if any property is signed
+      where['agreement.isAgreementSigned'] = true;
+      const countSignedProperties = await Property.countDocuments(where);
+
+      res.status(200).send({
+        result: countSignedProperties > 0
+      }).end();
     } catch (e) {
       console.log('e', e);
       res.status(500).send({
@@ -752,10 +810,12 @@ const featurePhoto = async (req, res) => {
 }
 
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), list);
+router.get("/has-agreement-signed", jwtMiddleware.administratorAuthenticationRequired, hasAgreementSigned);
 router.get("/:id", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), single);
 router.post("/", jwtMiddleware.administratorAuthenticationRequired, upload, create);
 router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, upload, modify);
 router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
+
 
 router.post("/:id/nearby", jwtMiddleware.administratorAuthenticationRequired, uploadNearby, createNearby);
 router.delete("/:id/nearby/:nearbyId", jwtMiddleware.administratorAuthenticationRequired, removeNearby);
