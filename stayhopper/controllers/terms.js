@@ -31,7 +31,7 @@ const storage = multer.diskStorage({
     multer({
       storage: storage,
       fileFilter: function(req, file, callback) {
-        var ext = path.extname(file.originalname);
+        var ext = (path.extname(file.originalname) || '').toLowerCase();
         if (
           ext !== ".svg" &&
           ext !== ".png" &&
