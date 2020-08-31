@@ -168,7 +168,17 @@ const list = async (req, res) => {
       const hasAllBookingsAccess = permissions.indexOf(config.permissions.LIST_ALL_BOOKINGS) > -1;
 
       const [properties, users, list, itemCount] = await Promise.all([
-        hasAllBookingsAccess ? Property.find({}).sort({name: 1}) : Promise.resolve([]),
+        hasAllBookingsAccess
+          ? Property.find({}).sort({name: 1})
+          : Property.find({
+            $and: [
+              {administrator: user._id},
+              {allAdministrators: {
+                $in: [user._id]
+              }}
+            ]
+          }).sort({name: 1})
+        ,
         // hasAllBookingsAccess ? User.find({}).sort({name: 1}) : Promise.resolve([]),
         // Don't get Users
         Promise.resolve([]),
