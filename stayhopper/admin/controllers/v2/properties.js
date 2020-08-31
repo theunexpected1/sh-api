@@ -348,6 +348,24 @@ const preCreateOrUpdate = async (req, res, resourceData) => {
       delete resourceData.payment.country;
     }
 
+    // START: Delete empty values to avoid validation error
+    if (typeof resourceData.rating === 'string' && resourceData.rating === '') {
+      delete resourceData.rating;
+    }
+    if (typeof resourceData.type === 'string' && resourceData.type === '') {
+      delete resourceData.type;
+    }
+
+    if (resourceData.contactinfo) {
+      if (typeof resourceData.contactinfo.country === 'string' && resourceData.contactinfo.country === '') {
+        delete resourceData.contactinfo.country;
+      }
+      if (typeof resourceData.contactinfo.city === 'string' && resourceData.contactinfo.city === '') {
+        delete resourceData.contactinfo.city;
+      }
+    }
+    // END: Delete empty values to avoid validation error
+
     return resourceData;
   } catch (e) {
     console.log('e', e);
