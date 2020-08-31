@@ -342,6 +342,13 @@ const create = async (req, res) => {
     });
     resourceData.password = await bcrypt.hashSync(password, 10);
 
+    if (!resourceData.city) {
+      delete resourceData.city;
+    }
+    if (!resourceData.country) {
+      delete resourceData.country;
+    }
+
     const resource = new Administrator(resourceData);
     await resource.save()
 
@@ -365,7 +372,7 @@ const create = async (req, res) => {
 const modify = async (req, res) => {
   const user = req.user;
   const {permissions} = user.role;
-  const updatedData = req.body;
+  const resourceData = req.body;
   const hasResourceAccess = permissions.indexOf(config.permissions.LIST_ADMINISTRATORS) > -1;
   if (!hasResourceAccess) {
     res.status(401).send({
@@ -376,10 +383,17 @@ const modify = async (req, res) => {
     _id: req.params.id
   };
 
+  if (!resourceData.city) {
+    delete resourceData.city;
+  }
+  if (!resourceData.country) {
+    delete resourceData.country;
+  }
+
   try {
     // Return updated doc
     const resource = await Administrator
-      .findOneAndUpdate(where, { $set: updatedData }, { new: true })
+      .findOneAndUpdate(where, { $set: resourceData }, { new: true })
       .select('+email')
       .populate(resourcePopulations)
       .exec()

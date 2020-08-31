@@ -171,7 +171,7 @@ const list = async (req, res) => {
         hasAllBookingsAccess
           ? Property.find({}).sort({name: 1})
           : Property.find({
-            $and: [
+            $or: [
               {administrator: user._id},
               {allAdministrators: {
                 $in: [user._id]
