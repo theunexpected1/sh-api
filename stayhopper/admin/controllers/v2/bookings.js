@@ -169,7 +169,7 @@ const list = async (req, res) => {
 
       const [properties, users, list, itemCount] = await Promise.all([
         hasAllBookingsAccess
-          ? Property.find({}).sort({name: 1})
+          ? Property.find({}).sort({name: 1}).select('_id').select('name')
           : Property.find({
             $or: [
               {administrator: user._id},
@@ -177,7 +177,7 @@ const list = async (req, res) => {
                 $in: [user._id]
               }}
             ]
-          }).sort({name: 1})
+          }).sort({name: 1}).select('_id').select('name')
         ,
         // hasAllBookingsAccess ? User.find({}).sort({name: 1}) : Promise.resolve([]),
         // Don't get Users

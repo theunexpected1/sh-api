@@ -233,7 +233,11 @@ const list = async (req, res) => {
           }
         ]
       };
-      admin.properties = await Property.find(query);;
+      admin.properties = await Property
+        .find(query)
+        .select('_id')
+        .select('name')
+      ;
       return admin;
     }
     administrators = await Promise.all(administrators.map(getPropertiesForAdmin))
@@ -247,7 +251,8 @@ const list = async (req, res) => {
   const pageCount = Math.ceil(itemCount / req.query.limit);
   let data = {
     list: administrators,
-    properties: properties,
+    // properties: properties,
+    properties: [],
     roles: roles,
     itemCount: itemCount,
     pageCount: pageCount,

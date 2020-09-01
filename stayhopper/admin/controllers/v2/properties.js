@@ -446,7 +446,10 @@ const list = async (req, res) => {
       }
 
       let [hotelAdmins, countries, list, itemCount] = await Promise.all([
-        hasAllPropertiesAccess ? Administrator.find({role: {$in: ids}}) : Promise.resolve([]),
+        hasAllPropertiesAccess
+          ? Administrator.find({role: {$in: ids}}).select('_id').select('name').select('legal_name')
+          : Promise.resolve([])
+        ,
         Country.find({}),
         ModuleModel
           .find(where)
