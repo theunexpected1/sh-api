@@ -5,9 +5,18 @@ module.exports = function (req, res, next) {
 		'http://localhost:3001',
 		'http://localhost:5000',
     'http://local.stayhopper.com:3001',
+		// VRBRos Staging Extranet
 		'https://admin.sh.vrbrosllc.com',
 		'https://stayhopper-admin.web.app',
+		// VRBRos Staging Website
 		'https://stayhopper-website.web.app',
+		// SH Staging Extranet
+		'https://www.extranet-staging.stayhopper.com',
+		'https://extranet-staging.stayhopper.com',
+		// SH Staging Website
+		'https://www.staging.stayhopper.com',
+		'https://staging.stayhopper.com',
+
 	];
 	var origin = req.headers.origin;
 

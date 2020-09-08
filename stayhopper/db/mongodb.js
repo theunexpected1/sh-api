@@ -1,8 +1,16 @@
-// const active_db = 'client-live'; 
-const active_db = ''; 
+let active_db = ''; 
 const mongoose = require('mongoose');
 let config = {};
-if(active_db == 'client-live'){ 
+
+switch (process.env.NODE_ENV) {
+    case 'staging':
+    case 'vrbros-staging':
+        active_db = 'staging'
+        break;
+    default:
+        active_db = ''
+}
+if(active_db == 'staging'){ 
     config = {
         url: "mongodb+srv://sh-staging:43557568845@cluster0-h5b9f.mongodb.net/sh-staging-db",
         options:{
@@ -30,16 +38,16 @@ if(active_db == 'client-live'){
             replicaSet: 'Cluster0-shard-0'
         }
     }
-}else{
+} else {
     config = {
         url: "mongodb://localhost:27017/stay",
-        options:{
+        options: {
             useNewUrlParser: true
         }
     }
 }
 mongoose.connect(config.url,config.options).then(() => {
-    console.log('Connected to db', config.url);
+    console.log('[NODE_ENV:' + process.env.NODE_ENV + '] Connected to db', config.url);
 })
 .catch((err) => {
     console.log('Could not connected to db', err);

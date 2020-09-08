@@ -1,6 +1,6 @@
 {
-  "app_url":"https://www.extranet-staging.stayhopper.com/",
-  "api_url":"http://api-staging.stayhopper.com/",
+  "app_url":"https://admin.sh.vrbrosllc.com/",
+  "api_url":"https://api.admin.sh.rahulv.com/",
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED",
