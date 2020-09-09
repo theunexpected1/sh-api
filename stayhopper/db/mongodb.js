@@ -12,7 +12,7 @@ switch (process.env.NODE_ENV) {
 }
 if(active_db == 'staging'){ 
     config = {
-        url: "mongodb+srv://sh-staging:43557568845@cluster0-h5b9f.mongodb.net/sh-staging-db",
+        url: "mongodb+srv://sh-staging:43557568845@cluster0-h5b9f.mongodb.net/stay",
         options:{
             user: 'sh-staging',
             pass: '43557568845',

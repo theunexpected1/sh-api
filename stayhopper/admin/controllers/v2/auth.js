@@ -91,6 +91,71 @@ router.post("/authorized", jwtMiddleware.administratorAuthenticationRequired, (r
   res.status(200).json({});
 })
 
+
+router.post("/migrate-roles", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const Roles = require("../../../db/models/roles");
+  let rolesCount = await Roles.countDocuments({});
+
+  try {
+    if (!rolesCount) {
+      const newRoles = [{
+        "_id" : "5efc8e8f5694cbf9675b2866",
+        "name" : "Super Admin",
+        "permissions" : [
+          "SHOW_DASHBOARD",
+          "SHOW_FULL_DASHBOARD",
+          "SHOW_SETTINGS",
+          "LIST_PROPERTIES",
+          "LIST_ALL_PROPERTIES",
+          "LIST_ROOMS",
+          "LIST_BOOKINGS",
+          "LIST_ALL_BOOKINGS",
+          "LIST_USERS",
+          "LIST_USER_RATINGS",
+          "LIST_ADMINISTRATORS",
+          "LIST_INVOICES",
+          "LIST_ALL_INVOICES"
+        ]
+      }, {
+        "_id" : "5efc8ef65694cbf9675b28a3",
+        "name" : "Hotel Admin",
+        "permissions" : [
+          "SHOW_DASHBOARD",
+          "SHOW_OWN_DASHBOARD",
+          "LIST_PROPERTIES",
+          "LIST_OWN_PROPERTIES",
+          "LIST_ROOMS",
+          "LIST_BOOKINGS",
+          "LIST_OWN_BOOKINGS",
+          "LIST_INVOICES",
+          "LIST_OWN_INVOICES"
+        ]
+      }, {
+        "_id" : "5f1a9e9a016a9ccac0177d39",
+        "name" : "Receptionist",
+        "permissions" : [
+          "SHOW_DASHBOARD",
+          "SHOW_OWN_DASHBOARD",
+          "LIST_PROPERTIES",
+          "LIST_OWN_PROPERTIES",
+          "LIST_ROOMS"
+        ]
+      }];
+
+      console.log(`Migration: Roles: Adding ${newRoles.length} roles...`);
+      await Roles.insertMany(newRoles);
+      console.log(`Migration: Roles: Added ${newRoles.length} roles...`);
+    } else {
+      console.log(`Migration: Roles: Skipping as ${rolesCount} roles exist`);
+    }
+  } catch (e) {
+    console.log('error in migrating roles', e);
+  }
+
+  res.status(200).json({});
+})
+
 router.post("/migrate-admins", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
 
   const HotelAdmin = require("../../../db/models/hoteladmins");
