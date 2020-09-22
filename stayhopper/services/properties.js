@@ -81,8 +81,8 @@ const service = {
       // 3. Sort Properties as per their ratings
       const propertiesWithSortedRatings = propertiesWithRatings
         .sort((a, b) => {
-          if (a.rating < b.rating) { return -1}
-          if (a.rating > b.rating) { return 1}
+          if (a.userRating < b.userRating) { return -1}
+          if (a.userRating > b.userRating) { return 1}
           return 0;
         })
         .reverse()
