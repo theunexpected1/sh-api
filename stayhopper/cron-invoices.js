@@ -245,7 +245,7 @@ let invoicesCtrl = {
     const paymentUrl = invoice.paymentUrl;
     const paymentAmount = invoice.amount;
     const currency = invoice.currency.code;
-    const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
+    const invoiceUrl = `${config.extranet_url}app/invoices/${invoice._id}`;
     let isInvoiceUpdated = false;
 
     // Send invoice to the Admin (This way admin will receive all invoices as separate emails)
@@ -326,7 +326,7 @@ let invoicesCtrl = {
     if (invoices.length) {
       const adminEmail = config.invoice_email;
       const invoiceMonthYear = invoices[0].invoiceForMonthString;
-      const invoicesUrl = `${config.app_url}app/invoices`;
+      const invoicesUrl = `${config.extranet_url}app/invoices`;
 
       // Enable Sending
       if (adminEmail) {
@@ -395,7 +395,7 @@ let invoicesCtrl = {
         const paymentUrl = invoice.paymentUrl;
         const paymentAmount = invoice.amount;
         const currency = invoice.currency.code;
-        const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
+        const invoiceUrl = `${config.extranet_url}app/invoices/${invoice._id}`;
 
         // Send reminder to property for payment
         if (propertyEmail) {
@@ -441,7 +441,7 @@ let invoicesCtrl = {
     // Send email to admin regarding reminders
     if (adminEmail && pendingInvoices.length) {
       const invoiceMonthYear = pendingInvoices[0].invoiceForMonthString;
-      const invoicesUrl = `${config.app_url}app/invoices`;
+      const invoicesUrl = `${config.extranet_url}app/invoices`;
 
       let html_body = fs.readFileSync("public/invoice-emails/invoice-reminder-admin.html","utf8");
       html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);
@@ -501,7 +501,7 @@ let invoicesCtrl = {
         const paymentUrl = invoice.paymentUrl;
         const paymentAmount = invoice.amount;
         const currency = invoice.currency.code;
-        const invoiceUrl = `${config.app_url}app/invoices/${invoice._id}`;
+        const invoiceUrl = `${config.extranet_url}app/invoices/${invoice._id}`;
 
         // Deactivate property, and send notification to property
         if (propertyEmail) {
@@ -548,7 +548,7 @@ let invoicesCtrl = {
     // Send email to admin regarding reminders
     if (adminEmail && pendingInvoices.length) {
       const invoiceMonthYear = pendingInvoices[0].invoiceForMonthString;
-      const invoicesUrl = `${config.app_url}app/invoices`;
+      const invoicesUrl = `${config.extranet_url}app/invoices`;
 
       let html_body = fs.readFileSync("public/invoice-emails/invoice-deactivate-admin.html","utf8");
       html_body = html_body.replace(/\{\{INVOICE_MONTH\}\}/g, invoiceMonthYear);

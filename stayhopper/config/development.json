@@ -1,6 +1,8 @@
 {
-  "app_url":"http://localhost:3001/",
+  "app_url":"http://localhost:3008/",
   "api_url":"http://localhost:3008/",
+  "extranet_url":"http://localhost:3001/",
+  "website_url":"http://localhost:3000/",
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED",

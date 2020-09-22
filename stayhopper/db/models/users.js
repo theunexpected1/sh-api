@@ -1,4 +1,5 @@
 const db = require('../mongodb');
+const bcrypt = require('bcrypt');
 const Country = require('./countries');
 const City = require('./cities');
 
@@ -34,6 +35,13 @@ const usersSchema = new db.Schema({
     },
     country:{
         type: String
+    },
+    dateOfBirth: {
+        type: Date
+    },
+    gender: {
+        type: String,
+        enum: ['male', 'female', 'other']
     },
     city_id:{
         type: db.Schema.Types.ObjectId,

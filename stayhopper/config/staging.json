@@ -1,6 +1,8 @@
 {
-  "app_url":"https://www.extranet-staging.stayhopper.com/",
+  "app_url":"http://api-staging.stayhopper.com/",
   "api_url":"http://api-staging.stayhopper.com/",
+  "extranet_url":"https://www.extranet-staging.stayhopper.com/",
+  "website_url":"https://www.staging.stayhopper.com/",
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED",

@@ -3,7 +3,7 @@ const app = new express.Router();
 
 const propertiesController = require('../controllers/api/properties');
 const ratingController = require('../controllers/api/rating');
-const usersController = require('../controllers/api/users');
+// const usersController = require('../controllers/api/users');
 const favouritesController = require('../controllers/api/favourites');
 const bookingController = require('../controllers/api/booking');
 const generalController = require('../controllers/api/general');
@@ -20,7 +20,7 @@ const paymentTestController = require('../controllers/api/testpayment');
 
 app.use("/properties", propertiesController);
 app.use("/ratings", ratingController);
-app.use("/users", usersController);
+// app.use("/users", usersController);
 app.use("/favourites", favouritesController);
 app.use("/bookings", bookingController);
 app.use("/general", generalController);
@@ -33,5 +33,11 @@ app.use('/website', websiteController);
 app.use('/contactus', contactUsController);
 app.use('/payment', paymentController);
 app.use('/paymenttest', paymentTestController);
+
+// V2 
+const usersControllerV2 = require('../controllers/api/v2/users');
+const mainControllerV2 = require('../controllers/api/v2/main');
+app.use("/users", usersControllerV2);
+app.use("/main", mainControllerV2);
 
 module.exports = app;

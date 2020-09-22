@@ -58,7 +58,7 @@ const propertiesPopulations = [
 const service = {
   sendWelcomeEmailToAdmin: async administratorId => {
     try {
-      let app_url = config.app_url;
+      let extranet_url = config.extranet_url;
       const administrator = await Administrator.findOne({_id: administratorId}).select('+email').select('+password');
       if (administrator) {
         const password = generator.generate({
@@ -71,7 +71,7 @@ const service = {
         let html_body = await readFile(currentDirPath + '/../../../emails/welcome.html', 'utf8')
         html_body = html_body.replace('{{USERNAME}}', administrator.email);
         html_body = html_body.replace('{{PASSWORD}}', password);
-        html_body = html_body.replace('{{URL}}', app_url);
+        html_body = html_body.replace('{{URL}}', extranet_url);
         msg = {
           to: administrator.email,
           bcc: [{ email: config.website_admin_bcc_email }],
@@ -477,7 +477,6 @@ const sendWelcomeEmail = async (req, res) => {
 }
 
 const onboarding = async (req, res) => {
-  let app_url = config.app_url;
   const resourceData = req.body;
   let resource;
   let sendEmail = true;
@@ -609,7 +608,7 @@ const onboardingVerification = async (req, res) => {
         let extranetPropertyUrl = '';
         if (property && property._id) {
           const queryParams = `loginEmail=${encodeURIComponent(existingResource.email)}&loginToken=${autoLoginCode}`;
-          extranetPropertyUrl = `${config.app_url}app/properties/${property._id}?${queryParams}`
+          extranetPropertyUrl = `${config.extranet_url}app/properties/${property._id}?${queryParams}`
         }
         console.log('extranetPropertyUrl', extranetPropertyUrl);
         res.status(200).send({

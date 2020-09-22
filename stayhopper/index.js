@@ -19,7 +19,7 @@ const testRouter = require('./routes/test');
 
 //middleware
 const requireLogin = require('./middleware/requiresLogin');
-const passportConfig = require('./middleware/passport-administrator');
+const passportConfig = require('./middleware/passport');
 const cronjobs = require('./cron');
 const cronjobsForInvoices = require('./cron-invoices');
 const allowedCORS = require('./middleware/allowed-cors');

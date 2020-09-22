@@ -197,6 +197,10 @@ const propertySchema = new db.Schema({
   charges: [chargesSchema],
   nearby : [nearBySchema],
   location: {
+    address: {
+      type: String,
+      default: ''
+    },
     type: {
       type: String,
       default: 'Point'
