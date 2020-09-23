@@ -1,6 +1,9 @@
 {
-  "app_url":"https://admin.sh.vrbrosllc.com/",
+  "app_url":"https://api.admin.sh.rahulv.com/",
   "api_url":"https://api.admin.sh.rahulv.com/",
+  "extranet_url":"https://admin.sh.vrbrosllc.com/",
+  "website_url":"https://stayhopper-website.web.app/",
+
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED",
