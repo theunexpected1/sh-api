@@ -4,9 +4,9 @@ let config = {};
 
 switch (process.env.NODE_ENV) {
     case 'staging':
-    case 'vrbros-staging':
         active_db = 'staging'
         break;
+    case 'vrbros-staging':
     default:
         active_db = ''
 }
