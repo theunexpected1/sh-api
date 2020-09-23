@@ -511,7 +511,7 @@ const getUsers = async (req, res) => {
       const hasFullDashboardAccess = permissions.indexOf(config.permissions.SHOW_FULL_DASHBOARD) > -1;
       if (hasFullDashboardAccess) {
         const count = await User.countDocuments();
-        const latest = await User.find().sort({createdAt: -1}).limit(5);
+        const latest = await User.find().sort({createdAt: -1, _id: -1}).limit(5);
         res.status(200).send({count, latest}).end();
       } else {
         res.status(401).send({
