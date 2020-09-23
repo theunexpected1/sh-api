@@ -13,8 +13,11 @@ module.exports = {
         COMMON_VARIABLE: 'true',
         NODE_ENV: 'staging'
       },
-      env_stage : {
+      env_staging : {
         NODE_ENV: 'staging'
+      },
+      env_staging_vrbros : {
+        NODE_ENV: 'staging-vrbros'
       }
     }
   ]
