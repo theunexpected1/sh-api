@@ -183,6 +183,10 @@ const propertySchema = new db.Schema({
     type: [String],
     enum: ['sun', 'mon', 'tue', 'wed', 'thu', 'fri', 'sat']
   },
+  anyTimeCheckin: {
+    type: Boolean,
+    default: true
+  },
   approved: {
     type: Boolean,
     default: false

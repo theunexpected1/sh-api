@@ -295,6 +295,35 @@ router.post("/migrate-properties", jwtMiddleware.administratorAuthenticationRequ
   res.status(200).json({});
 });
 
+router.post("/migrate-properties-anytimecheckin", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const Property = require("../../../db/models/properties");
+
+  // Ensure we run only once
+  let properties = await Property.find({anyTimeCheckin: {$exists: false}}).exec();
+
+  // Pending:
+  // 1. set anyTimeCheckin to true
+
+  try {
+    properties
+      // Test with Zain International
+      // .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
+      .map(async property => {
+        console.log('Attempting to change anyTimeCheckin... Property', property.name);
+        // 1.
+        property.anyTimeCheckin = true;
+        await property.save();
+        console.log('Migrated Property to set anyTimeCheckin to "true"', property.name);
+      })
+    ;
+  } catch (e) {
+    console.log('error in ', newAdmin.name, e);
+  }
+
+  res.status(200).json({});
+})
+
 router.post("/migrate-rooms", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
 
   const Room = require("../../../db/models/rooms");
