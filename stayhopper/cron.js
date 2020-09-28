@@ -10,7 +10,6 @@ const CompletedBooking = require("./db/models/completedbookings");
 const FCM = require("fcm-node");
 const moment = require("moment");
 const Slot = require("./db/models/slots");
-const BookingLog = require("./db/models/bookinglogs");
 const blockSlotsModel = require("./db/models/cron_blockslots");
 const Room = require("./db/models/rooms");
 const Property = require("./db/models/properties");
@@ -26,13 +25,13 @@ const fs = require("fs");
 //@desc delete booklogs
 cron.schedule("*/30 * * * *", async () => { 
   let today = moment().add(-2,'days').format('YYYY-MM-DD');
-  await BookingLog.deleteMany({date:{$lt:today}});
+  await BookLog.deleteMany({date:{$lt:today}});
   console.log({deleted:'deleted'});
 });
 
 // cron.schedule("* * * * * *", async () => {
 //   let today = moment().add(-2,'days').format('YYYY-MM-DD');
-//   await BookingLog.deleteMany({date:{$lt:today}});
+//   await BookLog.deleteMany({date:{$lt:today}});
 //   console.log({deleted:'deleted'});
 // });
 
@@ -577,7 +576,7 @@ const check_extended_booking_availability = async book_id => {
       .populate("room.room");
   }
   if (userbooking) {
-    booklog = await BookingLog.aggregate([
+    booklog = await BookLog.aggregate([
       {
         $match: {
           userbooking: userbooking._id
@@ -692,7 +691,7 @@ const check_extended_booking_availability = async book_id => {
           }
         }
       }
-      let is_exists = await BookingLog.aggregate([
+      let is_exists = await BookLog.aggregate([
         {
           $match: {
             $or: filter
@@ -968,6 +967,9 @@ cron.schedule("* * * * *", async () => {
                   slot: select_slot_ids[i],
                   number: k
                 });
+                const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+                const slotLabel = slotRecord ? slotRecord.label : '00:00';
+                const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
                 bookinglogs.push({
                   property: property,
                   room: room,
@@ -996,12 +998,16 @@ cron.schedule("* * * * *", async () => {
                     slot: select_slot_ids[i],
                     number: k
                   });
+                  const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+                  const slotLabel = slotRecord ? slotRecord.label : '00:00';
+                  const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
                   bookinglogs.push({
                     property: property,
                     room: room,
                     slot: select_slot_ids[i],
                     number: k,
                     date: dates[j],
+                    slotStartTime,
                     timestamp: new Date(
                       moment(new Date(dates[j])).format("YYYY-MM-DD")
                     )

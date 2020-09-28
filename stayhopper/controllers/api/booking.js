@@ -18,7 +18,7 @@ const UserBooking = require("../../db/models/userbookings");
 const CompletedBooking = require("../../db/models/completedbookings");
 const Slot = require("../../db/models/slots");
 const Room = require("../../db/models/rooms");
-const BookingLog = require("../../db/models/bookinglogs");
+const BookLog = require("../../db/models/bookinglogs");
 const Property = require("../../db/models/properties");
 const PromoCode = require("../../db/models/promocodes");
 const User = require("../../db/models/users");
@@ -370,11 +370,15 @@ router.post("/", async (req, res) => {
         //add to booking log
         let bookinglogs = [];
         let bookinglog = {};
+        const allSlots = await Slot.find({});
         for (var j = 0; j < booking_slots[i].slots.length; j++) {
           bookinglog = { ...booking_slots[i].slots[j] };
           bookinglog.property = booking_slots[i].property;
           bookinglog.room = booking_slots[i].room;
           bookinglog.date = booking_slots[i].date;
+          const slotRecord = allSlots.find(s => s._id.toString() === booking_slots[i].slots[j].toString());
+          const slotLabel = slotRecord ? slotRecord.label : '00:00';
+          bookinglog.slotStartTime = moment(`${booking_slots[i].date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
           bookinglogs.push(bookinglog);
         }
         for (var j = 0; j < bookinglogs.length; j++) {
@@ -382,14 +386,14 @@ router.post("/", async (req, res) => {
             moment(new Date(bookinglogs[j].date)).format("YYYY-MM-DD")
           );
         }
-        await BookingLog.insertMany(bookinglogs);
+        await BookLog.insertMany(bookinglogs);
       } catch (error) {
         await Booking.updateMany(
           {},
           { $pull: { slots: { userbooking: UB._id } } },
           { multi: true }
         );
-        await BookingLog.deleteMany({ userbooking: UB._id });
+        await BookLog.deleteMany({ userbooking: UB._id });
         await UserBooking.deleteOne({ _id: UB._id });
         return res.json({
           status: "Failed",
@@ -580,7 +584,7 @@ router.post("/", async (req, res) => {
           { multi: true }
         );
         await UserBooking.deleteOne({ _id: UB._id });
-        await BookingLog.deleteMany({ userbooking: UB._id });
+        await BookLog.deleteMany({ userbooking: UB._id });
         return res.json({
           status: "Failed",
           message: "Booking could not save successfully!"
@@ -595,7 +599,7 @@ router.post("/", async (req, res) => {
         { multi: true }
       );
       await UserBooking.deleteOne({ _id: UB._id });
-      await BookingLog.deleteMany({ userbooking: UB._id });
+      await BookLog.deleteMany({ userbooking: UB._id });
       return res.json({
         status: "Failed",
         message: "Booking could not save successfully!"
@@ -734,7 +738,7 @@ router.post("/extendedbooking", async (req, res) => {
       .populate("room.room");
   }
   if (userbooking) {
-    booklog = await BookingLog.aggregate([
+    booklog = await BookLog.aggregate([
       {
         $match: {
           userbooking: userbooking._id
@@ -848,7 +852,7 @@ router.post("/extendedbooking", async (req, res) => {
           }
         }
       }
-      let is_exists = await BookingLog.aggregate([
+      let is_exists = await BookLog.aggregate([
         {
           $match: {
             $or: filter
@@ -1000,6 +1004,9 @@ router.post("/extendedbooking", async (req, res) => {
             bookinglog.property = booking.property;
             bookinglog.room = booking.room;
             bookinglog.date = booking.date;
+            const slotRecord = slots.find(s => s._id.toString() === slots_day[j].slot.toString());
+            const slotLabel = slotRecord ? slotRecord.label : '00:00';
+            bookinglog.slotStartTime = moment(`${booking.date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
             bookinglogs.push(bookinglog);
           }
           for (var j = 0; j < bookinglogs.length; j++) {
@@ -1007,7 +1014,7 @@ router.post("/extendedbooking", async (req, res) => {
               moment(new Date(bookinglogs[j].date)).format("YYYY-MM-DD")
             );
           }
-          await BookingLog.insertMany(bookinglogs);
+          await BookLog.insertMany(bookinglogs);
         }
         let ivp_test = "1";
         if (booking.property.toString() == config.test_property.toString())
@@ -1187,7 +1194,7 @@ router.post("/extendedbooking", async (req, res) => {
                 { multi: true }
               );
               await UserBooking.deleteOne({ _id: UB._id });
-              await BookingLog.deleteMany({ userbooking: UB._id });
+              await BookLog.deleteMany({ userbooking: UB._id });
               return res.json({
                 status: "Failed",
                 message: "Booking could not save successfully!"
@@ -1202,7 +1209,7 @@ router.post("/extendedbooking", async (req, res) => {
               { multi: true }
             );
             await UserBooking.deleteOne({ _id: UB._id });
-            await BookingLog.deleteMany({ userbooking: UB._id });
+            await BookLog.deleteMany({ userbooking: UB._id });
             return res.json({
               status: "Failed",
               message: "Booking could not save successfully!"

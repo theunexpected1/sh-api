@@ -10,7 +10,7 @@ const Price = require("../../db/models/pricing");
 const Room = require("../../db/models/rooms");
 const UserRating = require("../../db/models/userratings");
 const UserBooking = require("../../db/models/userbookings");
-const BookingLog = require("../../db/models/bookinglogs");
+const BookLog = require("../../db/models/bookinglogs");
 const Notifications = require("../../db/models/notifications");
 const NotificationChild = require("../../db/models/notification_childs");
 const NotificationLog = require('../../db/models/notificationlogs');
@@ -382,7 +382,7 @@ router.post("/booking", async (req, res) => {
     }
   ];
 
-  let blocked_properties_result = await BookingLog.aggregate(
+  let blocked_properties_result = await BookLog.aggregate(
     bookingLogMasterFilter
   );
 
@@ -861,12 +861,16 @@ router.get("/reserveall", async (req, res) => {
             slot: select_slot_ids[i],
             number: room_no
           });
+          const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+          const slotLabel = slotRecord ? slotRecord.label : '00:00';
+          const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
           bookinglogs.push({
             property: property,
             room: room,
             slot: select_slot_ids[i],
             number: room_no,
-            date: date,
+            date,
+            slotStartTime,
             timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
           });
         }
@@ -1100,7 +1104,7 @@ const check_extended_booking_availability = async book_id => {
       .populate("room.room");
   }
   if (userbooking) {
-    booklog = await BookingLog.aggregate([
+    booklog = await BookLog.aggregate([
       {
         $match: {
           userbooking: userbooking._id
@@ -1215,7 +1219,7 @@ const check_extended_booking_availability = async book_id => {
           }
         }
       }
-      let is_exists = await BookingLog.aggregate([
+      let is_exists = await BookLog.aggregate([
         {
           $match: {
             $or: filter

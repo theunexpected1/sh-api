@@ -708,12 +708,16 @@ const changeAvailability = async (req, res) => {
                   });
 
                   // Save BookLogs
+                  const slotRecord = slots.find(s => s._id.toString() === slotId.toString());
+                  const slotLabel = slotRecord ? slotRecord.label : '00:00';
+                  const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
                   const record = {
                     property: room.property_id,
                     room: room._id,
                     slot: slotId,
                     number: no,
-                    date: date,
+                    date,
+                    slotStartTime,
                     timestamp: dateStampFormat
                   };
                   bookLogInsertRecords.push(record);
@@ -799,12 +803,16 @@ const changeAvailability = async (req, res) => {
                   });
 
                   // Save BookLogs
+                  const slotRecord = slots.find(s => s._id.toString() === slotId.toString());
+                  const slotLabel = slotRecord ? slotRecord.label : '00:00';
+                  const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
                   const record = {
                     property: room.property_id,
                     room: room._id,
                     slot: slotId,
                     number: no,
-                    date: date,
+                    date,
+                    slotStartTime,
                     timestamp: dateStampFormat
                   };
                   bookLogInsertRecords.push(record);

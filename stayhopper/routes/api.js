@@ -18,7 +18,7 @@ const paymentController = require('../controllers/api/payment');
 const paymentTestController = require('../controllers/api/testpayment');
 
 
-app.use("/properties", propertiesController);
+// app.use("/properties", propertiesController);
 app.use("/ratings", ratingController);
 // app.use("/users", usersController);
 app.use("/favourites", favouritesController);
@@ -37,7 +37,9 @@ app.use('/paymenttest', paymentTestController);
 // V2 
 const usersControllerV2 = require('../controllers/api/v2/users');
 const mainControllerV2 = require('../controllers/api/v2/main');
+const propertiesControllerV2 = require('../controllers/api/v2/properties');
 app.use("/users", usersControllerV2);
 app.use("/main", mainControllerV2);
+app.use("/properties", propertiesControllerV2);
 
 module.exports = app;

@@ -136,6 +136,8 @@ router.post("/block", async (req, res) => {
       bookinglog.number = no;
       bookinglog.date = date;
       bookinglog.timestamp = new Date(moment(new Date(date)).format('YYYY-MM-DD'));
+      bookingLog.slotStartTime = moment(`${date} ${slot.label}`, 'YYYY-MM-DD HH:mm');
+
       await bookinglog.save();
 
       await booking.save();

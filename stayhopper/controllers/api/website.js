@@ -13,7 +13,7 @@ const City = require("../../db/models/cities");
 const Price = require("../../db/models/pricing");
 const Room = require("../../db/models/rooms");
 const UserRating = require("../../db/models/userratings");
-const BookingLog = require("../../db/models/bookinglogs");
+const BookLog = require("../../db/models/bookinglogs");
 
 const _ = require("underscore");
 const moment = require("moment");
@@ -871,6 +871,7 @@ router.post("/search", async (req, res) => {
       });
     }
   
+    console.log('booklogfilter', JSON.stringify(booklogfilter));
     //bookinglog
     let bookingLogMasterFilter = [
       {
@@ -930,11 +931,12 @@ router.post("/search", async (req, res) => {
       }
     ];
   
-    let blocked_properties_result = await BookingLog.aggregate(
+    let blocked_properties_result = await BookLog.aggregate(
       bookingLogMasterFilter
     );
   
   
+    console.log('blocked_properties_result', blocked_properties_result);
     let blocked_properties_array = [];
     for (var i = 0; i < blocked_properties_result.length; i++) {
       blocked_properties_array.push({
@@ -942,6 +944,8 @@ router.post("/search", async (req, res) => {
         blockedrooms: blocked_properties_result[i].blockedrooms
       });
     }
+    console.log('blocked_properties_array', blocked_properties_array.length);
+
     custom_pricings_raw = await Price.aggregate([
       {
         $match: {

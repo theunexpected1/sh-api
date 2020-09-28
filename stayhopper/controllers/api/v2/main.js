@@ -17,6 +17,7 @@ const jwt = require('jsonwebtoken');
 const config = require("config");
 
 const User = require("../../../db/models/users");
+const Booking = require("../../../db/models/bookings");
 const City = require("../../../db/models/cities");
 const jwtMiddleware = require("../../../middleware/jwt");
 
@@ -70,7 +71,7 @@ router.get("/offers", async (req, res) => {
 
 router.get("/hotels-cheapest", async (req, res) => {
   try {
-    const cheapestProperties = await propertiesServices.getCheapestProperties();
+    const cheapestProperties = await propertiesServices.getCheapestProperties({});
     return res
       .status(200)
       .json({
@@ -88,8 +89,9 @@ router.get("/hotels-cheapest", async (req, res) => {
 });
 
 router.get("/hotels-popular", async (req, res) => {
+  const body = req.body;
   try {
-    const popularProperties = await propertiesServices.getPopularProperties();
+    const popularProperties = await propertiesServices.getPopularProperties({});
     return res
       .status(200)
       .json({

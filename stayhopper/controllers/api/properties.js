@@ -9,7 +9,7 @@ const City = require("../../db/models/cities");
 const Price = require("../../db/models/pricing");
 const Room = require("../../db/models/rooms");
 const UserRating = require("../../db/models/userratings");
-const BookingLog = require("../../db/models/bookinglogs");
+const BookLog = require("../../db/models/bookinglogs");
 
 const _ = require("underscore");
 const moment = require("moment");
@@ -427,7 +427,7 @@ router.post("/search", async (req, res) => {
     }
   ];
 
-  let blocked_properties_result = await BookingLog.aggregate(
+  let blocked_properties_result = await BookLog.aggregate(
     bookingLogMasterFilter
   ); 
 
@@ -1230,7 +1230,7 @@ router.get("/search/near", async (req, res) => {
     }
   ];
 
-  let blocked_properties_result = await BookingLog.aggregate(
+  let blocked_properties_result = await BookLog.aggregate(
     bookingLogMasterFilter
   );
 
@@ -2050,7 +2050,7 @@ router.get("/single", async (req, res) => {
     }
   ];
 
-  let blocked_properties_result = await BookingLog.aggregate(
+  let blocked_properties_result = await BookLog.aggregate(
     bookingLogMasterFilter
   );
 
@@ -3629,7 +3629,7 @@ router.get("/homedata", async (req, res) => {
     }
   ];
 
-  let blocked_properties_result = await BookingLog.aggregate(
+  let blocked_properties_result = await BookLog.aggregate(
     bookingLogMasterFilter
   );
 

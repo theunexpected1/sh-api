@@ -152,6 +152,7 @@ router.post("/block", async (req, res) => {
       bookinglog.timestamp = new Date(
         moment(new Date(date)).format("YYYY-MM-DD")
       );
+      bookinglog.slotStartTime = moment(`${date} ${slot.label}`, 'YYYY-MM-DD HH:mm');
       await bookinglog.save();
 
       await booking.save();
@@ -247,12 +248,16 @@ router.post("/block_range", async (req, res) => {
         slot: select_slot_ids[i],
         number: room_no
       });
+      const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+      const slotLabel = slotRecord ? slotRecord.label : '00:00';
+      const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
       bookinglogs.push({
         property: property,
         room: room,
         slot: select_slot_ids[i],
         number: room_no,
-        date: date,
+        date,
+        slotStartTime,
         timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
       });
     }
@@ -273,12 +278,16 @@ router.post("/block_range", async (req, res) => {
           slot: select_slot_ids[i],
           number: room_no
         });
+        const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+        const slotLabel = slotRecord ? slotRecord.label : '00:00';
+        const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
         bookinglogs.push({
           property: property,
           room: room,
           slot: select_slot_ids[i],
           number: room_no,
-          date: date,
+          date,
+          slotStartTime,
           timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
         });
       }
@@ -382,12 +391,16 @@ router.post("/block_all", async (req, res) => {
         slot: select_slot_ids[i],
         number: room_no
       });
+      const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+      const slotLabel = slotRecord ? slotRecord.label : '00:00';
+      const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
       bookinglogs.push({
         property: property,
         room: room,
         slot: select_slot_ids[i],
         number: room_no,
-        date: date,
+        date,
+        slotStartTime,
         timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
       });
     }
@@ -408,12 +421,16 @@ router.post("/block_all", async (req, res) => {
           slot: select_slot_ids[i],
           number: room_no
         });
+        const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+        const slotLabel = slotRecord ? slotRecord.label : '00:00';
+        const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
         bookinglogs.push({
           property: property,
           room: room,
           slot: select_slot_ids[i],
           number: room_no,
-          date: date,
+          date,
+          slotStartTime,
           timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
         });
       }
@@ -524,12 +541,16 @@ router.post("/reserveall", async (req, res) => {
           slot: select_slot_ids[i],
           number: room_no
         });
+        const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+        const slotLabel = slotRecord ? slotRecord.label : '00:00';
+        const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
         bookinglogs.push({
           property: property,
           room: room,
           slot: select_slot_ids[i],
           number: room_no,
-          date: date,
+          date,
+          slotStartTime,
           timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
         });
       }
@@ -551,12 +572,16 @@ router.post("/reserveall", async (req, res) => {
             slot: select_slot_ids[i],
             number: room_no
           });
+          const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+          const slotLabel = slotRecord ? slotRecord.label : '00:00';
+          const slotStartTime = moment(`${date} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
           bookinglogs.push({
             property: property,
             room: room,
             slot: select_slot_ids[i],
             number: room_no,
-            date: date,
+            date,
+            slotStartTime,
             timestamp: new Date(moment(new Date(date)).format("YYYY-MM-DD"))
           });
         }
@@ -797,12 +822,16 @@ router.post("/bulkedit/room/update", async (req, res) => {
             slot: select_slot_ids[i],
             number: room_no
           });
+          const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+          const slotLabel = slotRecord ? slotRecord.label : '00:00';
+          const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
           bookinglogs.push({
             property: property,
             room: room,
             slot: select_slot_ids[i],
             number: room_no,
             date: dates[j],
+            slotStartTime,
             timestamp: new Date(moment(new Date(dates[j])).format("YYYY-MM-DD"))
           });
         }
@@ -823,12 +852,16 @@ router.post("/bulkedit/room/update", async (req, res) => {
               slot: select_slot_ids[i],
               number: room_no
             });
+            const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+            const slotLabel = slotRecord ? slotRecord.label : '00:00';
+            const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
             bookinglogs.push({
               property: property,
               room: room,
               slot: select_slot_ids[i],
               number: room_no,
               date: dates[j],
+              slotStartTime,
               timestamp: new Date(
                 moment(new Date(dates[j])).format("YYYY-MM-DD")
               )

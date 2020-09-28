@@ -1,0 +1,131 @@
+const moment = require('moment');
+const { checkout } = require('../controllers/api/v2/main');
+const dateTimeService = require('./date-time');
+
+const service = {
+  debug: false,
+
+  // expanding 1.
+  getDatesAndHoursStayParams: params => {
+    const checkinDate = params.checkinDate;
+    const checkinTime = params.checkinTime;
+    const checkoutDate = params.checkoutDate;
+    const checkoutTime = params.checkoutTime;
+    // const propertyWeekends = params.weekends || [];
+
+    const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
+    const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
+
+    console.log('============getDatesAndHoursStayParams============');
+    console.log('checkinDateMoment', checkinDateMoment);
+    console.log('checkoutDateMoment', checkoutDateMoment);
+
+    // At least 1 calculation is needed
+    let timeRemaining = dateTimeService.getDiffInMins(checkoutDateMoment, checkinDateMoment);
+
+    // Inputs
+    let currentCheckinDateMoment = moment(checkinDateMoment);
+    // const checkinTimeStr = checkinDateMoment.format('HH:mm');
+    // const checkoutTimeStr = checkoutDateMoment.format('HH:mm');
+
+    const stayDetailParams = [];
+
+    // Run at least once [while (timeRemaining)]
+    do {
+      const checkinTimeStr = currentCheckinDateMoment.format('HH:mm');
+      let checkoutTimeStr = '00:00';
+      if (currentCheckinDateMoment.format('MM/DD/YYYY') === checkoutDateMoment.format('MM/DD/YYYY')) {
+        checkoutTimeStr = checkoutDateMoment.format('HH:mm');
+      }
+
+      const checkinTimeHours = parseInt(currentCheckinDateMoment.format('HH'));
+      const currentCheckinDateWeekDayName = checkinDateMoment.format('ddd').toLowerCase();
+      // const dayType = propertyWeekends.indexOf(currentCheckinDateWeekDayName) > -1 ? 'weekend' : 'weekday';
+      let rateType = 'fullDay';
+      let hours = [];
+
+      // Scenario 1: Standard day: 14:00 to next day 12:00
+      if (checkinTimeStr === '14:00') {
+        const nextDateForStandardCheckinMoment = moment(currentCheckinDateMoment).add(22, 'hours');
+        if (nextDateForStandardCheckinMoment.isSameOrBefore(checkoutDateMoment)) {
+          rateType = 'standardDay';
+        } else {
+          hours = dateTimeService.getHoursFromTo(checkinTimeStr, checkoutTimeStr);
+        }
+      } else if (checkinTimeHours < 14) {
+        // Scenario 2: we're earlier than 14:00 hours, then check if the NEXT day (14:00 hours onwards) has a standard check in
+        const supposeNextDay = moment(currentCheckinDateMoment)
+        supposeNextDay.set({hour: 14, minute: 0, second: 0, millisecond: 0});
+        const nextDateForStandardCheckinMoment = moment(supposeNextDay).add(22, 'hours');
+        // has?
+        if (nextDateForStandardCheckinMoment.isSameOrBefore(checkoutDateMoment)) {
+          // 1. previous day WAS standardDay? Back to back standard day? then jump straight to standardDay logic
+          const previousDayParams = stayDetailParams[stayDetailParams.length - 1];
+          if (previousDayParams && previousDayParams.rateType === 'standardDay') {
+            rateType = 'standardDay';
+            currentCheckinDateMoment.set({hour: 14, second: 0, minute: 0, millisecond: 0});
+          } else {
+            // 2. previous day was NOT standardDay? - then just take current time till 14 (eg: 10:00 to 14:00) and restart the process
+            checkoutTimeStr = '14:00';
+            hours = dateTimeService.getHoursFromTo(checkinTimeStr, checkoutTimeStr);
+          }
+
+        } else {
+          // Doesnt have? then just take hours of the remaining day (eg: 10:00 to 00:00)
+          hours = dateTimeService.getHoursFromTo(checkinTimeStr, checkoutTimeStr);
+        }
+      } else if (checkinTimeHours >= 14) {
+        // Scenario 3: hours of the remaining day (15:00 to 00:00)
+        hours = dateTimeService.getHoursFromTo(checkinTimeStr, checkoutTimeStr);
+      }
+
+      if (service.debug) {
+        console.log('currentCheckinDateMoment', currentCheckinDateMoment);
+        console.log('checkoutDateMoment', checkoutDateMoment);
+        console.log('checkinTimeStr', checkinTimeStr);
+        console.log('checkoutTimeStr', checkoutTimeStr);
+      }
+
+      if (rateType === 'standardDay') {
+        stayDetailParams.push({
+          date: currentCheckinDateMoment.format('MM/DD/YYYY'),
+          // dayType, // weekend or weekday
+          rateType, // fullDay or standardDay
+          hours,
+          hoursKeys: dateTimeService.getHoursKeysFromHours(hours)
+        });
+        // Ensure the next date for check in starts from same time next day.
+        currentCheckinDateMoment = moment(currentCheckinDateMoment).add(22, 'hours');
+      } else {
+        stayDetailParams.push({
+          date: currentCheckinDateMoment.format('MM/DD/YYYY'),
+          // dayType,
+          rateType,
+          hours,
+          hoursKeys: dateTimeService.getHoursKeysFromHours(hours)
+        });
+
+        // Set the new check in time for next round
+        // 1. Reset to 00:00 hours of NEXT DAY
+        if (checkoutTimeStr === '00:00') {
+          currentCheckinDateMoment = moment(currentCheckinDateMoment).add(1, 'days');
+          currentCheckinDateMoment.set({hour: 0, minute: 0, second: 0, millisecond: 0})
+        } else {
+          // 2. OR, Reset to the specific hours in the SAME DAY
+          const newCheckinTime = checkoutTimeStr.split(':');
+          currentCheckinDateMoment.set({hour: parseInt(newCheckinTime[0]), minute: parseInt(newCheckinTime[1]), second: 0, millisecond: 0})
+        }
+      }
+
+      timeRemaining = dateTimeService.getDiffInMins(checkoutDateMoment, currentCheckinDateMoment);
+
+      if (service.debug) {
+        console.log('timeRemaining', timeRemaining);
+      }
+    } while (timeRemaining)
+
+    return stayDetailParams;
+  }
+};
+
+module.exports = service;
