@@ -139,17 +139,34 @@ const service = {
   },
 
   getAvailableProperties: async (params, options) => {
+    params = params || {}
+    options = options || {}
     const checkinDate = params.checkinDate;
     const checkoutDate = params.checkoutDate;
     const checkinTime = params.checkinTime;
     const checkoutTime = params.checkoutTime;
-    const bookingType = params.bookingType;
     const cityId = params.cityId;
     const countryId = params.countryId;
     const numberAdults = params.numberAdults;
     const numberChildren = params.numberChildren;
     const numberRooms = params.numberRooms;
     const properties = params.properties;
+    let bookingType;
+    const ensureRatesAreDefined = true;
+
+    switch (params.bookingType) {
+      case 'hourly':
+      case 'short-term':
+        bookingType = 'short-term';
+        break;
+      case 'monthly':
+      case 'long-term':
+        bookingType = 'long-term';
+        break;
+      default:
+        bookingType = 'short-term';
+        break;
+    }
 
     // 1. get hours distribution for all dates of this stay
     const datesAndHoursParams = await checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
@@ -212,6 +229,28 @@ const service = {
 
     // 5. roomsQuery
     const roomsQuery = {'$and': []};
+
+    // filter only those that have rates defined
+    if (ensureRatesAreDefined) {
+      roomsQuery['$and'] = roomsQuery['$and'] || [];
+
+      const ratesExistConditions = {
+        "rates.0": {$exists: true}
+      };
+      const ratesTypeDefined = {
+        $or: [
+          {
+            "rates.0.rateType": bookingType
+          },
+          {
+            "rates.1.rateType": bookingType
+          },
+        ]
+      };
+
+      roomsQuery['$and'].push(ratesExistConditions);
+      roomsQuery['$and'].push(ratesTypeDefined);
+    }
 
     // filter guests (adult / children)
     if (numberAdults) {
