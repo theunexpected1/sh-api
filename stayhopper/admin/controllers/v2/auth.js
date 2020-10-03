@@ -324,29 +324,85 @@ router.post("/migrate-properties-anytimecheckin", jwtMiddleware.administratorAut
   res.status(200).json({});
 })
 
+
+router.post("/migrate-properties-location", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
+
+  const Property = require("../../../db/models/properties");
+
+  // Ensure we run only once
+  let properties = await Property.find({
+    location: {$exists: true},
+    contactinfo: {$exists: true},
+    'location.address': '',
+    'contactinfo.location': {$ne: ''}
+  }).exec();
+
+  // Pending:
+  // 1. set anyTimeCheckin to true
+
+  try {
+    properties
+      // Test with Zain International
+      // .filter(p => p._id.toString() === '5c0ce7258607b05625233208')
+      .map(async property => {
+        console.log('Attempting to set property.location.address ... Property', property.name);
+        // 1.
+        property.location = property.location || {};
+        property.location.address = property.contactinfo && property.contactinfo.location ? property.contactinfo.location : '';
+        await property.save();
+        console.log(`Migrated Property to set location to "${property.location.address}" for ${property.name}`);
+      })
+    ;
+  } catch (e) {
+    console.log('error in ', newAdmin.name, e);
+  }
+
+  res.status(200).json({});
+})
+
 router.post("/migrate-rooms", jwtMiddleware.administratorAuthenticationRequired, async (req, res) => {
 
   const Room = require("../../../db/models/rooms");
+  const GuestNumber = require("../../../db/models/guestnumbers");
 
   // Ensure we run only once
   let rooms = await Room.find({number_of_guests: {$exists: false}}).exec();
+  let migratedRooms = 0;
 
-  // Pending:
   // 1. Number of guests (migrate from number to object) 
 
-    try {
+  try {
+    const migrateRooms = await Promise.all(
       rooms
-        .filter(r => r._id.toString() === '5c0ce7258607b05625233208')
         .map(async room => {
-          console.log('room', room._id);
 
-          // Pending: 1.
-          await room.save();
+          if (room.number_guests) {
+            const guestNumber = await GuestNumber.findOne({
+              value: { $in: [room.number_guests.toString(), parseInt(room.number_guests)]},
+              $or: [
+                {
+                  childrenValue: {$exists: false}
+                },
+                {
+                  childrenValue: 0
+                }
+              ]
+            });
+
+            if (guestNumber) {
+              room.number_of_guests = guestNumber;
+              migratedRooms++;
+            }
+
+            // Pending: 1.
+            await room.save();
+          }
         })
-      ;
-    } catch (e) {
-      console.log('error in ', newAdmin.name, e);
-    }
+    );
+    console.log(`Migrated ${migratedRooms}/${rooms.length} rooms`);
+  } catch (e) {
+    console.log('error in ', newAdmin.name, e);
+  }
 
   res.status(200).json({});
 });
