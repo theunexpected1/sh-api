@@ -510,8 +510,8 @@ const service = {
         // Sort Properties as per their ratings
         richProperties = richProperties
           .sort((a, b) => {
-            if (a.priceSummary.base < b.priceSummary.base) { return -1}
-            if (a.priceSummary.base > b.priceSummary.base) { return 1}
+            if (a.priceSummary.base.amount < b.priceSummary.base.amount) { return 1}
+            if (a.priceSummary.base.amount > b.priceSummary.base.amount) { return -1}
             return 0;
           })
           .reverse()
@@ -567,6 +567,14 @@ const service = {
         limit: popularPropertiesCount
       })
 
+      // Append stay duration information
+      properties.map(p => {
+        p.stayDuration = {
+          label: `${numberOfHours} Hours`
+        };
+        return p;
+      });
+
       return properties;
     } catch (e) {
       console.log('e', e);
@@ -614,6 +622,14 @@ const service = {
       }, {
         sort: 'price',
         limit: cheapestPropertiesCount
+      });
+
+      // Append stay duration information
+      properties.map(p => {
+        p.stayDuration = {
+          label: `${numberOfHours} Hours`
+        };
+        return p;
       });
 
       // console.log('properties.length', properties.length);
