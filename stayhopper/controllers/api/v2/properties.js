@@ -24,18 +24,24 @@ router.post("/search", async (req, res) => {
       throw new Error('Invalid params');
     }
 
-    const properties = await propertiesServices.getAvailableProperties({
+    const properties = await propertiesServices.getProperties({
       checkinDate: body.checkinDate,
       checkoutDate: body.checkoutDate,
       checkinTime: body.checkinTime,
       checkoutTime: body.checkoutTime,
       bookingType: body.bookingType || 'hourly', // hourly or monthly
+      location: body.location || '',
       cityId: body.cityId || '',
       countryId: body.countryId || '',
       numberAdults: body.numberAdults || 2,
       numberChildren: body.numberChildren || 0,
       numberRooms: body.numberRooms || 1,
-      properties: body.properties || []
+      properties: body.properties || [],
+      rooms: body.rooms || [],
+      isTestingRates: body.isTestingRates || false,
+      limit: body.limit || '',
+      sort: body.sort || '',
+      orderBy: body.orderBy || ''
     });
 
     return res

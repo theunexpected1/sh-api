@@ -3,10 +3,12 @@ const Property = require("../db/models/properties");
 const UserRating = require("../db/models/userratings");
 const BookLog = require("../db/models/bookinglogs");
 const Room = require("../db/models/rooms");
+const Currency = require("../db/models/currencies");
 const dateTimeService = require("./date-time");
 const checkinService = require("./checkin");
 const moment = require('moment');
 const { property } = require("underscore");
+const config = require("config");
 
 const service = {
 
@@ -138,9 +140,19 @@ const service = {
     }
   },
 
-  getAvailableProperties: async (params, options) => {
+  /**
+   * Get properties with ratings and pricing, based on all parameters: query, filters, sorting
+   * 1. get hours distribution for all dates of this stay (date & standard/full info)
+   * 2. get unavailable Rooms
+   * 3. Prepare properties aggregate query and run the aggregation (skip unavailable rooms)
+   * 4. Populate Properties' Rooms' Pricing
+   * 5. Populate Properties' User Ratings
+   * 6. Sort and paginate list
+   */
+  getProperties: async (params, options) => {
     params = params || {}
     options = options || {}
+    const location = params.location;
     const checkinDate = params.checkinDate;
     const checkoutDate = params.checkoutDate;
     const checkinTime = params.checkinTime;
@@ -151,9 +163,11 @@ const service = {
     const numberChildren = params.numberChildren;
     const numberRooms = params.numberRooms;
     const properties = params.properties;
-    let bookingType;
-    const ensureRatesAreDefined = true;
+    const rooms = params.rooms;
+    const shouldGetPropertiesWithRates = true;
+    const isTestingRates = !!(params && params.isTestingRates);
 
+    let bookingType;
     switch (params.bookingType) {
       case 'hourly':
       case 'short-term':
@@ -176,22 +190,431 @@ const service = {
     const unavailableRoomIds = await service.getUnavailableRoomsIds({checkinDate, checkoutDate, checkinTime, checkoutTime, numberRooms})
     // console.log('unavailableRoomIds', unavailableRoomIds);
 
-    // 3. pagination Query
-    const paginationQuery = [
-      {
-        $skip: 0,
-      },
-      {
-        $limit: 1000
-      }
-    ]
+    // 3. Prepare properties aggregate query and run the aggregation
+    const aggregateQuery = service.getAggregateQuery({
+      datesAndHoursParams,
+      unavailableRoomIds,
+      cityId,
+      countryId,
+      location,
+      numberAdults,
+      numberChildren,
+      properties,
+      rooms,
+      isTestingRates,
+      bookingType,
+      shouldGetPropertiesWithRates
+    });
+    let list = await Room.aggregate(aggregateQuery);
+    // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
 
-    // 4. properties Query
+    // 4. Populate Properties' Rooms' Pricing
+    list = await service.populatePropertiesPricing(list, {
+      bookingType,
+      datesAndHoursParams
+    });
+
+    // 5. Populate Properties' User Ratings
+    list = await Promise.all(list.map(service.getPropertyRating));
+
+    // 6. Sort and paginate list (Defaults will be handled by sortAndPaginateProperties method, so don't decide default here)
+    const limit = params && params.limit
+      ? params.limit
+      : options && options.limit
+    ;
+    // veto: Specify distance as a default if there is location provided, otherwise let the method do it's job
+    const sort = params && params.sort
+      ? (params.sort === 'distance' && !location ? '' : params.sort)
+      : options && options.sort
+        ? (options.sort === 'distance' && !location ? '' : options.sort)
+        : !location ? '' : 'distance'
+    ;
+    const orderBy = params && params.orderBy
+      ? params.orderBy
+      : options && options.orderBy
+    ;
+    const page = params && params.page
+      ? params.page
+      : options && options.page
+    ;
+
+    const sortedPaginatedResult = await service.sortAndPaginateProperties(list, page, sort, orderBy, limit);
+    const { count, totalPages } = sortedPaginatedResult;
+    list = sortedPaginatedResult.list;
+
+    return { list, count, page, totalPages };
+  },
+
+  sortAndPaginateProperties: async (list, page, sort, orderBy, limit) => {
+
+    // Sorting
+    const count = list.length;
+    const pageSize = parseInt(config.pageSize.searchProperties);
+    page = page || 1;
+    limit = limit || pageSize;
+    sort = sort || 'price';
+    orderBy = orderBy || 'asc';
+
+    const skip = (page-1) * limit;
+    const totalPages = Math.ceil(count / limit);
+
+    switch (sort) {
+      case 'userRating':
+        // Sort Properties as per their ratings
+        list = list.sort((a, b) => orderBy === 'asc'
+          ? a.userRating - b.userRating
+          : b.userRating - a.userRating
+        );
+        break;
+      case 'distance':
+        // Sort Properties as per their distance
+        list = list.sort((a, b) => orderBy === 'asc'
+          ? a.distance - b.distance
+          : b.distance - a.distance
+        );
+        break;
+      case 'price':
+      default:
+        // Sort Properties as per their price
+        list = list.sort((a, b) => orderBy === 'asc'
+          ? a.priceSummary.base.amount - b.priceSummary.base.amount
+          : b.priceSummary.base.amount - a.priceSummary.base.amount
+        );
+      break;
+    }
+
+    // Pagination
+    // for Method 2:
+    list = list.splice(skip, limit);
+
+    return { list, count, totalPages };
+  },
+
+  getPopularProperties: async params => {
+    params = params || {};
+    const popularPropertiesPageSize = config.pageSize.popularPropertiesPageSize;
+
+    try {
+      const numberOfHours = 6;
+      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
+
+      const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
+      const checkoutTime = checkoutTimeMoment.format("HH:mm"); // use {numberOfHours} hours from checkinTime
+      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+
+      console.log('Popular Properties: checkinTime', checkinTime);
+      console.log('Popular Properties: checkoutTime', checkoutTime);
+      console.log('Popular Properties: checkinDate', checkinDate);
+      console.log('Popular Properties: checkoutDate', checkoutDate);
+
+      // const checkinTime = '16:30'; // use next 30 minute slot from now
+      // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
+      // const checkinDate = '10/15/2020'; // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      // const checkoutDate = '10/15/2020'; // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+
+      let propertiesResult = await service.getProperties({
+        checkinDate,
+        checkoutDate,
+        checkinTime,
+        checkoutTime,
+        bookingType: 'hourly', // hourly or monthly
+        cityId: params.cityId || '',
+        countryId: params.countryId || '',
+        numberAdults: params.numberAdults || 2,
+        numberChildren: params.numberChildren || 0,
+        numberRooms: params.numberRooms || 1,
+      }, {
+        sort: 'userRating',
+        limit: popularPropertiesPageSize
+      })
+
+      // Append stay duration information
+      propertiesResult.list.map(p => {
+        p.stayDuration = {
+          label: `${numberOfHours} Hours`
+        };
+        return p;
+      });
+
+      return propertiesResult;
+    } catch (e) {
+      console.log('e', e);
+      throw new Error(e.message)
+    }
+  },
+
+  // Get Cheapest Properties
+  getCheapestProperties: async params => {
+    params = params || {};
+    const cheapestPropertiesPageSize = config.pageSize.cheapestPropertiesPageSize;
+
+    try {
+      const numberOfHours = 3;
+
+      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
+
+      const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
+      const checkoutTime = checkoutTimeMoment.format("HH:mm"); // use {numberOfHours} hours from checkinTime
+      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+
+      console.log('Cheapest Properties: checkinTime', checkinTime);
+      console.log('Cheapest Properties: checkoutTime', checkoutTime);
+      console.log('Cheapest Properties: checkinDate', checkinDate);
+      console.log('Cheapest Properties: checkoutDate', checkoutDate);
+
+      // const checkinTime = '16:30'; // use next 30 minute slot from now
+      // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
+      // const checkinDate = '10/15/2020'; // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      // const checkoutDate = '10/15/2020'; // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+
+      let propertiesResult = await service.getProperties({
+        checkinDate,
+        checkoutDate,
+        checkinTime,
+        checkoutTime,
+        bookingType: 'hourly', // hourly or monthly
+        cityId: params.cityId || '',
+        countryId: params.countryId || '',
+        numberAdults: params.numberAdults || 2,
+        numberChildren: params.numberChildren || 0,
+        numberRooms: params.numberRooms || 1
+      }, {
+        sort: 'price',
+        limit: cheapestPropertiesPageSize
+      });
+
+      // Append stay duration information
+      propertiesResult.list.map(p => {
+        p.stayDuration = {
+          label: `${numberOfHours} Hours`
+        };
+        return p;
+      });
+
+      // console.log('propertiesResult.list.length', propertiesResult.list.length);
+      return propertiesResult;
+    } catch (e) {
+      console.log('e', e);
+      throw new Error(e.message)
+    }
+  },
+
+  getRoomPriceForDates: async (room, bookingType, datesAndHoursParams) => {
+    const property = room.property;
+
+    // Ensure it's more than 1, otherwise no use of recurring
+    const maxRecurringYears = 10;
+
+    if (!room || !room.rates || !room.rates.length) {
+      room.priceSummary = {};
+      console.log('returning early', room);
+      return room;
+    }
+
+    const defaultRoomPriceForBookingType = room.rates.find(rr => rr.isDefault && rr.rateType === bookingType);
+    // Sort so that we get the earlier defined rates before others
+    // Between below 2 custom rates {1} and {2}, {1} will be favored as it's preceeding {2}. {2} will be ignored
+    // {1}. 4th Oct to 6th October
+    // {2}. 5th October
+    const otherRoomRatesForBookingType = room.rates
+      .filter(rr => !rr.isDefault && rr.rateType === bookingType)
+      .sort((a, b) => {
+        const aDateFrom = new Date(a.dateFrom).getTime();
+        const bDateFrom = new Date(b.dateFrom).getTime();
+        if (aDateFrom < bDateFrom) { return -1}
+        if (aDateFrom > bDateFrom) { return 1}
+        return 0;
+      })
+    ;
+
+    const getRateForTheDateParams = (dateParams, weekends) => {
+      weekends = weekends || [];
+      let customRate = null;
+      let roomRateInfo; // weekday: {fullDay: 0, standardDay: 0, hours: []} or weekend: {fullDay: 0, standardDay: 0, hours: []}
+      const {date, rateType, hours, hoursKeys} = dateParams;
+      const targetDateMoment = moment(date, 'MM/DD/YYYY');
+      const dateWeekdayName = targetDateMoment.format('ddd').toLowerCase();
+      const weekendOrWeekday = weekends.indexOf(dateWeekdayName) > -1 ? 'weekend' : 'weekday';
+
+      // Look across all rate customizations
+      otherRoomRatesForBookingType.map(roomRate => {
+        // Run until we find first custom rate in range
+        if (!customRate) {
+          const isRecurring = roomRate.recurring;
+          const customRateDateFromMoment = moment(roomRate.dateFrom, 'MM/DD/YYYY');
+          const customRateDateToMoment = moment(roomRate.dateTo, 'MM/DD/YYYY');
+          // Recurring date ? Check if date is present in the date range, across {maxRecurringYears || 10} years
+          if (isRecurring) {
+            // Look across 0th year (first of definition) untill {maxRecurringYears || 10} occurances
+            // range of 10/04/2020 to 12/04/2020 recurring means look from 2020 to 2030 (both inclusive, so 11 years)
+            for (const i=0; i<=maxRecurringYears; i++) {
+              // Run until we find first rate as we could be in that year currently, hence no point looking beyond
+              if (!customRate) {
+                const currentYearDateFromMoment = moment(customRateDateFromMoment).add(i, 'years');
+                const currentYearDateToMoment = moment(customRateDateToMoment).add(i, 'years');
+                const isInRange = targetDateMoment.isSameOrAfter(currentYearDateFromMoment) && targetDateMoment.isSameOrBefore(currentYearDateToMoment);
+                if (isInRange) {
+                  // Found in recurring, so we can exit with this rate
+                  console.log('Recurring: Found in recurring, so we can exit with this rate', roomRate);
+                  customRate = roomRate;
+                }
+              }
+            }
+          } else {
+            // Non-recurring date ? Check if date is present in the date range
+            const isInRange = targetDateMoment.isSameOrAfter(customRateDateFromMoment) && targetDateMoment.isSameOrBefore(customRateDateToMoment);
+            if (isInRange) {
+              console.log('Non-Recurring: Found in one time range, so we can exit with this rate', roomRate);
+              customRate = roomRate;
+            }
+          }
+        }
+      })
+
+      // use rates from customized rates
+      if (customRate) {
+        console.log(`[Custom rate "${customRate.name}"]: Rate used for "${property.name}"`);
+        roomRateInfo = customRate[weekendOrWeekday]; // weekday: {} or weekend: {}
+      } else {
+        // use rates from default rates
+        console.log(`[DefaultRate]: Rate used for "${property.name}"`);
+        roomRateInfo = defaultRoomPriceForBookingType[weekendOrWeekday]; // weekday: {} or weekend: {}
+      }
+
+      // {weekday/weekend}.standardRate if 'rateType' is 'standardDay'
+      if (rateType === 'standardDay') {
+        return roomRateInfo[rateType];
+      } else if (rateType === 'fullDay') {
+        // get rate of each hour as specified in the Room Rate if 'rateType' is 'fullDay'
+        // We have 30 minute intervals, so we need to split the Hourly rate into 2 for each key
+        // @example
+        // For a checking from 10am to 11:30am, we need rates for 10:00, 10:30 and 11:00
+        // which results in keys ['h10', 'h10', 'h11'] for each half hour
+        // thereby resulting in rates: [rateFor10AM / 2, rateFor10AM / 2, rateFor11AM / 2]
+        // hoursKeys sample ['h10', 'h10', 'h11']
+        // roomRateInfo.hours sample {h10: 12, h11: 15}
+        // Result of below = 12 + (15/2) = 19.5
+        // if (room._id.toString() === '5cbc49edc22cb26e2baaab9e') {
+        //   console.log('hoursKeys for 5cbc49edc22cb26e2baaab9e', hoursKeys);
+        //   console.log('roomRateInfo for 5cbc49edc22cb26e2baaab9e', roomRateInfo);
+        // }
+        return hoursKeys.reduce((a, b) => {
+          return a + roomRateInfo.hours[b] / 2
+        }, 0)
+      } else {
+        console.log('something fundamentally wrong here, no other types of rates are supported');
+        return 0;
+      }
+    }
+
+    // Base Fee
+    const base = {
+      label: 'Base Price',
+      amount: parseInt(datesAndHoursParams.reduce((accumulator, dateParams) => {
+        return accumulator + getRateForTheDateParams(dateParams, property.weekends);
+      }, 0))
+    };
+
+    // Booking Fee
+    const bookingFee = {
+      label: 'Booking fee',
+      currency: '',
+      amount: 0
+    };
+    if (
+      property.contactinfo &&
+      property.contactinfo.country &&
+      property.contactinfo.country._id &&
+      config.bookingFee &&
+      config.bookingFee[property.contactinfo.country._id]
+    ) {
+      const bookingFeeForCountry = config.bookingFee[property.contactinfo.country._id].find(bf => bf.bookingType === bookingType);
+      bookingFee.amount = bookingFeeForCountry.fee;
+      bookingFee.currency = await Currency.findOne({_id: bookingFeeForCountry.currency});
+    }
+
+    // Taxes
+    const taxes = {
+      label: 'Taxes',
+      // currency: property.currency,
+      breakdown: [],
+      amount: 0
+    }
+
+    property.charges.map(tax => {
+      const taxAmount = service.getCalculatedTax(tax, base.amount);
+      taxes.breakdown.push({
+        label: tax.name,
+        amount: taxAmount
+      })
+      taxes.amount += taxAmount;
+    })
+
+    // Get the rates for date / hours combination
+
+    console.log(`[${property.currency.code} ${base.amount}]: Price for Room of "${property.name}"`);
+
+    // delete room.rates;
+    room.priceSummary = {
+      base,
+      taxes,
+      bookingFee,
+      total: {
+        label: "Total Amount",
+        amount: base.amount + bookingFee.amount
+      },
+      payNow: {
+        label: "Now you pay",
+        currency: bookingFee.currency,
+        amount: bookingFee.amount
+      },
+      payAtHotel: {
+        label: "Pay at the hotel",
+        amount: base.amount
+      }
+    }
+    return room;
+  },
+
+  getAggregateQuery: (params) => {
+    const {
+      datesAndHoursParams,
+      unavailableRoomIds,
+      cityId,
+      countryId,
+      location,
+      numberAdults,
+      numberChildren,
+      properties,
+      rooms,
+      isTestingRates,
+      bookingType,
+      shouldGetPropertiesWithRates
+    } = params;
+
+    // 3. properties Query
     const propertiesQuery = {'$and': []};
 
-    // Property status
-    propertiesQuery['$and'].push({'property.approved': true});
-    propertiesQuery['$and'].push({'property.published': true});
+    // Conditions to apply only if the rates are not just being testing
+    // @example
+    // If a hotel / SH Admin is testing rates, they would want to see rates even if the property is unapproved / unpublished / agreement is not signed / etc.
+    if (!isTestingRates) {
+
+      // Property status
+      propertiesQuery['$and'].push({'property.approved': true});
+      propertiesQuery['$and'].push({'property.published': true});
+
+      // Property agreement needs to be signed in
+      propertiesQuery['$and'].push({'property.agreement': {$exists: true}});
+      propertiesQuery['$and'].push({'property.agreement.isAgreementSigned': true});
+    }
+
+    // Property needs to have currency
+    propertiesQuery['$and'].push({'property.currency': {$exists: true}});
 
     // Filter out properties that don't have anyTimeCheckin enabled if the user wants to stay during non-standard hours
     if (!!datesAndHoursParams.find(dh => dh.rateType === 'fullDay')) {
@@ -201,7 +624,7 @@ const service = {
       })
     }
 
-    // filter specific Country / City
+    // filter specific Country
     if (countryId) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
@@ -209,6 +632,7 @@ const service = {
       })
     }
 
+    // filter specific City
     if (cityId) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
@@ -216,7 +640,7 @@ const service = {
       })
     }
 
-    // Look in the specific properties only
+    // Look for specific properties only (Even if unavailable from previous query)
     if (properties && properties.length) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
@@ -226,17 +650,17 @@ const service = {
       })
     }
 
-
-    // 5. roomsQuery
+    // 4. roomsQuery
     const roomsQuery = {'$and': []};
 
     // filter only those that have rates defined
-    if (ensureRatesAreDefined) {
+    if (shouldGetPropertiesWithRates) {
       roomsQuery['$and'] = roomsQuery['$and'] || [];
 
       const ratesExistConditions = {
         "rates.0": {$exists: true}
       };
+
       const ratesTypeDefined = {
         $or: [
           {
@@ -277,14 +701,67 @@ const service = {
       })
     }
 
-    // 6. Populations & projections
+    // Look for specific rooms only (Even if unavailable from previous query)
+    if (rooms && rooms.length) {
+      roomsQuery['$and'] = roomsQuery['$and'] || [];
+      roomsQuery['$and'].push({
+        _id: {
+          $in: rooms.map(r => db.Types.ObjectId(r))
+        }
+      })
+    }
+
+    let propertyPipeline = [
+      {
+        $match: {
+          $expr: {
+            $eq: ["$_id", "$$roomPropertyId"]
+          }
+        }
+      }
+    ];
+
+    // Get properties near to the specified location (40 kms)
+    if (location) {
+      const latLng = location.split(',');
+      lat = latLng[0].trim();
+      lng = latLng[1].trim();
+      propertyPipeline = [
+        {
+          $geoNear: {
+            near: {
+              type: "Point",
+              coordinates: [parseFloat(lng),parseFloat(lat)]
+            },
+            key: "property.location",
+            spherical: true,
+            distanceMultiplier: 0.001,
+            distanceField: "distance"
+          }
+        },
+        {
+          $match: {
+            $expr: { 
+              $and: [
+                { $eq: ["$_id", "$$roomPropertyId"] },
+                { $lte: ["$distance", 40] }
+              ]
+            }
+          }
+        }
+      ];
+    }
+
+    // 5. Populations & projections
     const propertyPopulations = [
       // property
       {
         $lookup: {
           from: "properties",
-          localField: "property_id",
-          foreignField: "_id",
+          let: {
+            roomPropertyId: "$property_id"
+          },
+          pipeline: propertyPipeline,
           as: "property"
         }
       },
@@ -345,13 +822,19 @@ const service = {
     ];
 
     const roomPopulations = [
-      // number_of_guests
       {
         $lookup: {
           from: "guest_numbers",
           localField: "number_of_guests",
           foreignField: "_id",
           as: "number_of_guests"
+        }
+      },{
+        $lookup: {
+          from: "services",
+          localField: "services",
+          foreignField: "_id",
+          as: "services"
         }
       },
       {
@@ -369,13 +852,16 @@ const service = {
           property: {
             _id: 1,
             name: 1,
+            distance: 1,
             location: 1,
             images: 1,
             featured: 1,
             currency: 1,
             contactinfo: 1,
+            charges: 1,
             rating: 1,
-            weekends: 1
+            weekends: 1,
+            anyTimeCheckin: 1
           }
         }
       },
@@ -397,13 +883,13 @@ const service = {
             ]
           }
         }
-      },
-      {
-        $project: {
-          'rooms.property': 0
-        }
       }
     ];
+
+    // console.log('propertyPopulations', propertyPopulations);
+    // console.log('roomPopulations', roomPopulations);
+    // console.log('propertiesQuery', JSON.stringify(propertiesQuery));
+    // console.log('roomsQuery', JSON.stringify(roomsQuery));
 
     const roomsAggregateQuery = [
       ...propertyPopulations,
@@ -415,229 +901,95 @@ const service = {
         $match: roomsQuery
       },
       ...projectionAndGrouping,
-      ...paginationQuery
     ];
 
-    // console.log('propertyPopulations', propertyPopulations);
-    // console.log('roomPopulations', roomPopulations);
-    // console.log('roomsAggregateQuery', JSON.stringify(roomsAggregateQuery));
+    return roomsAggregateQuery;
+  },
 
-    const availableProperties = await Room.aggregate(roomsAggregateQuery)
+  populatePropertiesPricing: async (properties, params) => {
+    const { bookingType, datesAndHoursParams } = params;
 
-    let richProperties = await Promise.all(
-      availableProperties.map(async property => {
-        // TODO
-        // 5. Get Pricing information for the properties
-        // - 5.1. Get pricing for each room
-        // - 5.2. Copy the lowest room price to the property (copy room.priceSummary to property.priceSummary)
+    // 1. Get Pricing information for the properties
+    // - 1.1. Get pricing for each room
+    // - 1.2. Remove rooms that result in 0 price
+    // - 1.3. Copy the lowest room price to the property (copy room.priceSummary to property.priceSummary)
+    // 2. Cleanup
 
-        // 5.1 Get the price
-        // TODO: Using dummy prices for now, use real values
-        property.rooms.map(room => {
-          delete room.rates;
-          room.priceSummary = {
-            base: {
-              label: "Base Price",
-              amount: 50 + parseInt(Math.random() * 300)
-            },
-            taxes: {
-              breakdown: [
-                {
-                  label: "VAT 5%",
-                  amount: 2.5
-                },
-                {
-                  label: "Tourism Fee",
-                  amount: 10
-                }
-              ],
-              label: "Taxes",
-              amount: 12.5
-            },
-            bookingFee: {
-              label: "Booking fee",
-              amount: 15
-            },
-            total: {
-              label: "Total Amount",
-              amount: 77.5
-            },
-            payNow: {
-              label: "Now you pay",
-              amount: 15
-            },
-            payAtHotel: {
-              label: "Pay at the hotel",
-              amount: 62.5
-            }
-          }
-          return room;
+    properties = await Promise.all(
+      properties.map(async property => {
+
+        // 1. Get Pricing
+        // 1.1 Get the Room prices
+        await Promise.all(property.rooms.map(async room => await service.getRoomPriceForDates(room, bookingType, datesAndHoursParams)));
+
+        // 1.2 Remove rooms that reuslt in 0 price
+        property.rooms = property.rooms.filter(room => {
+          return room.priceSummary && room.priceSummary.base && room.priceSummary.base.amount
         });
 
-        // 5.2 Copy cheapest room.priceSummary to property.priceSummary
+        // 1.3 Copy cheapest room.priceSummary to property.priceSummary
         if (property.rooms && property.rooms.length) {
           let cheapestPrice = 10000;
           property.priceSummary = {};
           property.rooms.map(room => {
-            if (room.priceSummary.base.amount < cheapestPrice) {
+            if (
+              room.priceSummary &&
+              room.priceSummary.base &&
+              room.priceSummary.base.amount &&
+              (room.priceSummary.base.amount < cheapestPrice)
+            ) {
               property.priceSummary = room.priceSummary;
               cheapestPrice = room.priceSummary.base.amount;
             }
           })
         }
 
-        // 5. Get User Ratings information for the properties
-        // - Populate ratings in properties
-        property = await service.getPropertyRating(property);
+        // 2. Remove / format insecure keys of Property and it's rooms
+        delete property.weekends;
+        delete property.charges;
+        delete property.anyTimeCheckin;
+        property.contactinfo = {
+          country: property.contactinfo.country,
+          city: property.contactinfo.city
+        }
+        property.rooms.map(room => {
+          delete room.rates;
+          delete room.property;
+          return room;
+        })
 
         return property;
       })
     );
 
-    if (options) {
-      // Sorting
-      if (options.sort && options.sort === 'userRatings') {
-        // Sort Properties as per their ratings
-        richProperties = richProperties
-          .sort((a, b) => {
-            if (a.userRating < b.userRating) { return -1}
-            if (a.userRating > b.userRating) { return 1}
-            return 0;
-          })
-          .reverse()
-        ;
-      } else if (options.sort && options.sort === 'price') {
-        // Sort Properties as per their ratings
-        richProperties = richProperties
-          .sort((a, b) => {
-            if (a.priceSummary.base.amount < b.priceSummary.base.amount) { return 1}
-            if (a.priceSummary.base.amount > b.priceSummary.base.amount) { return -1}
-            return 0;
-          })
-          .reverse()
-        ;
-      }
+    // 2. Remove properties that don't have rooms (as a result of no pricing)
+    properties = properties.filter(p => p.rooms && p.rooms.length);
 
-      // Sorting
-      if (options.limit) {
-        richProperties = richProperties.splice(0, options.limit);
-      }
-    }
-
-    return richProperties;
+    return properties;
   },
 
-  getPopularProperties: async params => {
-    params = params || {};
-    const popularPropertiesCount = 10;
-
-    try {
-      const numberOfHours = 6;
-      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
-      const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
-
-      const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
-      const checkoutTime = checkoutTimeMoment.format("HH:mm"); // use {numberOfHours} hours from checkinTime
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
-
-      console.log('Popular Properties: checkinTime', checkinTime);
-      console.log('Popular Properties: checkoutTime', checkoutTime);
-      console.log('Popular Properties: checkinDate', checkinDate);
-      console.log('Popular Properties: checkoutDate', checkoutDate);
-
-      // const checkinTime = '16:30'; // use next 30 minute slot from now
-      // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
-      // const checkinDate = '10/15/2020'; // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      // const checkoutDate = '10/15/2020'; // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
-
-      let properties = await service.getAvailableProperties({
-        checkinDate,
-        checkoutDate,
-        checkinTime,
-        checkoutTime,
-        bookingType: 'hourly', // hourly or monthly
-        cityId: params.cityId || '',
-        countryId: params.countryId || '',
-        numberAdults: params.numberAdults || 2,
-        numberChildren: params.numberChildren || 0,
-        numberRooms: params.numberRooms || 1,
-      }, {
-        sort: 'userRatings',
-        limit: popularPropertiesCount
-      })
-
-      // Append stay duration information
-      properties.map(p => {
-        p.stayDuration = {
-          label: `${numberOfHours} Hours`
-        };
-        return p;
-      });
-
-      return properties;
-    } catch (e) {
-      console.log('e', e);
-      throw new Error(e.message)
+  /**
+   * Calculate and return tax
+   * @param
+   * tax  Object {
+   *  id | String
+   *  name | String
+   *  chargeType | Enum | 'percentage' or 'number'
+   *  value | Number
+   * }
+   * amount | number
+   */
+  getCalculatedTax: (tax, amount) => {
+    const taxValue = parseInt(tax.value || 0);
+    if (taxValue) {
+      const chargedTax = tax.chargeType === 'percentage'
+        ? amount * (taxValue / 100)
+        : taxValue
+      ;
+      return parseFloat(chargedTax.toFixed(2));
     }
-  },
 
-  // Get Cheapest Properties
-  getCheapestProperties: async params => {
-    params = params || {};
-    const cheapestPropertiesCount = 10;
-
-    try {
-      const numberOfHours = 3;
-
-      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
-      const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
-
-      const checkinTime = checkinTimeMoment.format("hh:mm"); // use next 30 minute slot from now
-      const checkoutTime = checkoutTimeMoment.format("hh:mm"); // use {numberOfHours} hours from checkinTime
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
-
-      console.log('Cheapest Properties: checkinTime', checkinTime);
-      console.log('Cheapest Properties: checkoutTime', checkoutTime);
-      console.log('Cheapest Properties: checkinDate', checkinDate);
-      console.log('Cheapest Properties: checkoutDate', checkoutDate);
-
-      // const checkinTime = '16:30'; // use next 30 minute slot from now
-      // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
-      // const checkinDate = '10/15/2020'; // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      // const checkoutDate = '10/15/2020'; // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
-
-      let properties = await service.getAvailableProperties({
-        checkinDate,
-        checkoutDate,
-        checkinTime,
-        checkoutTime,
-        bookingType: 'hourly', // hourly or monthly
-        cityId: params.cityId || '',
-        countryId: params.countryId || '',
-        numberAdults: params.numberAdults || 2,
-        numberChildren: params.numberChildren || 0,
-        numberRooms: params.numberRooms || 1
-      }, {
-        sort: 'price',
-        limit: cheapestPropertiesCount
-      });
-
-      // Append stay duration information
-      properties.map(p => {
-        p.stayDuration = {
-          label: `${numberOfHours} Hours`
-        };
-        return p;
-      });
-
-      // console.log('properties.length', properties.length);
-      return properties;
-    } catch (e) {
-      console.log('e', e);
-      throw new Error(e.message)
-    }
+    return 0;
   }
 };
 

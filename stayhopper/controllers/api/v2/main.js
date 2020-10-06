@@ -64,6 +64,16 @@ router.get("/offers", async (req, res) => {
         subtitle: 'For your first Booking',
         image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
         link: 'https://media.makeameme.org/created/so-sal-got.jpg',
+      }, {
+        title: 'Visit The Bahamas',
+        subtitle: 'Flat 30% off',
+        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
+        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
+      }, {
+        title: 'AED 100 off',
+        subtitle: 'For your first Booking',
+        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
+        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
       }]
     })
   ;
@@ -71,12 +81,12 @@ router.get("/offers", async (req, res) => {
 
 router.get("/hotels-cheapest", async (req, res) => {
   try {
-    const cheapestProperties = await propertiesServices.getCheapestProperties({});
+    const cheapestPropertiesResult = await propertiesServices.getCheapestProperties({});
     return res
       .status(200)
       .json({
         status: 1,
-        data: cheapestProperties
+        data: cheapestPropertiesResult.list
       })
     ;
   } catch (e) {
@@ -91,12 +101,12 @@ router.get("/hotels-cheapest", async (req, res) => {
 router.get("/hotels-popular", async (req, res) => {
   const body = req.body;
   try {
-    const popularProperties = await propertiesServices.getPopularProperties({});
+    const popularPropertiesResult = await propertiesServices.getPopularProperties({});
     return res
       .status(200)
       .json({
         status: 1,
-        data: popularProperties
+        data: popularPropertiesResult.list
       })
     ;
   } catch (e) {

@@ -6,7 +6,7 @@ const service = {
   debug: false,
 
   // expanding 1.
-  getDatesAndHoursStayParams: params => {
+  getDatesAndHoursStayParams: async params => {
     const checkinDate = params.checkinDate;
     const checkinTime = params.checkinTime;
     const checkoutDate = params.checkoutDate;
