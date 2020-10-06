@@ -1102,8 +1102,10 @@ const service = {
 
         // 1.3 Copy cheapest room.priceSummary to property.priceSummary
         if (property.rooms && property.rooms.length) {
-          let cheapestPrice = 10000;
-          property.priceSummary = {};
+          // Start with first room
+          let cheapestPrice = property.rooms[0].priceSummary.base.amount;
+          property.priceSummary = property.rooms[0].priceSummary;
+          // Save the cheapest room's price to the property
           property.rooms.map(room => {
             if (
               room.priceSummary &&
