@@ -58,6 +58,9 @@ const ratesSchema = new db.Schema({
   dateFrom: Date,
   dateTo: Date,
   recurring: Boolean,
+  minimumBookingRate: {
+    type: Number
+  },
   isDefault: {
     type: Boolean,
     default: false

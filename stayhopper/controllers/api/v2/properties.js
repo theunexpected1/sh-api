@@ -41,7 +41,15 @@ router.post("/search", async (req, res) => {
       isTestingRates: body.isTestingRates || false,
       limit: body.limit || '',
       sort: body.sort || '',
-      orderBy: body.orderBy || ''
+      orderBy: body.orderBy || '',
+      // Filters
+      priceMin: body.priceMin || null,
+      priceMax: body.priceMax || null,
+      propertyTypes: body.propertyTypes || [],
+      rating: body.rating || [],
+      roomTypes: body.roomTypes || [],
+      bedTypes: body.bedTypes || [],
+      amenities: body.amenities || [],
     });
 
     return res

@@ -159,13 +159,22 @@ const service = {
     const checkoutTime = params.checkoutTime;
     const cityId = params.cityId;
     const countryId = params.countryId;
-    const numberAdults = params.numberAdults;
-    const numberChildren = params.numberChildren;
-    const numberRooms = params.numberRooms;
+    const numberAdults = parseInt(params.numberAdults) || 2;
+    const numberChildren = parseInt(params.numberChildren) || 0;
+    const numberRooms = parseInt(params.numberRooms) || 1;
     const properties = params.properties;
     const rooms = params.rooms;
     const shouldGetPropertiesWithRates = true;
     const isTestingRates = !!(params && params.isTestingRates);
+
+    // Filters
+    const priceMin = params.priceMin !== null ? params.priceMin : params.priceMin;
+    const priceMax = params.priceMax !== null ? params.priceMax : params.priceMax;
+    const propertyTypes = params.propertyTypes || [];
+    const rating = params.rating || [];
+    const roomTypes = params.roomTypes || [];
+    const bedTypes = params.bedTypes || [];
+    const amenities = params.amenities || [];
 
     let bookingType;
     switch (params.bookingType) {
@@ -184,34 +193,49 @@ const service = {
 
     // 1. get hours distribution for all dates of this stay
     const datesAndHoursParams = await checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
-    console.log('datesAndHoursParams', datesAndHoursParams);
+    console.log('Dates & Hours params:', datesAndHoursParams);
+
+    console.log('Applied Filters:', priceMin, priceMax, propertyTypes, rating, roomTypes, bedTypes, amenities);
 
     // 2. Get unavailable Room IDs
-    const unavailableRoomIds = await service.getUnavailableRoomsIds({checkinDate, checkoutDate, checkinTime, checkoutTime, numberRooms})
-    // console.log('unavailableRoomIds', unavailableRoomIds);
+    const unavailableRooms = await service.getUnavailableRoomsIds({checkinDate, checkoutDate, checkinTime, checkoutTime, numberRooms})
+    // console.log('unavailableRooms', unavailableRooms);
 
     // 3. Prepare properties aggregate query and run the aggregation
+    // - Filters Phase 1: Send in filters in aggregate query
     const aggregateQuery = service.getAggregateQuery({
+      shouldGetPropertiesWithRates,
       datesAndHoursParams,
-      unavailableRoomIds,
+      unavailableRooms,
+
       cityId,
       countryId,
       location,
       numberAdults,
       numberChildren,
-      properties,
-      rooms,
+      numberRooms,
       isTestingRates,
       bookingType,
-      shouldGetPropertiesWithRates
+      properties,
+      rooms,
+
+      propertyTypes,
+      rating,
+      roomTypes,
+      bedTypes,
+      amenities
     });
+
     let list = await Room.aggregate(aggregateQuery);
     // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
 
     // 4. Populate Properties' Rooms' Pricing
+    // - Filters Phase 2: Also, send pricing filters (Can filter price only after aggregation as pricing is a separate process)
     list = await service.populatePropertiesPricing(list, {
       bookingType,
-      datesAndHoursParams
+      datesAndHoursParams,
+      priceMin,
+      priceMax
     });
 
     // 5. Populate Properties' User Ratings
@@ -236,6 +260,8 @@ const service = {
     const page = params && params.page
       ? params.page
       : options && options.page
+        ? options && options.page
+        : 1
     ;
 
     const sortedPaginatedResult = await service.sortAndPaginateProperties(list, page, sort, orderBy, limit);
@@ -327,6 +353,7 @@ const service = {
         numberRooms: params.numberRooms || 1,
       }, {
         sort: 'userRating',
+        orderBy: 'desc',
         limit: popularPropertiesPageSize
       })
 
@@ -379,11 +406,12 @@ const service = {
         bookingType: 'hourly', // hourly or monthly
         cityId: params.cityId || '',
         countryId: params.countryId || '',
-        numberAdults: params.numberAdults || 2,
-        numberChildren: params.numberChildren || 0,
-        numberRooms: params.numberRooms || 1
+        numberAdults: parseInt(params.numberAdults) || 2,
+        numberChildren: parseInt(params.numberChildren) || 0,
+        numberRooms: parseInt(params.numberRooms) || 1
       }, {
         sort: 'price',
+        orderBy: 'asc',
         limit: cheapestPropertiesPageSize
       });
 
@@ -395,7 +423,6 @@ const service = {
         return p;
       });
 
-      // console.log('propertiesResult.list.length', propertiesResult.list.length);
       return propertiesResult;
     } catch (e) {
       console.log('e', e);
@@ -451,7 +478,7 @@ const service = {
           if (isRecurring) {
             // Look across 0th year (first of definition) untill {maxRecurringYears || 10} occurances
             // range of 10/04/2020 to 12/04/2020 recurring means look from 2020 to 2030 (both inclusive, so 11 years)
-            for (const i=0; i<=maxRecurringYears; i++) {
+            for (let i=0; i<=maxRecurringYears; i++) {
               // Run until we find first rate as we could be in that year currently, hence no point looking beyond
               if (!customRate) {
                 const currentYearDateFromMoment = moment(customRateDateFromMoment).add(i, 'years');
@@ -459,7 +486,7 @@ const service = {
                 const isInRange = targetDateMoment.isSameOrAfter(currentYearDateFromMoment) && targetDateMoment.isSameOrBefore(currentYearDateToMoment);
                 if (isInRange) {
                   // Found in recurring, so we can exit with this rate
-                  console.log('Recurring: Found in recurring, so we can exit with this rate', roomRate);
+                  console.log('Recurring: Found in recurring, so we can exit with default rate');
                   customRate = roomRate;
                 }
               }
@@ -468,21 +495,33 @@ const service = {
             // Non-recurring date ? Check if date is present in the date range
             const isInRange = targetDateMoment.isSameOrAfter(customRateDateFromMoment) && targetDateMoment.isSameOrBefore(customRateDateToMoment);
             if (isInRange) {
-              console.log('Non-Recurring: Found in one time range, so we can exit with this rate', roomRate);
+              console.log('Non-Recurring: Found in one time range, so we can exit with customRate');
               customRate = roomRate;
             }
           }
         }
       })
 
+      let minBookingRateForFullDay = null;
+
       // use rates from customized rates
       if (customRate) {
-        console.log(`[Custom rate "${customRate.name}"]: Rate used for "${property.name}"`);
+        console.log(`- [Custom rate "${customRate.name}"]: Rate used for "${property.name}"`);
         roomRateInfo = customRate[weekendOrWeekday]; // weekday: {} or weekend: {}
+
+        // Get minimum booking rate for fullDay from Custom Rate
+        if (customRate.minimumBookingRate && rateType === 'fullDay') {
+          minBookingRateForFullDay = customRate.minimumBookingRate;
+        }
       } else {
         // use rates from default rates
-        console.log(`[DefaultRate]: Rate used for "${property.name}"`);
+        console.log(`- [DefaultRate]: Rate used for "${property.name}"`);
         roomRateInfo = defaultRoomPriceForBookingType[weekendOrWeekday]; // weekday: {} or weekend: {}
+
+        // Get minimum booking rate for fullDay from Custom Rate
+        if (defaultRoomPriceForBookingType.minimumBookingRate && rateType === 'fullDay') {
+          minBookingRateForFullDay = defaultRoomPriceForBookingType.minimumBookingRate;
+        }
       }
 
       // {weekday/weekend}.standardRate if 'rateType' is 'standardDay'
@@ -502,9 +541,15 @@ const service = {
         //   console.log('hoursKeys for 5cbc49edc22cb26e2baaab9e', hoursKeys);
         //   console.log('roomRateInfo for 5cbc49edc22cb26e2baaab9e', roomRateInfo);
         // }
-        return hoursKeys.reduce((a, b) => {
+        const rate =  hoursKeys.reduce((a, b) => {
           return a + roomRateInfo.hours[b] / 2
-        }, 0)
+        }, 0);
+
+        if (minBookingRateForFullDay && rate < minBookingRateForFullDay) {
+          return minBookingRateForFullDay;
+        }
+        return rate;
+
       } else {
         console.log('something fundamentally wrong here, no other types of rates are supported');
         return 0;
@@ -582,18 +627,26 @@ const service = {
 
   getAggregateQuery: (params) => {
     const {
+      shouldGetPropertiesWithRates,
       datesAndHoursParams,
-      unavailableRoomIds,
+      unavailableRooms,
+
       cityId,
       countryId,
       location,
       numberAdults,
       numberChildren,
-      properties,
-      rooms,
+      numberRooms,
       isTestingRates,
       bookingType,
-      shouldGetPropertiesWithRates
+      properties,
+      rooms,
+
+      propertyTypes,
+      rating,
+      roomTypes,
+      bedTypes,
+      amenities
     } = params;
 
     // 3. properties Query
@@ -628,7 +681,7 @@ const service = {
     if (countryId) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
-        'property.contactinfo.country._id': countryId
+        'property.contactinfo.country._id': db.Types.ObjectId(countryId)
       })
     }
 
@@ -636,18 +689,36 @@ const service = {
     if (cityId) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
-        'property.contactinfo.city._id': cityId
+        'property.contactinfo.city._id': db.Types.ObjectId(cityId)
       })
     }
 
     // Look for specific properties only (Even if unavailable from previous query)
-    if (properties && properties.length) {
+    if (properties && properties.length && isTestingRates) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
         'property._id': {
           $in: properties.map(p => db.Types.ObjectId(p))
         }
       })
+    }
+
+    // Filter by Property Types
+    if (propertyTypes && propertyTypes.length) {
+      propertiesQuery['$and'] = propertiesQuery['$and'] || [];
+      const propertyTypesIds = propertyTypes.filter(ptId => !!ptId).map(ptId => db.Types.ObjectId(ptId));
+      if (propertyTypesIds && propertyTypesIds.length) {
+        propertiesQuery['$and'].push({ 'property.type._id': { $in: propertyTypesIds } })
+      }
+    }
+
+    // Filter by Property Ratings
+    if (rating && rating.length) {
+      propertiesQuery['$and'] = propertiesQuery['$and'] || [];
+      const propertyStarRatingsIds = rating.filter(rId => !!rId).map(rId => db.Types.ObjectId(rId));
+      if (propertyStarRatingsIds && propertyStarRatingsIds.length) {
+        propertiesQuery['$and'].push({ 'property.rating._id': { $in: propertyStarRatingsIds } })
+      }
     }
 
     // 4. roomsQuery
@@ -691,24 +762,63 @@ const service = {
       })
     }
 
-    // Ignore unavailable rooms
-    if (unavailableRoomIds && unavailableRoomIds.length) {
+    // filter number of rooms
+    if (numberRooms) {
       roomsQuery['$and'] = roomsQuery['$and'] || [];
       roomsQuery['$and'].push({
-        _id: {
-          $nin: unavailableRoomIds
-        }
+        'number_rooms': {$gte: numberRooms  }
       })
     }
 
+    // Filter by Room Types
+    if (roomTypes && roomTypes.length) {
+      roomsQuery['$and'] = roomsQuery['$and'] || [];
+      const roomTypesIds = roomTypes.filter(id => !!id).map(id => db.Types.ObjectId(id));
+      if (roomTypesIds && roomTypesIds.length) {
+        roomsQuery['$and'].push({ 'room_type._id': { $in: roomTypesIds } })
+      }
+    }
+
+    // Filter by Bed Types
+    if (bedTypes && bedTypes.length) {
+      roomsQuery['$and'] = roomsQuery['$and'] || [];
+      const bedTypesIds = bedTypes.filter(id => !!id).map(id => db.Types.ObjectId(id));
+      if (bedTypesIds && bedTypesIds.length) {
+        roomsQuery['$and'].push({ 'bed_type._id': { $in: bedTypesIds } })
+      }
+    }
+
+    // Filter by Amenities
+    if (amenities && amenities.length) {
+      roomsQuery['$and'] = roomsQuery['$and'] || [];
+      const amenitiesIds = amenities.filter(id => !!id).map(id => db.Types.ObjectId(id));
+      if (amenitiesIds && amenitiesIds.length) {
+        roomsQuery['$and'].push({ 'services._id': { $in: amenitiesIds } })
+      }
+    }
+
+
     // Look for specific rooms only (Even if unavailable from previous query)
-    if (rooms && rooms.length) {
+    if (rooms && rooms.length && isTestingRates) {
+      const forceRoomIds = rooms.filter(id => !!id).map(id => db.Types.ObjectId(id));
       roomsQuery['$and'] = roomsQuery['$and'] || [];
       roomsQuery['$and'].push({
         _id: {
-          $in: rooms.map(r => db.Types.ObjectId(r))
+          $in: forceRoomIds
         }
       })
+    } else {
+
+      // Ignore unavailable rooms
+      if (unavailableRooms && unavailableRooms.length) {
+        const unavailableRoomIds = unavailableRooms.filter(id => !!id).map(id => db.Types.ObjectId(id));
+        roomsQuery['$and'] = roomsQuery['$and'] || [];
+        roomsQuery['$and'].push({
+          _id: {
+            $nin: unavailableRoomIds
+          }
+        })
+      }
     }
 
     let propertyPipeline = [
@@ -819,9 +929,23 @@ const service = {
       {
         $unwind: "$property.contactinfo.city"
       },
+
+      // property.propertyTypes
+      {
+        $lookup: {
+          from: "property_types",
+          localField: "property.type",
+          foreignField: "_id",
+          as: "property.type"
+        }
+      },
+      {
+        $unwind: "$property.type"
+      }
     ];
 
     const roomPopulations = [
+      // Guest Numbers
       {
         $lookup: {
           from: "guest_numbers",
@@ -829,26 +953,58 @@ const service = {
           foreignField: "_id",
           as: "number_of_guests"
         }
-      },{
+      },
+      {
+        $unwind: "$number_of_guests"
+      },
+
+      // Room type
+      {
+        $lookup: {
+          from: "room_types",
+          localField: "room_type",
+          foreignField: "_id",
+          as: "room_type"
+        }
+      },
+      {
+        $unwind: "$room_type"
+      },
+
+      // Bed type
+      {
+        $lookup: {
+          from: "bed_types",
+          localField: "bed_type",
+          foreignField: "_id",
+          as: "bed_type"
+        }
+      },
+      {
+        $unwind: "$bed_type"
+      },
+
+      // Services
+      {
         $lookup: {
           from: "services",
           localField: "services",
           foreignField: "_id",
           as: "services"
         }
-      },
-      {
-        $unwind: "$number_of_guests"
       }
     ];
 
     const projectionAndGrouping = [
       {
         $project: {
-          services: 1,
           images: 1,
           featured: 1,
           rates: 1,
+          room_type: 1,
+          bed_type: 1,
+          services: 1,
+          number_of_guests: 1,
           property: {
             _id: 1,
             name: 1,
@@ -860,6 +1016,7 @@ const service = {
             contactinfo: 1,
             charges: 1,
             rating: 1,
+            type: 1,
             weekends: 1,
             anyTimeCheckin: 1
           }
@@ -903,18 +1060,20 @@ const service = {
       ...projectionAndGrouping,
     ];
 
+    console.log('- roomsAggregateQuery:');
+    console.log('- ', moment().format('DD MMM YYYY hh:mm a'));
+    console.log(JSON.stringify(roomsAggregateQuery));
     return roomsAggregateQuery;
   },
 
   populatePropertiesPricing: async (properties, params) => {
-    const { bookingType, datesAndHoursParams } = params;
+    const { bookingType, datesAndHoursParams, priceMin, priceMax } = params;
 
     // 1. Get Pricing information for the properties
     // - 1.1. Get pricing for each room
-    // - 1.2. Remove rooms that result in 0 price
+    // - 1.2. Remove rooms that reuslt in 0 price, or those that don't match the price filters
     // - 1.3. Copy the lowest room price to the property (copy room.priceSummary to property.priceSummary)
     // 2. Cleanup
-
     properties = await Promise.all(
       properties.map(async property => {
 
@@ -922,9 +1081,23 @@ const service = {
         // 1.1 Get the Room prices
         await Promise.all(property.rooms.map(async room => await service.getRoomPriceForDates(room, bookingType, datesAndHoursParams)));
 
-        // 1.2 Remove rooms that reuslt in 0 price
+        // 1.2 Remove rooms that reuslt in 0 price, or those that don't match the price filters
         property.rooms = property.rooms.filter(room => {
-          return room.priceSummary && room.priceSummary.base && room.priceSummary.base.amount
+          let isValidRoom = true;
+
+          // Remain Valid if the price is not 0
+          isValidRoom = isValidRoom && room.priceSummary && room.priceSummary.base && !!room.priceSummary.base.amount;
+
+          // Remain Valid if the price is matching the filters (if provided)
+          if ((priceMin === 0 || !!priceMin) && (priceMax === 0 || !!priceMax)) {
+
+            isValidRoom = isValidRoom &&
+              room.priceSummary.base.amount >= priceMin &&
+              room.priceSummary.base.amount <= priceMax
+            ;
+          }
+
+          return isValidRoom;
         });
 
         // 1.3 Copy cheapest room.priceSummary to property.priceSummary
