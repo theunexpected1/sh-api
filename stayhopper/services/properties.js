@@ -263,7 +263,7 @@ const service = {
         // Get averages
         Object.keys(cityPrices).map(cityId => {
           if (cityPrices[cityId] && cityPrices[cityId].totalPrice && cityPrices[cityId].count) {
-            cityPrices[cityId].averagePrice = cityPrices[cityId].totalPrice / cityPrices[cityId].count;
+            cityPrices[cityId].averagePrice = parseInt(cityPrices[cityId].totalPrice / cityPrices[cityId].count);
           }
         })
 
