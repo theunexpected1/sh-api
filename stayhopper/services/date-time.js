@@ -6,10 +6,10 @@ const service = {
    * @example
    * if current time is 09:33 => returned time will be 10:00
    */
-  getNearestCheckinTimeMoment: () => {
+  getNearestCheckinTimeMoment: (timezone) => {
     const mins = 30;
 
-    const todayMoment = moment();
+    const todayMoment = moment().tz(timezone);
     const remainder = mins - (todayMoment.minute() % mins);
     const nearestCheckinTimeMoment = moment(todayMoment).add(remainder, "minutes");
     // const dateTime = nearestCheckinTimeMoment.format("DD.MM.YYYY, h:mm:ss a");

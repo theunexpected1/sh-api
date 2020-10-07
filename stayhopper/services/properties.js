@@ -473,9 +473,13 @@ const service = {
     params = params || {};
     const popularPropertiesPageSize = config.pageSize.popularPropertiesPageSize;
 
+    // req.usersCountry
+    const timezone = 'Asia/Dubai';
+    // const checkinTimeMoment = moment().tz(timezone);
+
     try {
       const numberOfHours = 6;
-      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
+      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment(timezone);
       const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
 
       const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
@@ -530,10 +534,13 @@ const service = {
     params = params || {};
     const cheapestPropertiesPageSize = config.pageSize.cheapestPropertiesPageSize;
 
+    // req.usersCountry
+    const timezone = 'Asia/Dubai';
+    // const checkinTimeMoment = moment().tz(timezone);
+
     try {
       const numberOfHours = 3;
-
-      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment();
+      const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment(timezone);
       const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
 
       const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
