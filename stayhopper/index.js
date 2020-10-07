@@ -22,13 +22,15 @@ const requireLogin = require('./middleware/requiresLogin');
 const passportConfig = require('./middleware/passport');
 const cronjobs = require('./cron');
 const cronjobsForInvoices = require('./cron-invoices');
-const allowedCORS = require('./middleware/allowed-cors');
+const allowedCors = require('./middleware/allowedCors');
+const countrySelection = require('./middleware/countrySelection');
 
 app.use(helmet());
 app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
-app.use(allowedCORS);
+app.use(allowedCors);
+app.use(countrySelection);
 
 app.use('/public', express.static('public'));
 app.set('view engine','ejs');

@@ -7,7 +7,7 @@ const Currency = require("../db/models/currencies");
 const City = require("../db/models/cities");
 const dateTimeService = require("./date-time");
 const checkinService = require("./checkin");
-const moment = require('moment');
+const moment = require('moment-timezone');
 const { property } = require("underscore");
 const config = require("config");
 
@@ -150,7 +150,7 @@ const service = {
 
     try {
       const checkinTimeMoment = moment().set({hour: 14, minute: 0, second: 0, millisecond: 0});
-      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day");
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day").set({hour: 12, minute: 0, second: 0, millisecond: 0});
 
       const checkinTime = checkinTimeMoment.format("HH:mm");
       const checkoutTime = checkoutTimeMoment.format("HH:mm");
@@ -202,8 +202,10 @@ const service = {
     params = params || {};
 
     try {
-      const checkinTimeMoment = moment().set({hour: 14, minute: 0, second: 0, millisecond: 0});
-      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day");
+      // req.usersCountry
+      const timezone = 'Asia/Dubai';
+      const checkinTimeMoment = moment().tz(timezone).set({hour: 14, minute: 0, second: 0, millisecond: 0});
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day").set({hour: 12, minute: 0, second: 0, millisecond: 0});
 
       const checkinTime = checkinTimeMoment.format("HH:mm");
       const checkoutTime = checkoutTimeMoment.format("HH:mm");
@@ -677,7 +679,7 @@ const service = {
 
       // {weekday/weekend}.standardRate if 'rateType' is 'standardDay'
       if (rateType === 'standardDay') {
-        return roomRateInfo[rateType];
+        return { rate: roomRateInfo[rateType] };
       } else if (rateType === 'fullDay') {
         // get rate of each hour as specified in the Room Rate if 'rateType' is 'fullDay'
         // We have 30 minute intervals, so we need to split the Hourly rate into 2 for each key
@@ -696,24 +698,32 @@ const service = {
           return a + roomRateInfo.hours[b] / 2
         }, 0);
 
-        if (minBookingRateForFullDay && rate < minBookingRateForFullDay) {
-          return minBookingRateForFullDay;
-        }
-        return rate;
-
+        return { minimumBookingRate: minBookingRateForFullDay, rate };
       } else {
         console.log('something fundamentally wrong here, no other types of rates are supported');
-        return 0;
+        return { rate: 0 };
       }
     }
+
+    const minimumBookingRates = [];
 
     // Base Fee
     const base = {
       label: 'Base Price',
       amount: parseInt(datesAndHoursParams.reduce((accumulator, dateParams) => {
-        return accumulator + getRateForTheDateParams(dateParams, property.weekends);
+        const {minimumBookingRate, rate} = getRateForTheDateParams(dateParams, property.weekends);
+        // Keep track of minimum booking rates to apply if the total rate turns out to be lower
+        if (minimumBookingRate) {
+          minimumBookingRates.push(minimumBookingRate);
+        }
+        return accumulator + rate;
       }, 0))
     };
+
+    // Ensure we choose the higher amount
+    if (minimumBookingRates && minimumBookingRates.length) {
+      base.amount = Math.max(base.amount, ...minimumBookingRates);
+    }
 
     // Booking Fee
     const bookingFee = {
@@ -721,6 +731,7 @@ const service = {
       currency: '',
       amount: 0
     };
+
     if (
       property.contactinfo &&
       property.contactinfo.country &&

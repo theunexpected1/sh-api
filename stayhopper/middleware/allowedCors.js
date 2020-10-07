@@ -28,5 +28,6 @@ module.exports = function (req, res, next) {
 	res.header('Access-Control-Allow-Headers', 'Content-Type,x-access-token,token,Authorization,If-None-Match');
 	res.header('Access-Control-Allow-Credentials', true);
 
+	console.log('done!');
 	next();
 };
