@@ -8,6 +8,9 @@
     "cheapestProperties": 10,
     "searchProperties": 10
   },
+  "countryId": {
+    "UAE": "5b87b5e26ebfc73aed2589f7"
+  },
 
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{

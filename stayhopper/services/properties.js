@@ -4,6 +4,7 @@ const UserRating = require("../db/models/userratings");
 const BookLog = require("../db/models/bookinglogs");
 const Room = require("../db/models/rooms");
 const Currency = require("../db/models/currencies");
+const City = require("../db/models/cities");
 const dateTimeService = require("./date-time");
 const checkinService = require("./checkin");
 const moment = require('moment');
@@ -137,6 +138,156 @@ const service = {
       return unavailableRoomsInfo.map(unavailableRoomInfo => unavailableRoomInfo.roomId.toString());
     } catch (e) {
       console.log('e', e);
+    }
+  },
+
+  /**
+   * Get avg nightly rate for a city
+   * specific city, hourly booking, 2 adults, 0 children, 1 room, 1 standard day (14:00 to next day 12:00)
+   */
+  getAvgNightlyRateForCity: async params => {
+    params = params || {};
+
+    try {
+      const checkinTimeMoment = moment().set({hour: 14, minute: 0, second: 0, millisecond: 0});
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day");
+
+      const checkinTime = checkinTimeMoment.format("HH:mm");
+      const checkoutTime = checkoutTimeMoment.format("HH:mm");
+      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY');
+      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY');
+
+      // console.log('Cities Avg Nightly rate:');
+      // console.log('checkinDate', checkinDate, 'checkinTime', checkinTime);
+      // console.log('checkoutTime', checkoutTime, 'checkoutDate', checkoutDate);
+      
+      const currencyAED = await Currency.findOne({code: 'AED'});
+      // console.log('currencyAED', currencyAED);
+
+      let propertiesResult = await service.getProperties({
+        checkinDate,
+        checkoutDate,
+        checkinTime,
+        checkoutTime,
+        bookingType: 'hourly', // hourly or monthly
+        cityId: params.cityId || '',
+        numberAdults: parseInt(params.numberAdults) || 2,
+        numberChildren: parseInt(params.numberChildren) || 0,
+        numberRooms: parseInt(params.numberRooms) || 1
+      }, {
+        sort: 'price',
+        orderBy: 'asc',
+        limit: 200000
+      });
+
+      const totalPrices = propertiesResult.list.reduce((a, property) => {
+        console.log('Prices for city property.priceSummary.base.amount', property.priceSummary.base.amount);
+        return a + property.priceSummary.base.amount;
+      }, 0)
+      return {
+        averagePrice: parseInt(totalPrices / propertiesResult.list.length),
+        currency: currencyAED
+      }
+    } catch (e) {
+      console.log('e', e);
+      throw new Error(e.message)
+    }
+  },
+
+  /**
+   * Get avg nightly rate for a city
+   * specific city, hourly booking, 2 adults, 0 children, 1 room, 1 standard day (14:00 to next day 12:00)
+   */
+  getAvgNightlyRateForCitiesOfACountry: async params => {
+    params = params || {};
+
+    try {
+      const checkinTimeMoment = moment().set({hour: 14, minute: 0, second: 0, millisecond: 0});
+      const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day");
+
+      const checkinTime = checkinTimeMoment.format("HH:mm");
+      const checkoutTime = checkoutTimeMoment.format("HH:mm");
+      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY');
+      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY');
+
+      // console.log(`Cities of Country ${params.countryId} Avg Nightly rate:`);
+      // console.log('checkinDate', checkinDate, 'checkinTime', checkinTime);
+      // console.log('checkoutTime', checkoutTime, 'checkoutDate', checkoutDate);
+
+      const cities = await City.find({ country: db.Types.ObjectId(params.countryId) }).lean();
+      const currencyAED = await Currency.findOne({code: 'AED'}).lean();
+      // console.log('cities', cities);
+      // console.log('currencyAED', currencyAED);
+
+      if (cities && cities.length) {
+
+        let propertiesResult = await service.getProperties({
+          checkinDate,
+          checkoutDate,
+          checkinTime,
+          checkoutTime,
+          bookingType: 'hourly', // hourly or monthly
+          countryId: params.countryId || '',
+          numberAdults: parseInt(params.numberAdults) || 2,
+          numberChildren: parseInt(params.numberChildren) || 0,
+          numberRooms: parseInt(params.numberRooms) || 1
+        }, {
+          sort: 'price',
+          orderBy: 'asc',
+          limit: 200000
+        });
+
+        // Create object with cityIds as keys
+        const cityPrices = {};
+        cities.map(city => {
+          cityPrices[city._id.toString()] = cityPrices[city._id.toString()] || {
+            count: 0,
+            totalPrice: 0,
+            averagePrice: 0,
+            ...city,
+            currency: currencyAED
+          };
+        });
+
+        // Get totals and counts
+        propertiesResult.list.map(property => {
+          if (
+            property.contactinfo.city &&
+            (typeof cityPrices[property.contactinfo.city._id.toString()] === 'object')
+          ) {
+            cityPrices[property.contactinfo.city._id.toString()].count++;
+            cityPrices[property.contactinfo.city._id.toString()].totalPrice += property.priceSummary.base.amount;
+          }
+        });
+
+        // Get averages
+        Object.keys(cityPrices).map(cityId => {
+          if (cityPrices[cityId] && cityPrices[cityId].totalPrice && cityPrices[cityId].count) {
+            cityPrices[cityId].averagePrice = cityPrices[cityId].totalPrice / cityPrices[cityId].count;
+          }
+        })
+
+        // Transform - Convert Object to Array
+        let cityPricesArr = [];
+        Object.keys(cityPrices).map(cityId => {
+          // Transform the information
+          const cityPriceDetails = JSON.parse(JSON.stringify(cityPrices[cityId]));
+          delete cityPriceDetails.count;
+          delete cityPriceDetails.totalPrice;
+          delete cityPriceDetails.country;
+          cityPricesArr.push(cityPriceDetails);
+        });
+
+        // Remove cities that have 0 average rate
+        cityPricesArr = cityPricesArr.filter(city => !!city.averagePrice);
+
+        return cityPricesArr;
+      } else {
+        return {};
+      }
+    } catch (e) {
+      console.log('e', e);
+      throw new Error(e.message)
     }
   },
 

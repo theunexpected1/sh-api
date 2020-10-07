@@ -1,28 +1,9 @@
 const express = require("express");
 const router = express.Router();
-const bcrypt = require("bcrypt");
-const _ = require("underscore");
-const moment = require("moment");
-const mongoose = require("mongoose");
-const generator = require("generate-password");
-const multer = require("multer");
-const pify = require("pify");
-const path = require("path");
-let url = require('url') ;
-const sharp = require('sharp');
-const request = require('request');
-const fs = require('fs');
-const passport = require("passport");
-const jwt = require('jsonwebtoken');
 const config = require("config");
-
-const User = require("../../../db/models/users");
-const Booking = require("../../../db/models/bookings");
-const City = require("../../../db/models/cities");
 const jwtMiddleware = require("../../../middleware/jwt");
 
 // Services
-const citiesServices = require("../../../services/cities")
 const propertiesServices = require("../../../services/properties")
 
 router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) => {
@@ -30,14 +11,25 @@ router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) 
   res.status(200).json({});
 })
 
-router.get("/cities", async (req, res) => {
+router.post("/city", async (req, res) => {
+  const body = req.body;
   try {
-    const citiesWithAvgRate = await citiesServices.getCitiesWithAverageDailyRate();
+    if (
+      !body ||
+      !body.cityId
+    ) {
+      throw new Error('Invalid params');
+    }
+
+    const avgRateOfACity = await propertiesServices.getAvgNightlyRateForCity({
+      cityId: body.cityId || ''
+    });
+
     return res
       .status(200)
       .json({
         status: 1,
-        data: citiesWithAvgRate
+        data: avgRateOfACity
       })
     ;
   } catch (e) {
@@ -47,7 +39,33 @@ router.get("/cities", async (req, res) => {
       e: e && e.message ? e.message : e
     }).end();
   }
-});
+}),
+
+
+router.post("/cities", async (req, res) => {
+  const body = req.body;
+  try {
+    const avgRatesOfCitiesOfACountry = await propertiesServices.getAvgNightlyRateForCitiesOfACountry({
+      countryId: body && body.countryId
+        ? body.countryId
+        : config.countryId.UAE
+    });
+
+    return res
+      .status(200)
+      .json({
+        status: 1,
+        data: avgRatesOfCitiesOfACountry
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
+}),
 
 router.get("/offers", async (req, res) => {
   return res
