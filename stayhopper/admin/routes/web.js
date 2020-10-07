@@ -113,6 +113,7 @@ const dashboardControllerV2 = require('../controllers/v2/dashboard');
 
 const invoicesControllerV2 = require('../controllers/v2/invoices');
 const bookingsControllerV2 = require('../controllers/v2/bookings');
+const offersControllerV2 = require('../controllers/v2/offers');
 
 const countriesControllerV2 = require('../controllers/v2/countries');
 const citiesControllerV2 = require('../controllers/v2/cities');
@@ -144,6 +145,7 @@ app.use("/v2/dashboard", (req, res, next) => next(), dashboardControllerV2);
 
 app.use("/v2/invoices", (req, res, next) => next(), invoicesControllerV2);
 app.use("/v2/bookings", (req, res, next) => next(), bookingsControllerV2);
+app.use("/v2/offers", (req, res, next) => next(), offersControllerV2);
 
 app.use("/v2/countries", (req, res, next) => next(), countriesControllerV2);
 app.use("/v2/cities", (req, res, next) => next(), citiesControllerV2);

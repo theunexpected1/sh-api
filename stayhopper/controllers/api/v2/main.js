@@ -4,7 +4,8 @@ const config = require("config");
 const jwtMiddleware = require("../../../middleware/jwt");
 
 // Services
-const propertiesServices = require("../../../services/properties")
+const propertiesService = require("../../../services/properties")
+const offersService = require("../../../services/offers")
 
 router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) => {
   console.log('Success');
@@ -21,7 +22,7 @@ router.post("/city", async (req, res) => {
       throw new Error('Invalid params');
     }
 
-    const avgRateOfACity = await propertiesServices.getAvgNightlyRateForCity({
+    const avgRateOfACity = await propertiesService.getAvgNightlyRateForCity({
       cityId: body.cityId || ''
     });
 
@@ -41,11 +42,10 @@ router.post("/city", async (req, res) => {
   }
 }),
 
-
 router.post("/cities", async (req, res) => {
   const body = req.body;
   try {
-    const avgRatesOfCitiesOfACountry = await propertiesServices.getAvgNightlyRateForCitiesOfACountry({
+    const avgRatesOfCitiesOfACountry = await propertiesService.getAvgNightlyRateForCitiesOfACountry({
       countryId: body && body.countryId
         ? body.countryId
         : config.countryId.UAE
@@ -68,38 +68,28 @@ router.post("/cities", async (req, res) => {
 }),
 
 router.get("/offers", async (req, res) => {
-  return res
-    .status(200)
-    .json({
-      status: 1,
-      data: [{
-        title: 'Visit The Bahamas',
-        subtitle: 'Flat 30% off',
-        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
-        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
-      }, {
-        title: 'AED 100 off',
-        subtitle: 'For your first Booking',
-        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
-        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
-      }, {
-        title: 'Visit The Bahamas',
-        subtitle: 'Flat 30% off',
-        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
-        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
-      }, {
-        title: 'AED 100 off',
-        subtitle: 'For your first Booking',
-        image: 'https://extranet.stayhopper.com/public/files/properties/file-1550736145891.jpg',
-        link: 'https://media.makeameme.org/created/so-sal-got.jpg',
-      }]
-    })
-  ;
+  try {
+    const offers = await offersService.getOffers();
+
+    return res
+      .status(200)
+      .json({
+        status: 1,
+        data: offers
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
 });
 
 router.get("/hotels-cheapest", async (req, res) => {
   try {
-    const cheapestPropertiesResult = await propertiesServices.getCheapestProperties({});
+    const cheapestPropertiesResult = await propertiesService.getCheapestProperties({});
     return res
       .status(200)
       .json({
@@ -119,7 +109,7 @@ router.get("/hotels-cheapest", async (req, res) => {
 router.get("/hotels-popular", async (req, res) => {
   const body = req.body;
   try {
-    const popularPropertiesResult = await propertiesServices.getPopularProperties({});
+    const popularPropertiesResult = await propertiesService.getPopularProperties({});
     return res
       .status(200)
       .json({
