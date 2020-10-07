@@ -14,6 +14,7 @@ router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) 
 
 router.post("/city", async (req, res) => {
   const body = req.body;
+  const timezone = req.timezone;
   try {
     if (
       !body ||
@@ -23,7 +24,8 @@ router.post("/city", async (req, res) => {
     }
 
     const avgRateOfACity = await propertiesService.getAvgNightlyRateForCity({
-      cityId: body.cityId || ''
+      cityId: body.cityId || '',
+      timezone
     });
 
     return res
@@ -44,8 +46,10 @@ router.post("/city", async (req, res) => {
 
 router.post("/cities", async (req, res) => {
   const body = req.body;
+  const timezone = req.timezone;
   try {
     const avgRatesOfCitiesOfACountry = await propertiesService.getAvgNightlyRateForCitiesOfACountry({
+      timezone,
       countryId: body && body.countryId
         ? body.countryId
         : config.countryId.UAE
@@ -88,8 +92,9 @@ router.get("/offers", async (req, res) => {
 });
 
 router.get("/hotels-cheapest", async (req, res) => {
+  const timezone = req.timezone;
   try {
-    const cheapestPropertiesResult = await propertiesService.getCheapestProperties({});
+    const cheapestPropertiesResult = await propertiesService.getCheapestProperties({timezone});
     return res
       .status(200)
       .json({
@@ -108,8 +113,9 @@ router.get("/hotels-cheapest", async (req, res) => {
 
 router.get("/hotels-popular", async (req, res) => {
   const body = req.body;
+  const timezone = req.timezone;
   try {
-    const popularPropertiesResult = await propertiesService.getPopularProperties({});
+    const popularPropertiesResult = await propertiesService.getPopularProperties({timezone});
     return res
       .status(200)
       .json({

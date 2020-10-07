@@ -30,7 +30,7 @@ app.use(morgan('tiny'));
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended:true}));
 app.use(allowedCors);
-app.use(countrySelection);
+app.use('/api', countrySelection);
 
 app.use('/public', express.static('public'));
 app.set('view engine','ejs');

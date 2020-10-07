@@ -16,9 +16,9 @@ const service = {
     const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
     const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
 
-    console.log('============getDatesAndHoursStayParams============');
-    console.log('checkinDateMoment', checkinDateMoment.format('DD MMM YYYY hh:mm a'));
-    console.log('checkoutDateMoment', checkoutDateMoment.format('DD MMM YYYY hh:mm a'));
+    // console.log('============getDatesAndHoursStayParams============');
+    // console.log('checkinDateMoment', checkinDateMoment.format('DD MMM YYYY hh:mm a'));
+    // console.log('checkoutDateMoment', checkoutDateMoment.format('DD MMM YYYY hh:mm a'));
 
     // At least 1 calculation is needed
     let timeRemaining = dateTimeService.getDiffInMins(checkoutDateMoment, checkinDateMoment);

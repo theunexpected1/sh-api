@@ -149,7 +149,8 @@ const service = {
     params = params || {};
 
     try {
-      const checkinTimeMoment = moment().set({hour: 14, minute: 0, second: 0, millisecond: 0});
+      const timezone = params.timezone;
+      const checkinTimeMoment = moment().tz(timezone).set({hour: 14, minute: 0, second: 0, millisecond: 0});
       const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day").set({hour: 12, minute: 0, second: 0, millisecond: 0});
 
       const checkinTime = checkinTimeMoment.format("HH:mm");
@@ -173,7 +174,8 @@ const service = {
         cityId: params.cityId || '',
         numberAdults: parseInt(params.numberAdults) || 2,
         numberChildren: parseInt(params.numberChildren) || 0,
-        numberRooms: parseInt(params.numberRooms) || 1
+        numberRooms: parseInt(params.numberRooms) || 1,
+        timezone
       }, {
         sort: 'price',
         orderBy: 'asc',
@@ -202,8 +204,7 @@ const service = {
     params = params || {};
 
     try {
-      // req.usersCountry
-      const timezone = 'Asia/Dubai';
+      const timezone = params.timezone;
       const checkinTimeMoment = moment().tz(timezone).set({hour: 14, minute: 0, second: 0, millisecond: 0});
       const checkoutTimeMoment = moment(checkinTimeMoment).add(1, "day").set({hour: 12, minute: 0, second: 0, millisecond: 0});
 
@@ -222,7 +223,6 @@ const service = {
       // console.log('currencyAED', currencyAED);
 
       if (cities && cities.length) {
-
         let propertiesResult = await service.getProperties({
           checkinDate,
           checkoutDate,
@@ -232,7 +232,8 @@ const service = {
           countryId: params.countryId || '',
           numberAdults: parseInt(params.numberAdults) || 2,
           numberChildren: parseInt(params.numberChildren) || 0,
-          numberRooms: parseInt(params.numberRooms) || 1
+          numberRooms: parseInt(params.numberRooms) || 1,
+          timezone
         }, {
           sort: 'price',
           orderBy: 'asc',
@@ -319,6 +320,7 @@ const service = {
     const rooms = params.rooms;
     const shouldGetPropertiesWithRates = true;
     const isTestingRates = !!(params && params.isTestingRates);
+    const timezone = params.timezone;
 
     // Filters
     const priceMin = params.priceMin !== null ? params.priceMin : params.priceMin;
@@ -379,6 +381,7 @@ const service = {
       amenities
     });
 
+    console.log('- ', moment().tz(timezone).format('DD MMM YYYY hh:mm a'));
     let list = await Room.aggregate(aggregateQuery);
     // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
 
@@ -471,14 +474,11 @@ const service = {
 
   getPopularProperties: async params => {
     params = params || {};
-    const popularPropertiesPageSize = config.pageSize.popularPropertiesPageSize;
-
-    // req.usersCountry
-    const timezone = 'Asia/Dubai';
-    // const checkinTimeMoment = moment().tz(timezone);
 
     try {
+      const popularPropertiesPageSize = config.pageSize.popularPropertiesPageSize;
       const numberOfHours = 6;
+      const timezone = params.timezone;
       const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment(timezone);
       const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
 
@@ -487,10 +487,11 @@ const service = {
       const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
       const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
 
-      console.log('Popular Properties: checkinTime', checkinTime);
-      console.log('Popular Properties: checkoutTime', checkoutTime);
-      console.log('Popular Properties: checkinDate', checkinDate);
-      console.log('Popular Properties: checkoutDate', checkoutDate);
+      console.log('=========Popular Properties=========');
+      console.log('checkinTime', checkinTime);
+      console.log('checkoutTime', checkoutTime);
+      console.log('checkinDate', checkinDate);
+      console.log('checkoutDate', checkoutDate);
 
       // const checkinTime = '16:30'; // use next 30 minute slot from now
       // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
@@ -508,6 +509,7 @@ const service = {
         numberAdults: params.numberAdults || 2,
         numberChildren: params.numberChildren || 0,
         numberRooms: params.numberRooms || 1,
+        timezone
       }, {
         sort: 'userRating',
         orderBy: 'desc',
@@ -532,14 +534,11 @@ const service = {
   // Get Cheapest Properties
   getCheapestProperties: async params => {
     params = params || {};
-    const cheapestPropertiesPageSize = config.pageSize.cheapestPropertiesPageSize;
-
-    // req.usersCountry
-    const timezone = 'Asia/Dubai';
-    // const checkinTimeMoment = moment().tz(timezone);
 
     try {
+      const cheapestPropertiesPageSize = config.pageSize.cheapestPropertiesPageSize;
       const numberOfHours = 3;
+      const timezone = params.timezone;
       const checkinTimeMoment = dateTimeService.getNearestCheckinTimeMoment(timezone);
       const checkoutTimeMoment = moment(checkinTimeMoment).add(numberOfHours, "hours");
 
@@ -548,10 +547,11 @@ const service = {
       const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
       const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
 
-      console.log('Cheapest Properties: checkinTime', checkinTime);
-      console.log('Cheapest Properties: checkoutTime', checkoutTime);
-      console.log('Cheapest Properties: checkinDate', checkinDate);
-      console.log('Cheapest Properties: checkoutDate', checkoutDate);
+      console.log('=========Cheapest Properties=========');
+      console.log('checkinTime', checkinTime);
+      console.log('checkoutTime', checkoutTime);
+      console.log('checkinDate', checkinDate);
+      console.log('checkoutDate', checkoutDate);
 
       // const checkinTime = '16:30'; // use next 30 minute slot from now
       // const checkoutTime = '22:30'; // use {numberOfHours} hours from checkinTime
@@ -568,7 +568,8 @@ const service = {
         countryId: params.countryId || '',
         numberAdults: parseInt(params.numberAdults) || 2,
         numberChildren: parseInt(params.numberChildren) || 0,
-        numberRooms: parseInt(params.numberRooms) || 1
+        numberRooms: parseInt(params.numberRooms) || 1,
+        timezone
       }, {
         sort: 'price',
         orderBy: 'asc',
@@ -666,7 +667,7 @@ const service = {
 
       // use rates from customized rates
       if (customRate) {
-        console.log(`- [Custom rate "${customRate.name}"]: Rate used for "${property.name}"`);
+        // console.log(`- [Custom rate "${customRate.name}"]: Rate used for "${property.name}"`);
         roomRateInfo = customRate[weekendOrWeekday]; // weekday: {} or weekend: {}
 
         // Get minimum booking rate for fullDay from Custom Rate
@@ -675,7 +676,7 @@ const service = {
         }
       } else {
         // use rates from default rates
-        console.log(`- [DefaultRate]: Rate used for "${property.name}"`);
+        // console.log(`- [DefaultRate]: Rate used for "${property.name}"`);
         roomRateInfo = defaultRoomPriceForBookingType[weekendOrWeekday]; // weekday: {} or weekend: {}
 
         // Get minimum booking rate for fullDay from Custom Rate
@@ -770,7 +771,7 @@ const service = {
 
     // Get the rates for date / hours combination
 
-    console.log(`[${property.currency.code} ${base.amount}]: Price for Room of "${property.name}"`);
+    // console.log(`[${property.currency.code} ${base.amount}]: Price for Room of "${property.name}"`);Rate used for
 
     // delete room.rates;
     room.priceSummary = {
@@ -1229,9 +1230,8 @@ const service = {
       ...projectionAndGrouping,
     ];
 
-    console.log('- roomsAggregateQuery:');
-    console.log('- ', moment().format('DD MMM YYYY hh:mm a'));
-    console.log(JSON.stringify(roomsAggregateQuery));
+    // console.log('- roomsAggregateQuery:');
+    // console.log(JSON.stringify(roomsAggregateQuery));
     return roomsAggregateQuery;
   },
 

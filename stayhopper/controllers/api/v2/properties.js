@@ -13,6 +13,8 @@ router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) 
 
 router.post("/search", async (req, res) => {
   const body = req.body;
+  const timezone = req.timezone;
+
   try {
     if (
       !body ||
@@ -50,6 +52,7 @@ router.post("/search", async (req, res) => {
       roomTypes: body.roomTypes || [],
       bedTypes: body.bedTypes || [],
       amenities: body.amenities || [],
+      timezone
     });
 
     return res
