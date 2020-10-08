@@ -752,6 +752,26 @@ const service = {
       base.amount = Math.max(base.amount, ...minimumBookingRates);
     }
 
+    // Add savings data, if it exists
+    // Assume all custom rates (fullDay Rates) to be standardDay Rates
+    // what would cost a customer 20 dhs for few hours, would cost them 150 dhs for full day otherwise
+    // That excess is savings for them
+    if (datesAndHoursParams.find(dh => dh.rateType === 'fullDay')) {
+      const normalBookingDatesAndHoursParams = JSON.parse(JSON.stringify(datesAndHoursParams)).map(dh => {
+        dh.rateType = 'standardDay';
+        dh.hours = [];
+        return dh;
+      });
+
+      const normalRate = parseInt(normalBookingDatesAndHoursParams.reduce((accumulator, dateParams) => {
+        const {rate} = getRateForTheDateParams(dateParams, property.weekends);
+        return accumulator + rate;
+      }, 0));
+      if ((normalRate > 0) && (normalRate > base.amount)) {
+        base.savings = normalRate - base.amount;
+      }
+    }
+
     // Booking Fee
     const bookingFee = {
       label: 'Booking fee',
