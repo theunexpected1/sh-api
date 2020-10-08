@@ -30,10 +30,7 @@ router.post("/city", async (req, res) => {
 
     return res
       .status(200)
-      .json({
-        status: 1,
-        data: avgRateOfACity
-      })
+      .json({ data: avgRateOfACity })
     ;
   } catch (e) {
     console.log('e', e);
@@ -43,6 +40,39 @@ router.post("/city", async (req, res) => {
     }).end();
   }
 }),
+
+router.get("/home", async (req, res) => {
+  const timezone = req.timezone;
+  // 1. Get Cities with avg nightly rates
+  // 2. Get Popular Hotels
+  // 3. Get Cheapest Hotels
+  // 4. Get Offers
+
+  const params = req.params || {};
+
+  try {
+    const offers = await offersService.getOffers();
+    const cheapestProperties = await propertiesService.getCheapestProperties({timezone});
+    const popularProperties = await propertiesService.getPopularProperties({timezone});
+    const cities = await propertiesService.getAvgNightlyRateForCitiesOfACountry({
+      timezone,
+      countryId: params.countryId || config.countryId.UAE
+    });
+
+    return res
+      .status(200)
+      .json({
+        offers, popularProperties, cheapestProperties, cities
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
+});
 
 router.post("/cities", async (req, res) => {
   const body = req.body;
@@ -57,10 +87,7 @@ router.post("/cities", async (req, res) => {
 
     return res
       .status(200)
-      .json({
-        status: 1,
-        data: avgRatesOfCitiesOfACountry
-      })
+      .json({ data: avgRatesOfCitiesOfACountry })
     ;
   } catch (e) {
     console.log('e', e);
@@ -77,10 +104,7 @@ router.get("/offers", async (req, res) => {
 
     return res
       .status(200)
-      .json({
-        status: 1,
-        data: offers
-      })
+      .json({ data: offers })
     ;
   } catch (e) {
     console.log('e', e);
@@ -97,10 +121,7 @@ router.get("/hotels-cheapest", async (req, res) => {
     const cheapestPropertiesResult = await propertiesService.getCheapestProperties({timezone});
     return res
       .status(200)
-      .json({
-        status: 1,
-        data: cheapestPropertiesResult
-      })
+      .json({ data: cheapestPropertiesResult })
     ;
   } catch (e) {
     console.log('e', e);
@@ -118,10 +139,7 @@ router.get("/hotels-popular", async (req, res) => {
     const popularPropertiesResult = await propertiesService.getPopularProperties({timezone});
     return res
       .status(200)
-      .json({
-        status: 1,
-        data: popularPropertiesResult
-      })
+      .json({ data: popularPropertiesResult })
     ;
   } catch (e) {
     console.log('e', e);
