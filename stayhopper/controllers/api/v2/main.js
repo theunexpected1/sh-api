@@ -99,7 +99,7 @@ router.get("/hotels-cheapest", async (req, res) => {
       .status(200)
       .json({
         status: 1,
-        data: cheapestPropertiesResult.list
+        data: cheapestPropertiesResult
       })
     ;
   } catch (e) {
@@ -120,7 +120,7 @@ router.get("/hotels-popular", async (req, res) => {
       .status(200)
       .json({
         status: 1,
-        data: popularPropertiesResult.list
+        data: popularPropertiesResult
       })
     ;
   } catch (e) {

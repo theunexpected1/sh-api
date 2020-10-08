@@ -212,6 +212,11 @@ const service = {
       const checkoutTime = checkoutTimeMoment.format("HH:mm");
       const checkinDate = checkinTimeMoment.format('MM/DD/YYYY');
       const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY');
+      const numberAdults = parseInt(params.numberAdults) || 2;
+      const numberChildren = parseInt(params.numberChildren) || 0;
+      const numberRooms = parseInt(params.numberRooms) || 1;
+      const countryId = params.countryId || '';
+      const bookingType = 'hourly'; // hourly or monthly
 
       // console.log(`Cities of Country ${params.countryId} Avg Nightly rate:`);
       // console.log('checkinDate', checkinDate, 'checkinTime', checkinTime);
@@ -228,11 +233,11 @@ const service = {
           checkoutDate,
           checkinTime,
           checkoutTime,
-          bookingType: 'hourly', // hourly or monthly
-          countryId: params.countryId || '',
-          numberAdults: parseInt(params.numberAdults) || 2,
-          numberChildren: parseInt(params.numberChildren) || 0,
-          numberRooms: parseInt(params.numberRooms) || 1,
+          bookingType,
+          countryId,
+          numberAdults,
+          numberChildren,
+          numberRooms,
           timezone
         }, {
           sort: 'price',
@@ -284,7 +289,12 @@ const service = {
         // Remove cities that have 0 average rate
         cityPricesArr = cityPricesArr.filter(city => !!city.averagePrice);
 
-        return cityPricesArr;
+        // Provide the original query back to the frontend // Or provide the generated property detail URL
+        const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType};
+        return {
+          list: cityPricesArr,
+          query: originalQuery
+        };
       } else {
         return {};
       }
@@ -302,6 +312,7 @@ const service = {
    * 4. Populate Properties' Rooms' Pricing
    * 5. Populate Properties' User Ratings
    * 6. Sort and paginate list
+   * 7. Provide the original query back to the frontend // Or provide the generated property detail URL
    */
   getProperties: async (params, options) => {
     params = params || {}
@@ -424,7 +435,15 @@ const service = {
     const { count, totalPages } = sortedPaginatedResult;
     list = sortedPaginatedResult.list;
 
-    return { list, count, page, totalPages };
+    // 7. Provide the original query back to the frontend // Or provide the generated property detail URL
+    const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType};
+    return {
+      list,
+      count,
+      page,
+      totalPages,
+      query: originalQuery
+    };
   },
 
   sortAndPaginateProperties: async (list, page, sort, orderBy, limit) => {
