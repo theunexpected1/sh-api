@@ -33,29 +33,50 @@ router.post("/", async (req, res) => {
   user.email = req.body.email;
   user.mobile = req.body.mobile;
   user.country = req.body.country;
+  user.dateOfBirth = req.body.dateOfBirth;
+  if (req.body.gender) {
+    user.gender = req.body.gender;
+  }
+
   let device_type = req.body.device_type;
-  let list_id = "";
-  if(device_type == "ios"){
+  let list_id = '';
+  if (device_type === 'ios') {
     list_id = config.mailchimp_ios_id;
-  }else{
+  } else if (device_type === 'web') {
+    // list_id = config.mailchimp_android_id;
+  } else {
     list_id = config.mailchimp_android_id;
   }
-  let password = req.body.password;
-  user.password = await bcrypt.hashSync(password, 10);
+  // let password = req.body.password;
+  // user.password = await bcrypt.hashSync(password, 10);
+  password = generator.generate({
+    length: 10,
+    numbers: true
+  });
+  await bcrypt.hash(password, 10).then(result => {
+    user.password = result;
+  });
 
   //check email exists
   const emailExists = await User.findOne({email:user.email});
-  if(emailExists){
-    return res.json({ status: 'Failed', message:"Account exists with same email" });
+  if (emailExists) {
+    return res
+      .status(409)
+      .json({
+        message: "Account exists with same email"
+      })
+    ;
   }
 
   try {
     await user.save();
     let html_body = fs.readFileSync('public/user_welcome.html', 'utf8');
-    html_body = html_body.replace('{{ NAME }}',user.name);
+    html_body = html_body.replace('{{NAME}}', user.name);
+    html_body = html_body.replace('{{EMAIL}}', user.email);
+    html_body = html_body.replace('{{PASSWORD}}', password);
     msg = {
       to: user.email,
-      bcc: [{ email: config.website_admin_bcc_email}],
+      // bcc: [{ email: config.website_admin_bcc_email}],
       from: {
         email: config.website_admin_from_email,
         name: config.fromname
@@ -66,7 +87,15 @@ router.post("/", async (req, res) => {
     };
     sgMail.send(msg);
 
-    res.json({ status: "Success", data: user });
+    const token = jwt.sign(user.toJSON(), process.env.API_SECRET || 'secret');
+    res
+      .status(200)
+      .json({
+        message: "Registration successful",
+        token: token,
+        user: user
+      })
+    ;
 
     return await mailchimp.post("/lists/" + list_id, {
       members: [
@@ -108,23 +137,24 @@ router.post("/checklogin", async (req, res) => {
 });
 
 router.post("/login", passport.authenticate('local-user-login'), async (req, res) => {
+  console.log('here');
   try {
-    const token = jwt.sign(req.user.toJSON(), process.env.API_SECRET || 'secret');
-    if (req.user) {
+    const user = req.user && req.user.toJSON();
+    if (user) {
+      delete user.password;
+      const token = jwt.sign(user, process.env.API_SECRET || 'secret');
       res
         .status(200)
         .json({
-          status: 1,
           message: "Login successful",
           token: token,
-          user: req.user
+          user: user
         })
       ;
     } else {
       res
         .status(200)
         .json({
-          status: 0,
           message: "Invalid Login credentials!"
         })
       ;
@@ -171,9 +201,9 @@ router.post('/reset-password', async (req, res) => {
       html: html_body
     };
     sgMail.send(msg);
-    return res.json({status:'Success',message:"Password reset successfully. New Password is send to your registered email address"});
+    return res.send(200).json({status:'Success',message:"Password reset successfully. New Password is send to your registered email address"});
   }else{
-    return res.json({status:'Failed',message:"Could not reset password, No user is registered with provided email address"});
+    return res.status(404).json({status:'Failed',message:"Could not reset password, No user is registered with provided email address"});
   }
 });
 

@@ -37,11 +37,12 @@ const usersSchema = new db.Schema({
         type: String
     },
     dateOfBirth: {
-        type: Date
+        type: String
     },
     gender: {
         type: String,
-        enum: ['male', 'female', 'other']
+        enum: ['male', 'female', 'other'],
+        default: 'other'
     },
     city_id:{
         type: db.Schema.Types.ObjectId,
