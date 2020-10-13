@@ -137,7 +137,6 @@ router.post("/checklogin", async (req, res) => {
 });
 
 router.post("/login", passport.authenticate('local-user-login'), async (req, res) => {
-  console.log('here');
   try {
     const user = req.user && req.user.toJSON();
     if (user) {
@@ -201,9 +200,9 @@ router.post('/reset-password', async (req, res) => {
       html: html_body
     };
     sgMail.send(msg);
-    return res.send(200).json({status:'Success',message:"Password reset successfully. New Password is send to your registered email address"});
+    res.status(200).json({status:'Success',message:"Password reset successfully. New Password is send to your registered email address"});
   }else{
-    return res.status(404).json({status:'Failed',message:"Could not reset password, No user is registered with provided email address"});
+    res.status(404).json({status:'Failed',message:"Could not reset password, No user is registered with provided email address"});
   }
 });
 
