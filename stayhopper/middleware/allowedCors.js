@@ -10,6 +10,7 @@ module.exports = function (req, res, next) {
 		'https://stayhopper-admin.web.app',
 		// VRBRos Staging Website
 		'https://stayhopper-website.web.app',
+		'https://stayhopper.vrbrosllc.com',
 		// SH Staging Extranet
 		'https://www.extranet-staging.stayhopper.com',
 		'https://extranet-staging.stayhopper.com',

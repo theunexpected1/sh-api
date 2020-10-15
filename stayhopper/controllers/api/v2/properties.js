@@ -27,17 +27,17 @@ router.post("/search", async (req, res) => {
     }
 
     const properties = await propertiesServices.getProperties({
-      checkinDate: body.checkinDate,
-      checkoutDate: body.checkoutDate,
+      checkinDate: body.checkinDate.replace(/-/g, '/'),
+      checkoutDate: body.checkoutDate.replace(/-/g, '/'),
       checkinTime: body.checkinTime,
       checkoutTime: body.checkoutTime,
       bookingType: body.bookingType || 'hourly', // hourly or monthly
       location: body.location || '',
       cityId: body.cityId || '',
       countryId: body.countryId || '',
-      numberAdults: body.numberAdults || 2,
-      numberChildren: body.numberChildren || 0,
-      numberRooms: body.numberRooms || 1,
+      numberAdults: parseInt(body.numberAdults) || 2,
+      numberChildren: parseInt(body.numberChildren) || 0,
+      numberRooms: parseInt(body.numberRooms) || 1,
       properties: body.properties || [],
       rooms: body.rooms || [],
       isTestingRates: body.isTestingRates || false,
@@ -58,7 +58,6 @@ router.post("/search", async (req, res) => {
     return res
       .status(200)
       .json({
-        status: 1,
         data: properties
       })
     ;

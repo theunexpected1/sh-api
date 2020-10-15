@@ -318,10 +318,10 @@ const service = {
     params = params || {}
     options = options || {}
     const location = params.location;
-    const checkinDate = params.checkinDate;
-    const checkoutDate = params.checkoutDate;
-    const checkinTime = params.checkinTime;
-    const checkoutTime = params.checkoutTime;
+    let checkinDate = params.checkinDate;
+    let checkoutDate = params.checkoutDate;
+    let checkinTime = params.checkinTime;
+    let checkoutTime = params.checkoutTime;
     const cityId = params.cityId;
     const countryId = params.countryId;
     const numberAdults = parseInt(params.numberAdults) || 2;
@@ -342,17 +342,22 @@ const service = {
     const bedTypes = params.bedTypes || [];
     const amenities = params.amenities || [];
 
+    const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
+    const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
+
     let bookingType;
     switch (params.bookingType) {
-      case 'hourly':
-      case 'short-term':
-        bookingType = 'short-term';
-        break;
       case 'monthly':
       case 'long-term':
         bookingType = 'long-term';
+        // ensure monthly is more than 30 days and less than 12 months
+        // TODO: use checkinDateMoment, checkoutDateMoment
         break;
+      case 'hourly':
+      case 'short-term':
       default:
+        // ensure hourly is more than 3 hours and less than 12 months
+        // TODO: use checkinDateMoment, checkoutDateMoment
         bookingType = 'short-term';
         break;
     }
@@ -436,7 +441,21 @@ const service = {
     list = sortedPaginatedResult.list;
 
     // 7. Provide the original query back to the frontend // Or provide the generated property detail URL
-    const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType};
+
+    let bookingTypeForQuery;
+    switch (bookingType) {
+      case 'monthly':
+      case 'long-term':
+        bookingTypeForQuery = 'monthly';
+        break;
+      case 'hourly':
+      case 'short-term':
+      default:
+        bookingTypeForQuery = 'hourly';
+        break;
+    }
+
+    const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType: bookingTypeForQuery};
     return {
       list,
       count,
