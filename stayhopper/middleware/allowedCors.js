@@ -4,7 +4,7 @@ module.exports = function (req, res, next) {
 		'http://localhost:3000',
 		'http://localhost:3001',
 		'http://localhost:5000',
-    'http://local.stayhopper.com:3001',
+		'http://local.stayhopper.com:3001',
 		// VRBRos Staging Extranet
 		'https://admin.sh.vrbrosllc.com',
 		'https://stayhopper-admin.web.app',

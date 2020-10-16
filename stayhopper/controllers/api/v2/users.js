@@ -117,7 +117,9 @@ router.post("/", async (req, res) => {
     for (field in error.errors) {
       errors.push(error.errors[field].message);
     }
-    return res.json({ status: 'Failed', errors: errors });
+    return res
+      .status(500)
+      .json({ status: 'Failed', errors: errors });
   }
 });
 
@@ -152,7 +154,7 @@ router.post("/login", passport.authenticate('local-user-login'), async (req, res
       ;
     } else {
       res
-        .status(200)
+        .status(401)
         .json({
           message: "Invalid Login credentials!"
         })
