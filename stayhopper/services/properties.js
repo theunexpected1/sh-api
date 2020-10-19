@@ -5,6 +5,12 @@ const BookLog = require("../db/models/bookinglogs");
 const Room = require("../db/models/rooms");
 const Currency = require("../db/models/currencies");
 const City = require("../db/models/cities");
+const PropertyType = require("../db/models/propertytypes");
+const PropertyRating = require("../db/models/propertyratings");
+const RoomType = require("../db/models/roomtypes");
+const BedType = require("../db/models/bedtypes");
+const Service = require("../db/models/services");
+
 const dateTimeService = require("./date-time");
 const checkinService = require("./checkin");
 const moment = require('moment-timezone');
@@ -327,8 +333,8 @@ const service = {
     const numberAdults = parseInt(params.numberAdults) || 2;
     const numberChildren = parseInt(params.numberChildren) || 0;
     const numberRooms = parseInt(params.numberRooms) || 1;
-    const properties = params.properties;
-    const rooms = params.rooms;
+    const properties = params.properties || [];
+    const rooms = params.rooms || [];
     const shouldGetPropertiesWithRates = true;
     const isTestingRates = !!(params && params.isTestingRates);
     const timezone = params.timezone;
@@ -336,11 +342,11 @@ const service = {
     // Filters
     const priceMin = params.priceMin !== null ? params.priceMin : params.priceMin;
     const priceMax = params.priceMax !== null ? params.priceMax : params.priceMax;
-    const propertyTypes = params.propertyTypes || [];
-    const rating = params.rating || [];
-    const roomTypes = params.roomTypes || [];
-    const bedTypes = params.bedTypes || [];
-    const amenities = params.amenities || [];
+    const propertyTypes = params.propertyTypes ? params.propertyTypes.split(',') : [];
+    const propertyRatings = params.propertyRatings ? params.propertyRatings.split(',') : [];
+    const roomTypes = params.roomTypes ? params.roomTypes.split(',') : [];
+    const bedTypes = params.bedTypes ? params.bedTypes.split(',') : [];
+    const amenities = params.amenities ? params.amenities.split(',') : [];
 
     const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
     const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
@@ -366,7 +372,7 @@ const service = {
     const datesAndHoursParams = await checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
     console.log('Dates & Hours params:', datesAndHoursParams);
 
-    console.log('Applied Filters:', priceMin, priceMax, propertyTypes, rating, roomTypes, bedTypes, amenities);
+    console.log('Applied Filters:', priceMin, priceMax, propertyTypes, propertyRatings, roomTypes, bedTypes, amenities);
 
     // 2. Get unavailable Room IDs
     const unavailableRooms = await service.getUnavailableRoomsIds({checkinDate, checkoutDate, checkinTime, checkoutTime, numberRooms})
@@ -391,7 +397,7 @@ const service = {
       rooms,
 
       propertyTypes,
-      rating,
+      propertyRatings,
       roomTypes,
       bedTypes,
       amenities
@@ -871,7 +877,7 @@ const service = {
       rooms,
 
       propertyTypes,
-      rating,
+      propertyRatings,
       roomTypes,
       bedTypes,
       amenities
@@ -941,9 +947,9 @@ const service = {
     }
 
     // Filter by Property Ratings
-    if (rating && rating.length) {
+    if (propertyRatings && propertyRatings.length) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
-      const propertyStarRatingsIds = rating.filter(rId => !!rId).map(rId => db.Types.ObjectId(rId));
+      const propertyStarRatingsIds = propertyRatings.filter(rId => !!rId).map(rId => db.Types.ObjectId(rId));
       if (propertyStarRatingsIds && propertyStarRatingsIds.length) {
         propertiesQuery['$and'].push({ 'property.rating._id': { $in: propertyStarRatingsIds } })
       }
@@ -1392,6 +1398,36 @@ const service = {
     }
 
     return 0;
+  },
+
+  getFilters: async () => {
+    try {
+      // - Property Type
+      const propertyTypes = await PropertyType.find({}).sort({name: 1}).select('_id name').lean();
+
+      // - Property Star Rating
+      const propertyRatings = await PropertyRating.find({}).sort({name: 1}).select('_id name').lean();
+
+      // - Room Type
+      const roomTypes = await RoomType.find({}).sort({name: 1}).select('_id name').lean();
+
+      // - Bed Type
+      const bedTypes = await BedType.find({}).sort({name: 1}).select('_id name').lean();
+
+      // - Amenities
+      const services = await Service.find({}).sort({name: 1}).select('_id name').lean();
+
+      return {
+        propertyTypes,
+        propertyRatings,
+        roomTypes,
+        bedTypes,
+        services
+      };
+    } catch (e) {
+      console.log('e', e);
+      throw new Error(e.message)
+    }
   }
 };
 

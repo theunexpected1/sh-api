@@ -38,8 +38,8 @@ router.post("/search", async (req, res) => {
       numberAdults: parseInt(body.numberAdults) || 2,
       numberChildren: parseInt(body.numberChildren) || 0,
       numberRooms: parseInt(body.numberRooms) || 1,
-      properties: body.properties || [],
-      rooms: body.rooms || [],
+      properties: body.properties || '',
+      rooms: body.rooms || '',
       isTestingRates: body.isTestingRates || false,
       limit: body.limit || '',
       sort: body.sort || '',
@@ -47,11 +47,11 @@ router.post("/search", async (req, res) => {
       // Filters
       priceMin: body.priceMin || null,
       priceMax: body.priceMax || null,
-      propertyTypes: body.propertyTypes || [],
-      rating: body.rating || [],
-      roomTypes: body.roomTypes || [],
-      bedTypes: body.bedTypes || [],
-      amenities: body.amenities || [],
+      propertyTypes: body.propertyTypes || '',
+      propertyRatings: body.propertyRatings || '',
+      roomTypes: body.roomTypes || '',
+      bedTypes: body.bedTypes || '',
+      amenities: body.amenities || '',
       timezone
     });
 
@@ -70,5 +70,24 @@ router.post("/search", async (req, res) => {
   }
 });
 
+router.get("/filters", async (req, res) => {
+  // const body = req.body;
+  try {
+    const filters = await propertiesServices.getFilters();
+
+    return res
+      .status(200)
+      .json({
+        data: filters
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
+})
 
 module.exports = router;
