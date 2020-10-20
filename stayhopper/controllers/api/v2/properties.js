@@ -1,7 +1,8 @@
 const express = require("express");
 const router = express.Router();
-
 const jwtMiddleware = require("../../../middleware/jwt");
+const Property = require("../../../db/models/properties");
+const db = require("../../../db/mongodb");
 
 // Services
 const propertiesServices = require("../../../services/properties")
@@ -59,6 +60,189 @@ router.post("/search", async (req, res) => {
       .status(200)
       .json({
         data: properties
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
+});
+
+// Get Property detail
+router.get("/:id", async (req, res) => {
+  const body = req.body;
+  const params = req.params;
+  const timezone = req.timezone;
+
+  try {
+    const propertyPopulations = [
+      // currency
+      { $lookup: { from: "currencies", localField: "currency", foreignField: "_id", as: "currency" }},
+      { $unwind: "$currency"},
+
+      // rating
+      { $lookup: { from: "property_ratings", localField: "rating", foreignField: "_id", as: "rating" }},
+      { $unwind: "$rating"},
+
+      // contactinfo.country
+      { $lookup: { from: "countries", localField: "contactinfo.country", foreignField: "_id", as: "contactinfo.country" }},
+      { $unwind: "$contactinfo.country"},
+
+      // contactinfo.city
+      { $lookup: { from: "cities", localField: "contactinfo.city", foreignField: "_id", as: "contactinfo.city" }},
+      { $unwind: "$contactinfo.city"},
+
+      // propertyTypes
+      { $lookup: { from: "property_types", localField: "type", foreignField: "_id", as: "type" }},
+      { $unwind: "$type"},
+
+      // policies
+      { $lookup: { from: "privacy_policies", localField: "policies", foreignField: "_id", as: "policies" }},
+
+      // services
+      { $lookup: { from: "services", localField: "services", foreignField: "_id", as: "services" }},
+
+      // userRatings > Approved
+      { $lookup: {
+        from: "userratings",
+        let: { propertyId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$property", "$$propertyId"], $eq: ["$approved", true] } }},
+          { $lookup: { from: "users", localField: "user", foreignField: "_id", as: "user" }},
+          { $unwind: "$user"},
+          { $project: {
+            booking_id: 1,
+            comment: 1,
+            value: 1,
+            date: 1,
+            'user.name': 1,
+            'user.email': 1,
+            'user.mobile': 1,
+            'user.country': 1
+          }}
+        ],
+        as: "userRatings"
+      }}
+    ];
+
+    const roomPopulations = [
+      // Rooms
+      // { $lookup: { from: "rooms", localField: "_id", foreignField: "property_id", as: "rooms" }},
+
+      { $lookup: {
+        from: "rooms",
+        let: { propertyId: "$_id" },
+        pipeline: [
+          { $match: { $expr: { $eq: ["$property_id", "$$propertyId"]}} },
+
+          // Guest Numbers
+          { $lookup: { from: "guest_numbers", localField: "number_of_guests", foreignField: "_id", as: "number_of_guests" }},
+          { $unwind: "$number_of_guests" },
+
+          // Room type
+          { $lookup: { from: "room_types", localField: "room_type", foreignField: "_id", as: "room_type" }},
+          { $unwind: "$room_type" },
+
+          // Bed type
+          { $lookup: { from: "bed_types", localField: "bed_type", foreignField: "_id", as: "bed_type" }},
+          { $unwind: "$bed_type" },
+
+          // Services
+          { $lookup: { from: "services", localField: "services", foreignField: "_id", as: "services" }},
+
+          { $project: {
+            images: 1,
+            featured: 1,
+            room_type: 1,
+            bed_type: 1,
+            services: 1,
+            number_of_guests: 1,
+            room_size: 1
+          }}
+        ],
+        as: "rooms"
+      }}
+    ];
+
+    const projections = [{
+      $project: {
+        _id: 1,
+        name: 1,
+        description: 1,
+        distance: 1,
+        location: 1,
+        images: 1,
+        featured: 1,
+        currency: 1,
+        rooms: 1,
+        'contactinfo.country': 1,
+        'contactinfo.city': 1,
+        charges: 1,
+        rating: 1,
+        type: 1,
+        policies: 1,
+        services: 1,
+        nearby: 1,
+        userRatings: 1
+      }
+    }];
+
+    const match = [{ $match: { _id: db.Types.ObjectId(params.id) } }]
+
+    // 1. Get the matching property with all populations
+    const propertyAggregation = await Property.aggregate([
+      ...propertyPopulations,
+      ...roomPopulations,
+      ...match,
+      ...projections,
+    ])
+
+    // Pick first from list
+    const propertyDetails = propertyAggregation && propertyAggregation.length
+      ? propertyAggregation[0]
+      : {}
+    ;
+
+    // 2. Get Property Room Rates
+    const propertiesWithRoomRates = await propertiesServices.getProperties({
+      checkinDate: body.checkinDate ? body.checkinDate.replace(/-/g, '/') : '',
+      checkoutDate: body.checkoutDate ? body.checkoutDate.replace(/-/g, '/') : '',
+      checkinTime: body.checkinTime,
+      checkoutTime: body.checkoutTime,
+      bookingType: body.bookingType || 'hourly', // hourly or monthly
+      numberAdults: parseInt(body.numberAdults) || 2,
+      numberChildren: parseInt(body.numberChildren) || 0,
+      numberRooms: parseInt(body.numberRooms) || 1,
+      properties: params.id,
+      timezone
+    });
+
+    // Pick first from list
+    const propertyWithRoomRates = propertiesWithRoomRates && propertiesWithRoomRates.list && propertiesWithRoomRates.list.length
+      ? propertiesWithRoomRates.list[0]
+      : {}
+    ;
+
+    // 3. Merging the above 2
+    // Property Details - populate pricing (if available)
+    propertyDetails.priceSummary = propertyWithRoomRates.priceSummary || {};
+    // Property Details - Populate the Rooms with their pricing (if available)
+    propertyDetails.rooms = propertyDetails.rooms || [];
+    propertyWithRoomRates.rooms = propertyWithRoomRates.rooms || [];
+    propertyDetails.rooms = propertyDetails.rooms.map(room => {
+      // If we have pricing for a room, use that room instead
+      const roomWithRates = propertyWithRoomRates.rooms.find(_room => _room._id.toString() === room._id.toString());
+      return roomWithRates || room;
+    });
+
+    // 3. Combine Property Details with the rates information
+    return res
+      .status(200)
+      .json({
+        data: propertyDetails
       })
     ;
   } catch (e) {
