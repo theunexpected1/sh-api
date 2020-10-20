@@ -307,48 +307,66 @@ let upload = pify(
   ])
 );
 
-router.post('/editprofile',async(req,res)=>{
+router.post('/editprofile', jwtMiddleware.userAuthenticationRequired, async(req,res)=>{
   try {
     await upload(req, res);
   } catch (err) {
     return res.json({ status: 0, message: "Could not update" });
   }
-  let user_id = req.body.user_id;
-  let name = req.body.firstname;
-  let last_name = req.body.lastname;
+
+  let userId = req.user._id;
+  let name = req.body.name;
   let mobile = req.body.mobile;
   let email = req.body.email;
+  let gender = req.body.gender;
+  let country = req.body.country;
+  let dateOfBirth = req.body.dateOfBirth;
+  // let last_name = req.body.lastname;
+  // let city = req.body.city;
 
   //check email exists
-  const emailExists = await User.findOne({email:email,_id:{$ne:user_id}});
+  const emailExists = await User.findOne({ email:email, _id:{$ne:userId}});
   if(emailExists){
     return res.json({ status: 'Failed', message:"Account exists with same email" });
   }
 
-
-  let city = req.body.city;
-  let country = req.body.country;
   let image = null;
-  if (req.files.image) {
+  if (req.files && req.files.image) {
     image = req.files.image[0].path || null;
   }
 
-  let user = await User.findOne({_id:user_id});
-  if(user){
-    user.name = name;
-    user.last_name = last_name;
-    user.mobile = mobile;
-    user.email = email;
-    user.city = city;
-    user.country = country;
-    user.image = image;
-    try{
+  let user = await User.findOne({_id: userId}).select('-password');
+  if (user) {
+    if (name) {
+      user.name = name;
+    }
+    if (mobile) {
+      user.mobile = mobile;
+    }
+    if (email) {
+      user.email = email;
+    }
+    if (gender) {
+      user.gender = gender;
+    }
+    if (country) {
+      user.country = country;
+    }
+    if (dateOfBirth) {
+      user.dateOfBirth = dateOfBirth;
+    }
+    if (image) {
+      user.image = image;
+    }
+
+    try {
       await user.save();
       return res.json({status:'Success',data:user});
-    }catch(error){
+    } catch (error) {
+      console.log('e', error);
       return res.json({status:'Failed',message:"Profile could not update"});
     }
-  }else{
+  } else {
     return res.json({status:'Failed',message:"Profile could not update"});
   }
   
