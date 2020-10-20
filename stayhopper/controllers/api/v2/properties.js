@@ -244,6 +244,7 @@ router.get("/:id", async (req, res) => {
     // 3. Merging the above 2
     // Property Details - populate pricing (if available)
     propertyDetails.priceSummary = propertyWithRoomRates.priceSummary || {};
+    propertyDetails.userRating = propertyWithRoomRates.userRating || 0;
     // Property Details - Populate the Rooms with their pricing (if available)
     propertyDetails.rooms = propertyDetails.rooms || [];
     propertyWithRoomRates.rooms = propertyWithRoomRates.rooms || [];
