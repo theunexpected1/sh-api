@@ -462,6 +462,15 @@ const service = {
     }
 
     const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType: bookingTypeForQuery};
+    if (cityId) {
+      originalQuery.cityId = cityId;
+    }
+    if (countryId) {
+      originalQuery.countryId = countryId;
+    }
+    if (properties && properties.length) {
+      originalQuery.properties = properties;
+    }
     return {
       list,
       count,

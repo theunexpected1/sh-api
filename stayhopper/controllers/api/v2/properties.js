@@ -71,6 +71,24 @@ router.post("/search", async (req, res) => {
   }
 });
 
+router.get("/filters", async (req, res) => {
+  try {
+    const filters = await propertiesServices.getFilters();
+    return res
+      .status(200)
+      .json({
+        data: filters
+      })
+    ;
+  } catch (e) {
+    console.log('e', e);
+    res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      e: e && e.message ? e.message : e
+    }).end();
+  }
+})
+
 // Get Property detail
 router.get("/:id", async (req, res) => {
   const body = req.body;
@@ -129,9 +147,6 @@ router.get("/:id", async (req, res) => {
     ];
 
     const roomPopulations = [
-      // Rooms
-      // { $lookup: { from: "rooms", localField: "_id", foreignField: "property_id", as: "rooms" }},
-
       { $lookup: {
         from: "rooms",
         let: { propertyId: "$_id" },
@@ -253,25 +268,5 @@ router.get("/:id", async (req, res) => {
     }).end();
   }
 });
-
-router.get("/filters", async (req, res) => {
-  // const body = req.body;
-  try {
-    const filters = await propertiesServices.getFilters();
-
-    return res
-      .status(200)
-      .json({
-        data: filters
-      })
-    ;
-  } catch (e) {
-    console.log('e', e);
-    res.status(500).send({
-      message: 'Sorry, there was an error in performing this operation',
-      e: e && e.message ? e.message : e
-    }).end();
-  }
-})
 
 module.exports = router;
