@@ -173,6 +173,31 @@ router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) 
   res.status(200).json({});
 })
 
+router.get("/me", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
+  try {
+    if (req.user) {
+      res
+        .status(200)
+        .json({
+          user: req.user
+        })
+      ;
+    } else {
+      res
+        .status(401)
+        .json({
+          message: "User is not logged in"
+        })
+      ;
+    }
+  } catch (e) {
+    return res.status(500).send({
+      message: 'Sorry, there was an error in performing this operation',
+      error: e
+    }).end();
+  }
+});
+
 router.post('/reset-password', async (req, res) => {
   let email = req.body.email;
   let user = await User.findOne({ email: email });
@@ -448,6 +473,58 @@ router.post('/notify_cred',async(req,res)=>{
       status:'Failed',
       message:'No such user exists'
     });
+  }
+});
+
+router.post("/favorites", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
+  let propertyId = req.body.propertyId;
+  let userId = req.user._id.toString();
+
+  try {
+    let user = await User.findOne({ _id: userId });
+    if (user) {
+      user.favourites = user.favourites || [];
+      let favourites = user.favourites;
+      let isAddingToFavourites = true;
+
+      // User has some favorites
+      if (favourites.length > 0) {
+
+        const isPropertyAlreadyFavourited = favourites.find(pId => propertyId.toString() === pId.toString());
+        if (isPropertyAlreadyFavourited) {
+          // Remove from favorites
+            user.favourites.pull(propertyId.toString());
+            isAddingToFavourites = false;
+        } else {
+          // Add to favorites
+          user.favourites.push(propertyId);
+        }
+      } else {
+        // Add to favorites
+        user.favourites.push(propertyId);
+      }
+
+      // Execute
+      await user.save();
+      return res
+        .status(200)
+        .json({
+          message: isAddingToFavourites
+            ? "Added to favourites"
+            : "Removed from favourites"
+        })
+      ;
+    } else {
+      return res.status(404).json({ message: "User not available" });
+    }
+  } catch (e) {
+    return res
+      .status(500)
+      .json({
+        message: 'Sorry, there was an error in performing this operation',
+        e: e && e.message ? e.message : e
+      })
+    ;
   }
 });
 
