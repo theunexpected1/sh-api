@@ -333,8 +333,8 @@ const service = {
     const numberAdults = parseInt(params.numberAdults) || 2;
     const numberChildren = parseInt(params.numberChildren) || 0;
     const numberRooms = parseInt(params.numberRooms) || 1;
-    const properties = params.properties || [];
-    const rooms = params.rooms || [];
+    const properties = params.properties ? params.properties.split(',') : [];
+    const rooms = params.rooms ? params.rooms.split(',') : [];
     const shouldGetPropertiesWithRates = true;
     const isTestingRates = !!(params && params.isTestingRates);
     const timezone = params.timezone;
@@ -928,7 +928,7 @@ const service = {
     }
 
     // Look for specific properties only (Even if unavailable from previous query)
-    if (properties && properties.length && isTestingRates) {
+    if (properties && properties.length) {
       propertiesQuery['$and'] = propertiesQuery['$and'] || [];
       propertiesQuery['$and'].push({
         'property._id': {
@@ -1239,9 +1239,11 @@ const service = {
           bed_type: 1,
           services: 1,
           number_of_guests: 1,
+          room_size: 1,
           property: {
             _id: 1,
             name: 1,
+            description: 1,
             distance: 1,
             location: 1,
             images: 1,
