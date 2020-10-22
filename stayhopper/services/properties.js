@@ -44,110 +44,6 @@ const service = {
   },
 
   /**
-   * Params:
-      checkinDate,
-      checkoutDate,
-      checkinTime,
-      checkoutTime,
-      numberRooms: 1
-   */
-  getUnavailableRoomsIds: async params => {
-    const checkinDate = params.checkinDate;
-    const checkinTime = params.checkinTime;
-    const checkoutDate = params.checkoutDate;
-    const checkoutTime = params.checkoutTime;
-    const numberRooms = params.numberRooms;
-
-    try {
-      const query = [
-        {
-          $match: {
-            slotStartTime: {
-              $gte: moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm').toDate(),
-              $lt: moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm').toDate()
-            },
-          }
-        },
-        {
-          $group: {
-            _id: {
-              property: '$property',
-              room: '$room',
-            },
-            property: { $first: '$property'},
-            room: { $first: '$room'},
-            blockedRoomNumbers: {
-              $addToSet: '$number'
-            }
-          }
-        },
-        {
-          $project: {
-            property: 1,
-            room: 1,
-            blockedRoomNumbers: 1,
-            numberOfRoomsBlocked: {$size: '$blockedRoomNumbers'}
-          }
-        },
-        {
-          $lookup: {
-            from: "rooms",
-            localField: "room",
-            foreignField: "_id",
-            as: "roomDetails"
-          }
-        },
-        {
-          $lookup: {
-            from: "properties",
-            localField: "property",
-            foreignField: "_id",
-            as: "propertyDetails"
-          }
-        },
-        {
-          $unwind: '$roomDetails'
-        },
-        {
-          $unwind: '$propertyDetails'
-        },
-        {
-          $project: {
-            blockedRoomNumbers: 1,
-            roomId: '$room',
-            room: '$roomDetails',
-            propertyId: '$property',
-            property: '$propertyDetails',
-            numberOfRoomsInventory: '$roomDetails.number_rooms',
-            numberOfRoomsBlocked: 1,
-            numberOfRoomsAvailable: {
-              $subtract: [
-                '$roomDetails.number_rooms',
-                '$numberOfRoomsBlocked'
-              ]
-            }
-          }
-        },
-        {
-          $match: {
-            numberOfRoomsAvailable: {
-              $lt: numberRooms
-            }
-          }
-        }
-      ];
-
-      const unavailableRoomsInfo = await BookLog.aggregate(query);
-      // console.log('Rooms requested: ', numberRooms);
-      // console.log('Rooms Available (per room Id): ', unavailableRoomsInfo.map(unavailableRoomInfo => unavailableRoomInfo.numberOfRoomsAvailable));
-      // console.log('UnAvailable Rooms Ids: ', unavailableRoomsInfo.map(unavailableRoomInfo => unavailableRoomInfo.roomId.toString()));
-      return unavailableRoomsInfo.map(unavailableRoomInfo => unavailableRoomInfo.roomId.toString());
-    } catch (e) {
-      console.log('e', e);
-    }
-  },
-
-  /**
    * Get avg nightly rate for a city
    * specific city, hourly booking, 2 adults, 0 children, 1 room, 1 standard day (14:00 to next day 12:00)
    */
@@ -161,8 +57,8 @@ const service = {
 
       const checkinTime = checkinTimeMoment.format("HH:mm");
       const checkoutTime = checkoutTimeMoment.format("HH:mm");
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY');
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY');
+      const checkinDate = checkinTimeMoment.format('DD/MM/YYYY');
+      const checkoutDate = checkoutTimeMoment.format('DD/MM/YYYY');
 
       // console.log('Cities Avg Nightly rate:');
       // console.log('checkinDate', checkinDate, 'checkinTime', checkinTime);
@@ -216,8 +112,8 @@ const service = {
 
       const checkinTime = checkinTimeMoment.format("HH:mm");
       const checkoutTime = checkoutTimeMoment.format("HH:mm");
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY');
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY');
+      const checkinDate = checkinTimeMoment.format('DD/MM/YYYY');
+      const checkoutDate = checkoutTimeMoment.format('DD/MM/YYYY');
       const numberAdults = parseInt(params.numberAdults) || 2;
       const numberChildren = parseInt(params.numberChildren) || 0;
       const numberRooms = parseInt(params.numberRooms) || 1;
@@ -348,25 +244,7 @@ const service = {
     const bedTypes = params.bedTypes ? params.bedTypes.split(',') : [];
     const amenities = params.amenities ? params.amenities.split(',') : [];
 
-    const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
-    const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
-
-    let bookingType;
-    switch (params.bookingType) {
-      case 'monthly':
-      case 'long-term':
-        bookingType = 'long-term';
-        // ensure monthly is more than 30 days and less than 12 months
-        // TODO: use checkinDateMoment, checkoutDateMoment
-        break;
-      case 'hourly':
-      case 'short-term':
-      default:
-        // ensure hourly is more than 3 hours and less than 12 months
-        // TODO: use checkinDateMoment, checkoutDateMoment
-        bookingType = 'short-term';
-        break;
-    }
+    let bookingType = params.bookingType || 'hourly';
 
     // 1. get hours distribution for all dates of this stay
     const datesAndHoursParams = await checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
@@ -374,16 +252,17 @@ const service = {
 
     console.log('Applied Filters:', priceMin, priceMax, propertyTypes, propertyRatings, roomTypes, bedTypes, amenities);
 
-    // 2. Get unavailable Room IDs
-    const unavailableRooms = await service.getUnavailableRoomsIds({checkinDate, checkoutDate, checkinTime, checkoutTime, numberRooms})
-    // console.log('unavailableRooms', unavailableRooms);
-
-    // 3. Prepare properties aggregate query and run the aggregation
+    // 2. Prepare properties aggregate query and run the aggregation
     // - Filters Phase 1: Send in filters in aggregate query
     const aggregateQuery = service.getAggregateQuery({
       shouldGetPropertiesWithRates,
+      checkinDate,
+      checkoutDate,
+      checkinTime,
+      checkoutTime,
       datesAndHoursParams,
-      unavailableRooms,
+      // bookedRooms,
+      // unavailableRooms,
 
       cityId,
       countryId,
@@ -406,8 +285,9 @@ const service = {
     console.log('- ', moment().tz(timezone).format('DD MMM YYYY hh:mm a'));
     let list = await Room.aggregate(aggregateQuery);
     // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
+    // console.log('list', JSON.stringify(list));
 
-    // 4. Populate Properties' Rooms' Pricing
+    // 3. Populate Properties' Rooms' Pricing
     // - Filters Phase 2: Also, send pricing filters (Can filter price only after aggregation as pricing is a separate process)
     list = await service.populatePropertiesPricing(list, {
       bookingType,
@@ -416,10 +296,10 @@ const service = {
       priceMax
     });
 
-    // 5. Populate Properties' User Ratings
+    // 4. Populate Properties' User Ratings
     list = await Promise.all(list.map(service.getPropertyRating));
 
-    // 6. Sort and paginate list (Defaults will be handled by sortAndPaginateProperties method, so don't decide default here)
+    // 5. Sort and paginate list (Defaults will be handled by sortAndPaginateProperties method, so don't decide default here)
     const limit = params && params.limit
       ? params.limit
       : options && options.limit
@@ -446,20 +326,8 @@ const service = {
     const { count, totalPages } = sortedPaginatedResult;
     list = sortedPaginatedResult.list;
 
-    // 7. Provide the original query back to the frontend // Or provide the generated property detail URL
-
-    let bookingTypeForQuery;
-    switch (bookingType) {
-      case 'monthly':
-      case 'long-term':
-        bookingTypeForQuery = 'monthly';
-        break;
-      case 'hourly':
-      case 'short-term':
-      default:
-        bookingTypeForQuery = 'hourly';
-        break;
-    }
+    // 6. Provide the original query back to the frontend // Or provide the generated property detail URL
+    let bookingTypeForQuery = bookingType || 'hourly';
 
     const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType: bookingTypeForQuery};
     if (cityId) {
@@ -537,8 +405,8 @@ const service = {
 
       const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
       const checkoutTime = checkoutTimeMoment.format("HH:mm"); // use {numberOfHours} hours from checkinTime
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+      const checkinDate = checkinTimeMoment.format('DD/MM/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      const checkoutDate = checkoutTimeMoment.format('DD/MM/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
 
       console.log('=========Popular Properties=========');
       console.log('checkinTime', checkinTime);
@@ -597,8 +465,8 @@ const service = {
 
       const checkinTime = checkinTimeMoment.format("HH:mm"); // use next 30 minute slot from now
       const checkoutTime = checkoutTimeMoment.format("HH:mm"); // use {numberOfHours} hours from checkinTime
-      const checkinDate = checkinTimeMoment.format('MM/DD/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
-      const checkoutDate = checkoutTimeMoment.format('MM/DD/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
+      const checkinDate = checkinTimeMoment.format('DD/MM/YYYY'); // use date of checkinTime (today, or next day if checkinTime is falling on the next day)
+      const checkoutDate = checkoutTimeMoment.format('DD/MM/YYYY'); // use date of checkinDate (same, or next day if checkoutTime is falling on the next day)
 
       console.log('=========Cheapest Properties=========');
       console.log('checkinTime', checkinTime);
@@ -677,7 +545,7 @@ const service = {
       let customRate = null;
       let roomRateInfo; // weekday: {fullDay: 0, standardDay: 0, hours: []} or weekend: {fullDay: 0, standardDay: 0, hours: []}
       const {date, rateType, hours, hoursKeys} = dateParams;
-      const targetDateMoment = moment(date, 'MM/DD/YYYY');
+      const targetDateMoment = moment(date, 'DD/MM/YYYY');
       const dateWeekdayName = targetDateMoment.format('ddd').toLowerCase();
       const weekendOrWeekday = weekends.indexOf(dateWeekdayName) > -1 ? 'weekend' : 'weekday';
 
@@ -686,8 +554,8 @@ const service = {
         // Run until we find first custom rate in range
         if (!customRate) {
           const isRecurring = roomRate.recurring;
-          const customRateDateFromMoment = moment(roomRate.dateFrom, 'MM/DD/YYYY');
-          const customRateDateToMoment = moment(roomRate.dateTo, 'MM/DD/YYYY');
+          const customRateDateFromMoment = moment(roomRate.dateFrom, 'DD/MM/YYYY');
+          const customRateDateToMoment = moment(roomRate.dateTo, 'DD/MM/YYYY');
           // Recurring date ? Check if date is present in the date range, across {maxRecurringYears || 10} years
           if (isRecurring) {
             // Look across 0th year (first of definition) untill {maxRecurringYears || 10} occurances
@@ -871,8 +739,11 @@ const service = {
   getAggregateQuery: (params) => {
     const {
       shouldGetPropertiesWithRates,
+      checkinDate,
+      checkoutDate,
+      checkinTime,
+      checkoutTime,
       datesAndHoursParams,
-      unavailableRooms,
 
       cityId,
       countryId,
@@ -891,6 +762,9 @@ const service = {
       bedTypes,
       amenities
     } = params;
+
+    const fullCheckinDate = moment(`${checkinDate} ${checkinTime}`, "DD/MM/YYYY HH:mm").toDate();
+    const fullCheckoutDate = moment(`${checkoutDate} ${checkoutTime}`, "DD/MM/YYYY HH:mm").toDate();
 
     // 3. properties Query
     const propertiesQuery = {'$and': []};
@@ -990,29 +864,6 @@ const service = {
       roomsQuery['$and'].push(ratesTypeDefined);
     }
 
-    // filter guests (adult / children)
-    if (numberAdults) {
-      roomsQuery['$and'] = roomsQuery['$and'] || [];
-      roomsQuery['$and'].push({
-        'number_of_guests.value': {$gte: numberAdults}
-      })
-    }
-
-    if (numberChildren) {
-      roomsQuery['$and'] = roomsQuery['$and'] || [];
-      roomsQuery['$and'].push({
-        'number_of_guests.childrenValue': {$gte: numberChildren}
-      })
-    }
-
-    // filter number of rooms
-    if (numberRooms) {
-      roomsQuery['$and'] = roomsQuery['$and'] || [];
-      roomsQuery['$and'].push({
-        'number_rooms': {$gte: numberRooms  }
-      })
-    }
-
     // Filter by Room Types
     if (roomTypes && roomTypes.length) {
       roomsQuery['$and'] = roomsQuery['$and'] || [];
@@ -1050,18 +901,6 @@ const service = {
           $in: forceRoomIds
         }
       })
-    } else {
-
-      // Ignore unavailable rooms
-      if (unavailableRooms && unavailableRooms.length) {
-        const unavailableRoomIds = unavailableRooms.filter(id => !!id).map(id => db.Types.ObjectId(id));
-        roomsQuery['$and'] = roomsQuery['$and'] || [];
-        roomsQuery['$and'].push({
-          _id: {
-            $nin: unavailableRoomIds
-          }
-        })
-      }
     }
 
     let propertyPipeline = [
@@ -1108,136 +947,53 @@ const service = {
     // 5. Populations & projections
     const propertyPopulations = [
       // property
-      {
-        $lookup: {
-          from: "properties",
-          let: {
-            roomPropertyId: "$property_id"
-          },
-          pipeline: propertyPipeline,
-          as: "property"
-        }
-      },
-      {
-        $unwind: "$property"
-      },
-    
+      { $lookup: { from: "properties", let: { roomPropertyId: "$property_id" }, pipeline: propertyPipeline, as: "property" } },
+      { $unwind: "$property" },
+
+      // TODO: Can move these all into propertyPipeline (just for cleanup, not required)
       // property.currency
-      {
-        $lookup: {
-          from: "currencies",
-          localField: "property.currency",
-          foreignField: "_id",
-          as: "property.currency"
-        }
-      },
-      {
-        $unwind: "$property.currency"
-      },
-    
+      { $lookup: { from: "currencies", localField: "property.currency", foreignField: "_id", as: "property.currency" } },
+      { $unwind: "$property.currency" },
+
       // property.rating
-      {
-        $lookup: {
-          from: "property_ratings",
-          localField: "property.rating",
-          foreignField: "_id",
-          as: "property.rating"
-        }
-      },
-      {
-        $unwind: "$property.rating"
-      },
-    
+      { $lookup: { from: "property_ratings", localField: "property.rating", foreignField: "_id", as: "property.rating" } },
+      { $unwind: "$property.rating" },
+
       // property.contactinfo.country
-      {
-        $lookup: {
-          from: "countries",
-          localField: "property.contactinfo.country",
-          foreignField: "_id",
-          as: "property.contactinfo.country"
-        }
-      },
-      {
-        $unwind: "$property.contactinfo.country"
-      },
+      { $lookup: { from: "countries", localField: "property.contactinfo.country", foreignField: "_id", as: "property.contactinfo.country" } },
+      { $unwind: "$property.contactinfo.country" },
+
       // property.contactinfo.city
-      {
-        $lookup: {
-          from: "cities",
-          localField: "property.contactinfo.city",
-          foreignField: "_id",
-          as: "property.contactinfo.city"
-        }
-      },
-      {
-        $unwind: "$property.contactinfo.city"
-      },
+      { $lookup: { from: "cities", localField: "property.contactinfo.city", foreignField: "_id", as: "property.contactinfo.city" } },
+      { $unwind: "$property.contactinfo.city" },
 
       // property.propertyTypes
-      {
-        $lookup: {
-          from: "property_types",
-          localField: "property.type",
-          foreignField: "_id",
-          as: "property.type"
-        }
-      },
-      {
-        $unwind: "$property.type"
-      }
+      { $lookup: { from: "property_types", localField: "property.type", foreignField: "_id", as: "property.type" } },
+      { $unwind: "$property.type" }
     ];
 
     const roomPopulations = [
       // Guest Numbers
-      {
-        $lookup: {
-          from: "guest_numbers",
-          localField: "number_of_guests",
-          foreignField: "_id",
-          as: "number_of_guests"
-        }
-      },
-      {
-        $unwind: "$number_of_guests"
-      },
+      { $lookup: { from: "guest_numbers", localField: "number_of_guests", foreignField: "_id", as: "number_of_guests" } },
+      { $unwind: "$number_of_guests" },
 
       // Room type
-      {
-        $lookup: {
-          from: "room_types",
-          localField: "room_type",
-          foreignField: "_id",
-          as: "room_type"
-        }
-      },
-      {
-        $unwind: "$room_type"
-      },
+      { $lookup: { from: "room_types", localField: "room_type", foreignField: "_id", as: "room_type" } },
+      { $unwind: "$room_type" },
+
+      // Room name
+      { $lookup: { from: "room_names", localField: "room_name", foreignField: "_id", as: "room_name" } },
+      { $unwind: "$room_name" },
 
       // Bed type
-      {
-        $lookup: {
-          from: "bed_types",
-          localField: "bed_type",
-          foreignField: "_id",
-          as: "bed_type"
-        }
-      },
-      {
-        $unwind: "$bed_type"
-      },
+      { $lookup: { from: "bed_types", localField: "bed_type", foreignField: "_id", as: "bed_type" } },
+      { $unwind: "$bed_type" },
 
       // Services
-      {
-        $lookup: {
-          from: "services",
-          localField: "services",
-          foreignField: "_id",
-          as: "services"
-        }
-      }
+      { $lookup: { from: "services", localField: "services", foreignField: "_id", as: "services" } }
     ];
 
+    
     const projectionAndGrouping = [
       {
         $project: {
@@ -1245,6 +1001,9 @@ const service = {
           featured: 1,
           rates: 1,
           room_type: 1,
+          number_rooms: 1,
+          room_name: 1,
+          custom_name: 1,
           bed_type: 1,
           services: 1,
           number_of_guests: 1,
@@ -1288,6 +1047,196 @@ const service = {
       }
     ];
 
+    // Break down rooms so that we can update the inventory & capacity (# of rooms in stock / # of adults & children accommodatable)
+    const stockInformation = [
+      {
+        $unwind: "$rooms"
+      },
+      { $lookup: {
+        from: "bookinglogs",
+        let: { roomId: "$rooms._id" },
+        pipeline: [
+          {
+            $match: {
+              $expr: {
+                $and: [
+                  {
+                    $gte: ["$slotStartTime", fullCheckinDate]
+                  },
+                  {
+                    $lt: ["$slotStartTime", fullCheckoutDate]
+                  },
+                  {
+                    $eq: ["$room", "$$roomId"]
+                  }
+                ]
+              }
+            }
+          },
+          {
+            $group: {
+              _id: {
+                property: '$property',
+                room: '$room',
+              },
+              property: {$first: '$property'},
+              room: {$first: '$room'},
+              blockedRoomNumbers: {
+                $addToSet: '$number'
+              }
+            }
+          },
+          { $lookup: {
+            from: "rooms",
+            let: { roomId: "$room" },
+            pipeline: [
+              { $match: { $expr: { $eq: ["$_id", "$$roomId"]}} },
+
+              // Guest Numbers
+              { $lookup: { from: "guest_numbers", localField: "number_of_guests", foreignField: "_id", as: "number_of_guests" }},
+              { $unwind: "$number_of_guests" }
+            ],
+            as: "room"
+          }},
+          {
+            $unwind: "$room"
+          },
+          {
+            $project: {
+              room: 1,
+              blockedRoomNumbers: 1,
+              numberOfRoomsInventory: '$room.number_rooms',
+              numberOfRoomsBlocked: {$size: '$blockedRoomNumbers'},
+            }
+          },
+          {
+            $project: {
+              room: 1,
+              blockedRoomNumbers: 1,
+              numberOfRoomsInventory: 1,
+              numberOfRoomsBlocked: 1,
+              numberOfRoomsAvailable: {
+                $subtract: [
+                  '$numberOfRoomsInventory',
+                  '$numberOfRoomsBlocked'
+                ]
+              }
+            }
+          },
+          {
+            $project: {
+              room: 1,
+              blockedRoomNumbers: 1,
+              numberOfRoomsInventory: 1,
+              numberOfRoomsBlocked: 1,
+              numberOfRoomsAvailable: 1,
+              adultsCapacity: {
+                $multiply: [
+                  '$numberOfRoomsAvailable',
+                  '$room.number_of_guests.value'
+                ]
+              },
+              childrenCapacity: {
+                $multiply: [
+                  '$numberOfRoomsAvailable',
+                  {$ifNull: ['$room.number_of_guests.childrenValue', 0]}
+                ]
+              }
+            }
+          }
+        ],
+        as: "stock"
+      }},
+      {
+        $unwind: {
+          path: "$stock",
+          preserveNullAndEmptyArrays: true
+        }
+      },
+      {
+        $project: {
+          _id: "$_id",
+          name: 1,
+          description: 1,
+          distance: 1,
+          location: 1,
+          images: 1,
+          featured: 1,
+          currency: 1,
+          contactinfo: 1,
+          charges: 1,
+          rating: 1,
+          type: 1,
+          weekends: 1,
+          anyTimeCheckin: 1,
+          rooms: 1,
+          stock: {
+            // Use $stock if exists, otherwise assume full availability
+            $ifNull: [
+              '$stock',
+              {
+                numberOfRoomsAvailable: '$rooms.number_rooms',
+                adultsCapacity: {
+                  $multiply: [
+                    '$rooms.number_rooms',
+                    '$rooms.number_of_guests.value'
+                  ]
+                },
+                childrenCapacity: {
+                  $multiply: [
+                    '$rooms.number_rooms',
+                    {$ifNull: ['$rooms.number_of_guests.childrenValue', 0]}
+                  ]
+                }
+              }
+            ]
+          }
+        }
+      },
+      {
+        $group: {
+          _id: "$_id",
+          name: { $first: "$name" },
+          description: { $first: "$description" },
+          distance: { $first: "$distance" },
+          location: { $first: "$location" },
+          images: { $first: "$images" },
+          featured: { $first: "$featured" },
+          currency: { $first: "$currency" },
+          contactinfo: { $first: "$contactinfo" },
+          charges: { $first: "$charges" },
+          rating: { $first: "$rating" },
+          type: { $first: "$type" },
+          weekends: { $first: "$weekends" },
+          anyTimeCheckin: { $first: "$anyTimeCheckin" },
+          numberOfRoomsAvailable: { $sum: "$stock.numberOfRoomsAvailable" },
+          adultsCapacity: { $sum: "$stock.adultsCapacity" },
+          childrenCapacity: { $sum: "$stock.childrenCapacity" },
+          // Merge stock information into rooms
+          rooms: {
+            $push: {
+              $mergeObjects: [
+                '$rooms',
+                '$stock'
+              ]
+            }
+          }
+        }
+      }
+    ];
+
+    const guestsFiltering = [
+      {
+        $match: {
+          $and: [
+            { numberOfRoomsAvailable: { $gte: numberRooms } },
+            { adultsCapacity: { $gte: numberAdults } },
+            { childrenCapacity: { $gte: numberChildren } }
+          ]
+        }
+      }
+    ];
+
     // console.log('propertyPopulations', propertyPopulations);
     // console.log('roomPopulations', roomPopulations);
     // console.log('propertiesQuery', JSON.stringify(propertiesQuery));
@@ -1303,6 +1252,8 @@ const service = {
         $match: roomsQuery
       },
       ...projectionAndGrouping,
+      ...stockInformation,
+      ...guestsFiltering
     ];
 
     // console.log('- roomsAggregateQuery:');

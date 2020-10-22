@@ -161,6 +161,10 @@ router.get("/:id", async (req, res) => {
           { $lookup: { from: "room_types", localField: "room_type", foreignField: "_id", as: "room_type" }},
           { $unwind: "$room_type" },
 
+          // Room name
+          { $lookup: { from: "room_names", localField: "room_name", foreignField: "_id", as: "room_name" }},
+          { $unwind: "$room_name" },
+
           // Bed type
           { $lookup: { from: "bed_types", localField: "bed_type", foreignField: "_id", as: "bed_type" }},
           { $unwind: "$bed_type" },
@@ -172,6 +176,8 @@ router.get("/:id", async (req, res) => {
             images: 1,
             featured: 1,
             room_type: 1,
+            number_rooms: 1,
+            custom_name: 1,
             bed_type: 1,
             services: 1,
             number_of_guests: 1,
@@ -248,6 +254,9 @@ router.get("/:id", async (req, res) => {
     // Property Details - Populate the Rooms with their pricing (if available)
     propertyDetails.rooms = propertyDetails.rooms || [];
     propertyWithRoomRates.rooms = propertyWithRoomRates.rooms || [];
+    propertyDetails.numberOfRoomsAvailable = propertyWithRoomRates.numberOfRoomsAvailable || 0;
+    propertyDetails.adultsCapacity = propertyWithRoomRates.adultsCapacity || 0;
+    propertyDetails.childrenCapacity = propertyWithRoomRates.childrenCapacity || 0;
     propertyDetails.rooms = propertyDetails.rooms.map(room => {
       // If we have pricing for a room, use that room instead
       const roomWithRates = propertyWithRoomRates.rooms.find(_room => _room._id.toString() === room._id.toString());
