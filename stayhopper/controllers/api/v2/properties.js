@@ -6,6 +6,7 @@ const db = require("../../../db/mongodb");
 
 // Services
 const propertiesServices = require("../../../services/properties")
+const checkinService = require("../../../services/checkin")
 
 router.post("/authorized", jwtMiddleware.userAuthenticationRequired, (req, res) => {
   console.log('Success');
@@ -137,6 +138,7 @@ router.get("/:id", async (req, res) => {
             value: 1,
             date: 1,
             'user.name': 1,
+            'user.image': 1,
             'user.email': 1,
             'user.mobile': 1,
             'user.country': 1
@@ -201,7 +203,6 @@ router.get("/:id", async (req, res) => {
         rooms: 1,
         'contactinfo.country': 1,
         'contactinfo.city': 1,
-        charges: 1,
         rating: 1,
         type: 1,
         policies: 1,
@@ -227,12 +228,16 @@ router.get("/:id", async (req, res) => {
       : {}
     ;
 
+    const checkinDate = body.checkinDate ? body.checkinDate.replace(/-/g, '/') : '';
+    const checkoutDate = body.checkoutDate ? body.checkoutDate.replace(/-/g, '/') : '';
+    const checkinTime = body.checkinTime;
+    const checkoutTime = body.checkoutTime;
     // 2. Get Property Room Rates
     const propertiesWithRoomRates = await propertiesServices.getProperties({
-      checkinDate: body.checkinDate ? body.checkinDate.replace(/-/g, '/') : '',
-      checkoutDate: body.checkoutDate ? body.checkoutDate.replace(/-/g, '/') : '',
-      checkinTime: body.checkinTime,
-      checkoutTime: body.checkoutTime,
+      checkinDate,
+      checkoutDate,
+      checkinTime,
+      checkoutTime,
       bookingType: body.bookingType || 'hourly', // hourly or monthly
       numberAdults: parseInt(body.numberAdults) || 2,
       numberChildren: parseInt(body.numberChildren) || 0,
@@ -248,19 +253,28 @@ router.get("/:id", async (req, res) => {
     ;
 
     // 3. Merging the above 2
-    // Property Details - populate pricing (if available)
+    // Property Details - populate pricing / inventory / guests capacity (if available)
     propertyDetails.priceSummary = propertyWithRoomRates.priceSummary || {};
-    propertyDetails.userRating = propertyWithRoomRates.userRating || 0;
-    // Property Details - Populate the Rooms with their pricing (if available)
-    propertyDetails.rooms = propertyDetails.rooms || [];
-    propertyWithRoomRates.rooms = propertyWithRoomRates.rooms || [];
+    const propertyWithUserRating = await propertiesServices.getPropertyRating(propertyDetails);
+    if (propertyWithUserRating && typeof propertyWithUserRating.userRating !== 'undefined') {
+      propertyDetails.userRating = propertyWithUserRating.userRating;
+    } else {
+      propertyDetails.userRating = 0;
+    }
+
     propertyDetails.numberOfRoomsAvailable = propertyWithRoomRates.numberOfRoomsAvailable || 0;
     propertyDetails.adultsCapacity = propertyWithRoomRates.adultsCapacity || 0;
     propertyDetails.childrenCapacity = propertyWithRoomRates.childrenCapacity || 0;
+    propertyDetails.stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
+
+    // Property Details - Populate the Rooms with their pricing (if available)
+    propertyDetails.rooms = propertyDetails.rooms || [];
+    propertyWithRoomRates.rooms = propertyWithRoomRates.rooms || [];
     propertyDetails.rooms = propertyDetails.rooms.map(room => {
       // If we have pricing for a room, use that room instead
+      // Otherwise populate the default inventory / guest information in the existing room
       const roomWithRates = propertyWithRoomRates.rooms.find(_room => _room._id.toString() === room._id.toString());
-      return roomWithRates || room;
+      return roomWithRates || propertiesServices.populateRoomsInventoryAndGuests(room);
     });
 
     // 3. Combine Property Details with the rates information

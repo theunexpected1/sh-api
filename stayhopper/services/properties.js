@@ -326,6 +326,13 @@ const service = {
     const { count, totalPages } = sortedPaginatedResult;
     list = sortedPaginatedResult.list;
 
+    // Append stay duration information
+    const stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
+    list.map(p => {
+      p.stayDuration = stayDuration;
+      return p;
+    });
+
     // 6. Provide the original query back to the frontend // Or provide the generated property detail URL
     let bookingTypeForQuery = bookingType || 'hourly';
 
@@ -438,10 +445,9 @@ const service = {
       })
 
       // Append stay duration information
+      const stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
       propertiesResult.list.map(p => {
-        p.stayDuration = {
-          label: `${numberOfHours} Hours`
-        };
+        p.stayDuration = stayDuration;
         return p;
       });
 
@@ -498,10 +504,9 @@ const service = {
       });
 
       // Append stay duration information
+      const stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
       propertiesResult.list.map(p => {
-        p.stayDuration = {
-          label: `${numberOfHours} Hours`
-        };
+        p.stayDuration = stayDuration;
         return p;
       });
 
@@ -1284,12 +1289,18 @@ const service = {
           isValidRoom = isValidRoom && room.priceSummary && room.priceSummary.base && !!room.priceSummary.base.amount;
 
           // Remain Valid if the price is matching the filters (if provided)
-          if ((priceMin === 0 || !!priceMin) && (priceMax === 0 || !!priceMax)) {
+          // if ((priceMin === 0 || !!priceMin) && (priceMax === 0 || !!priceMax)) {
+          //   isValidRoom = isValidRoom &&
+          //     room.priceSummary.base.amount >= priceMin &&
+          //     room.priceSummary.base.amount <= priceMax
+          //   ;
+          // }
+          if (priceMin === 0 || !!priceMin) {
+            isValidRoom = isValidRoom && room.priceSummary.base.amount >= priceMin;
+          }
 
-            isValidRoom = isValidRoom &&
-              room.priceSummary.base.amount >= priceMin &&
-              room.priceSummary.base.amount <= priceMax
-            ;
+          if (priceMax === 0 || !!priceMax) {
+            isValidRoom = isValidRoom && room.priceSummary.base.amount <= priceMax;
           }
 
           return isValidRoom;
@@ -1360,6 +1371,37 @@ const service = {
     }
 
     return 0;
+  },
+
+  // Populate the inventory, guests capacity if not already provided
+  populateRoomsInventoryAndGuests: room => {
+    const numberOfRoomsInventory = typeof room.numberOfRoomsInventory === 'undefined'
+      ? room.number_rooms || 0
+      : room.numberOfRoomsInventory
+    ;
+    const numberOfRoomsBlocked = typeof room.numberOfRoomsBlocked === 'undefined'
+      ? 0
+      : room.numberOfRoomsBlocked
+    ;
+    const numberOfRoomsAvailable = typeof room.numberOfRoomsAvailable === 'undefined'
+      ? numberOfRoomsInventory
+      : room.numberOfRoomsAvailable
+    ;
+    const adultsCapacity = typeof room.adultsCapacity === 'undefined'
+      ? numberOfRoomsAvailable * (room.number_of_guests.value || 0)
+      : room.adultsCapacity
+    ;
+    const childrenCapacity = typeof room.childrenCapacity === 'undefined'
+      ? numberOfRoomsAvailable * (room.number_of_guests.childrenValue || 0)
+      : room.childrenCapacity
+    ;
+
+    room.numberOfRoomsInventory = numberOfRoomsInventory;
+    room.numberOfRoomsBlocked = numberOfRoomsBlocked;
+    room.numberOfRoomsAvailable = numberOfRoomsAvailable;
+    room.adultsCapacity = adultsCapacity;
+    room.childrenCapacity = childrenCapacity;
+    return room;
   },
 
   getFilters: async () => {

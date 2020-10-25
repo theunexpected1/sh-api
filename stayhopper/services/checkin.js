@@ -1,6 +1,7 @@
 const moment = require('moment');
 const { checkout } = require('../controllers/api/v2/main');
 const dateTimeService = require('./date-time');
+const genericService = require('./generic');
 
 const service = {
   debug: false,
@@ -13,8 +14,8 @@ const service = {
     const checkoutTime = params.checkoutTime;
     // const propertyWeekends = params.weekends || [];
 
-    const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'MM/DD/YYYY HH:mm');
-    const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'MM/DD/YYYY HH:mm');
+    const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'DD/MM/YYYY HH:mm');
+    const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'DD/MM/YYYY HH:mm');
 
     // console.log('============getDatesAndHoursStayParams============');
     // console.log('checkinDateMoment', checkinDateMoment.format('DD MMM YYYY hh:mm a'));
@@ -34,7 +35,7 @@ const service = {
     do {
       const checkinTimeStr = currentCheckinDateMoment.format('HH:mm');
       let checkoutTimeStr = '00:00';
-      if (currentCheckinDateMoment.format('MM/DD/YYYY') === checkoutDateMoment.format('MM/DD/YYYY')) {
+      if (currentCheckinDateMoment.format('DD/MM/YYYY') === checkoutDateMoment.format('DD/MM/YYYY')) {
         checkoutTimeStr = checkoutDateMoment.format('HH:mm');
       }
 
@@ -88,7 +89,7 @@ const service = {
 
       if (rateType === 'standardDay') {
         stayDetailParams.push({
-          date: currentCheckinDateMoment.format('MM/DD/YYYY'),
+          date: currentCheckinDateMoment.format('DD/MM/YYYY'),
           // dayType, // weekend or weekday
           rateType, // fullDay or standardDay
           hours,
@@ -98,7 +99,7 @@ const service = {
         currentCheckinDateMoment = moment(currentCheckinDateMoment).add(22, 'hours');
       } else {
         stayDetailParams.push({
-          date: currentCheckinDateMoment.format('MM/DD/YYYY'),
+          date: currentCheckinDateMoment.format('DD/MM/YYYY'),
           // dayType,
           rateType,
           hours,
@@ -125,6 +126,64 @@ const service = {
     } while (timeRemaining)
 
     return stayDetailParams;
+  },
+
+  /**
+   * Provide checkin and checkout details to get stay duration label
+   * @example
+   * 3 hours, 2 days, 30 days, 1 month, 3+ months, 12 months)
+   */
+  getStayDuration: ({checkinDate, checkoutDate, checkinTime, checkoutTime}) => {
+    let value = '';
+    let unit = '';
+    let label = '';
+    if (checkinDate && checkoutDate && checkinTime && checkoutTime) {
+      const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'DD/MM/YYYY HH:mm');
+      const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'DD/MM/YYYY HH:mm');
+      const isStandardDayBooking = checkinTime === '14:00' && checkoutTime === '12:00';
+      if (isStandardDayBooking) {
+        const daysDiff = checkoutDateMoment.diff(checkinDateMoment, 'days');
+        if (daysDiff < 30) {
+          value = checkoutDateMoment.diff(checkinDateMoment, 'days') + 1;
+          unit = 'days';
+          label = `${value} ${label}`;
+        } else if (daysDiff < 31) {
+          value = 1;
+          unit = 'months';
+          label = `1 Month`;
+        } else {
+          value = checkoutDateMoment.diff(checkinDateMoment, 'months');
+          unit = 'months';
+          label = value === 12
+            ? `${value} Months`
+            : `${value}+ Months`
+          ;
+        }
+      } else {
+        const hours = checkoutDateMoment.diff(checkinDateMoment, 'hours');
+        if (hours <= 24) {
+          value = hours;
+          unit = 'hours';
+          label = `${value} ${genericService.pluralize(value, 'Hour', 'Hours')}`;
+        } else if (hours <= (24 * 30)) {
+          value = Math.ceil(hours / 24);
+          unit = 'days';
+          label = `${value} ${genericService.pluralize(value, 'Day', 'Days')}`;
+        } else if (hours <= (24 * 31)) {
+          value = 1;
+          unit = 'months';
+          label = `1 Month`;
+        } else {
+          value = Math.floor(hours / (24 * 30));
+          unit = 'months';
+          label = value === 12
+            ? `${value} Months`
+            : `${value}+ Months`
+          ;
+        }
+      }
+    }
+    return { label, value, unit };
   }
 };
 

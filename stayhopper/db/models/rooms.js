@@ -67,7 +67,7 @@ const ratesSchema = new db.Schema({
   },
   rateType: {
     type: String,
-    enum: ['short-term', 'long-term']
+    enum: ['hourly', 'monthly']
   }
 })
 
@@ -188,13 +188,13 @@ const roomsSchema = new db.Schema({
 //       weekday: defaultRate,
 //       weekend: defaultRate,
 //       isDefault: true,
-//       rateType: 'short-term' // or 'long-term'
+//       rateType: 'hourly' // or 'monthly'
 //     }
 //     const defaultLongTermRates = {
 //       weekday: defaultRate,
 //       weekend: defaultRate,
 //       isDefault: true,
-//       rateType: 'long-term' // or 'long-term'
+//       rateType: 'monthly' // or 'monthly'
 //     }
 
 //     room.rates = [

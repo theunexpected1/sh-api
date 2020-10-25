@@ -12,9 +12,7 @@ router.post("/", async (req, res) => {
   rating.comment = req.body.comment;
   rating.ub_id  = req.body.ub_id;
   rating.booking_id = req.body.booking_id;
-  var number = req.body.value;
-  var rounded = Math.round(number * 10) / 10;
-  rating.value = rounded;
+  rating.value = Math.round(req.body.value) || 1;
   rating.date = new Date();
   try {
     await rating.save();

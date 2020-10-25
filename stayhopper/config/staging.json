@@ -16,24 +16,24 @@
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED / hourly",
       "currency": "5b616c7556fa98278f681e4a",
-      "bookingType": "short-term",
+      "bookingType": "hourly",
       "fee": 15
     }, {
       "commentsForAdmin": "UAE / AED / monthly",
       "currency": "5b616c7556fa98278f681e4a",
-      "bookingType": "long-term",
+      "bookingType": "monthly",
       "fee": 25
     }],
 
     "5f0c7437f90937c4c19a1adf": [{
       "commentsForAdmin": "India / RS / hourly",
       "currency": "5f0cbd9dba4abaf8e4f45892",
-      "bookingType": "short-term",
+      "bookingType": "hourly",
       "fee": 300
     }, {
       "commentsForAdmin": "India / RS / monthly",
       "currency": "5f0cbd9dba4abaf8e4f45892",
-      "bookingType": "long-term",
+      "bookingType": "monthly",
       "fee": 450
     }]
   }
