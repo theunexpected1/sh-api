@@ -1183,7 +1183,7 @@ const service = {
                 adultsCapacity: {
                   $multiply: [
                     '$rooms.number_rooms',
-                    '$rooms.number_of_guests.value'
+                    {$ifNull: ['$rooms.number_of_guests.value', 0]}
                   ]
                 },
                 childrenCapacity: {
