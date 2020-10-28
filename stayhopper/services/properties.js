@@ -247,8 +247,8 @@ const service = {
     let bookingType = params.bookingType || 'hourly';
 
     // 1. get hours distribution for all dates of this stay
-    const datesAndHoursParams = await checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
-    console.log('Dates & Hours params:', datesAndHoursParams);
+    const datesAndHoursParams = checkinService.getDatesAndHoursStayParams({checkinDate, checkoutDate, checkinTime, checkoutTime});
+    // console.log('Dates & Hours params:', datesAndHoursParams);
 
     console.log('Applied Filters:', priceMin, priceMax, propertyTypes, propertyRatings, roomTypes, bedTypes, amenities);
 
@@ -896,9 +896,8 @@ const service = {
       }
     }
 
-
-    // Look for specific rooms only (Even if unavailable from previous query)
-    if (rooms && rooms.length && isTestingRates) {
+    // Look for specific rooms only
+    if (rooms && rooms.length) {
       const forceRoomIds = rooms.filter(id => !!id).map(id => db.Types.ObjectId(id));
       roomsQuery['$and'] = roomsQuery['$and'] || [];
       roomsQuery['$and'].push({
@@ -1109,6 +1108,7 @@ const service = {
           {
             $project: {
               room: 1,
+              _id: '$room._id',
               blockedRoomNumbers: 1,
               numberOfRoomsInventory: '$room.number_rooms',
               numberOfRoomsBlocked: {$size: '$blockedRoomNumbers'},
@@ -1130,7 +1130,6 @@ const service = {
           },
           {
             $project: {
-              room: 1,
               blockedRoomNumbers: 1,
               numberOfRoomsInventory: 1,
               numberOfRoomsBlocked: 1,
@@ -1138,7 +1137,7 @@ const service = {
               adultsCapacity: {
                 $multiply: [
                   '$numberOfRoomsAvailable',
-                  '$room.number_of_guests.value'
+                  {$ifNull: ['$room.number_of_guests.value', 0]}
                 ]
               },
               childrenCapacity: {

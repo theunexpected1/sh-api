@@ -1,4 +1,6 @@
 const moment = require('moment');
+require('moment-precise-range-plugin');
+
 const { checkout } = require('../controllers/api/v2/main');
 const dateTimeService = require('./date-time');
 const genericService = require('./generic');
@@ -7,7 +9,7 @@ const service = {
   debug: false,
 
   // expanding 1.
-  getDatesAndHoursStayParams: async params => {
+  getDatesAndHoursStayParams: params => {
     const checkinDate = params.checkinDate;
     const checkinTime = params.checkinTime;
     const checkoutDate = params.checkoutDate;
@@ -184,6 +186,44 @@ const service = {
       }
     }
     return { label, value, unit };
+  },
+
+  /**
+   * Provide checkin and checkout details to get stay duration label
+   * @example
+   * 3 hours, 2 days, 3 hours, 30 days and 15 hours, 1 month and 4 days and 12 hours, 3 months 12 days and 4 hours, 12 months)
+   */
+  getAccurateStayDurationLabel: ({checkinDate, checkoutDate, checkinTime, checkoutTime}) => {
+    if (checkinDate && checkoutDate && checkinTime && checkoutTime) {
+      const checkinDateMoment = moment(`${checkinDate} ${checkinTime}`, 'DD/MM/YYYY HH:mm');
+      const checkoutDateMoment = moment(`${checkoutDate} ${checkoutTime}`, 'DD/MM/YYYY HH:mm');
+      const isStandardDayBooking = checkinTime === '14:00' && checkoutTime === '12:00';
+      // Assume same hours in case of standard day, so we don't have a wrong 
+      if (isStandardDayBooking) {
+        checkoutDateMoment.set({hour:14})
+      }
+      const preciseDiff = moment.preciseDiff(checkinDateMoment, checkoutDateMoment, true);
+      const applicableUnits = ['months', 'days', 'hours', 'minutes']
+        .filter(unit => {
+          return !!preciseDiff[unit];
+        })
+      ;
+
+      const messageArr = applicableUnits.reduce((a, unit) => {
+        const unitCapitalCase = unit.charAt(0).toUpperCase() + unit.slice(1);
+        return a.concat(`${preciseDiff[unit]} ${unitCapitalCase}`);
+      }, [])
+
+      let messageStr = messageArr.join(', ');
+      // Replace last "," with "and"
+      lastCommaPos = messageStr.lastIndexOf(',');
+      if (lastCommaPos > -1 ) {
+        messageStr = messageStr.substr(0, lastCommaPos) + ' and' + messageStr.substr(lastCommaPos+1, messageStr.length-1)
+      }
+      console.log(messageStr);
+      return messageStr;
+    }
+    return '';
   }
 };
 
