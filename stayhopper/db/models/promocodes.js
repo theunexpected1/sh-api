@@ -6,6 +6,11 @@ const promoCodeSchema = new db.Schema({
     discount: {
         type: Number,
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 promoCodeModel = db.model('promocodes', promoCodeSchema);

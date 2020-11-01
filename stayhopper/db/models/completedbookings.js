@@ -57,6 +57,11 @@ const completedBookingsSchema = new db.Schema({
   date_checkin: Date,
   date_checkout: Date,
   date_booked: Date,
+  currencyCode: {
+    type: String,
+    default: 'AED'
+  },
+  bookingFee: Number,
   tax: Number,
   discount: Number,
   total_amt: Number,

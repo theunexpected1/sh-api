@@ -59,7 +59,12 @@ const userbookingSchema = new db.Schema({
   },
   selected_hours: {
     type: Number,
-    required: [true, "Selected hours is required"]
+    // required: [true, "Selected hours is required"]
+  },
+  bookingType: {
+    type: String,
+    enum: ['hourly', 'monthly'],
+    default: 'hourly'
   },
   checkin_time: {
     type: String,
@@ -67,11 +72,18 @@ const userbookingSchema = new db.Schema({
   },
   checkout_time: {
     type: String,
-    required: [true, "Check in time is required"]
+    required: [true, "Check out time is required"]
   },
   checkin_date: {
     type: String,
     required: [true, "Check in date is required"]
+  },
+  checkout_date: {
+    type: String,
+    required: [true, "Check out date is required"]
+  },
+  stayDuration: {
+    type: String
   },
   date_booked: {
     type: Date
@@ -82,11 +94,22 @@ const userbookingSchema = new db.Schema({
   date_checkout: {
     type: Date
   },
+  currencyCode: {
+    type: String,
+    default: 'AED'
+  },
+  bookingFee: {
+    type: Number
+  },
   tax: {
     type: Number
   },
   discount: {
     type: Number
+  },
+  paymentAmt: {
+    type: Number,
+    required: [true, "Payment amount is required"]
   },
   total_amt: {
     type: Number,

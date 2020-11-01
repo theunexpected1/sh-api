@@ -19,6 +19,11 @@ const guestNumbersSchema = new db.Schema({
     image: {
         type: String
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 guestNumbersModel = db.model('guest_numbers', guestNumbersSchema);

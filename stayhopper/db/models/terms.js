@@ -8,6 +8,11 @@ const termsSchema = new db.Schema({
     image: {
         type: String
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 termsModel = db.model('terms_conditions', termsSchema);

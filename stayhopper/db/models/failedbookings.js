@@ -128,6 +128,11 @@ const failedBookingSchema = new db.Schema({
     type:Boolean,
     default:0
   }
+}, {
+  timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+  }
 });
 
 failedBookingModel = db.model("failedbookings", failedBookingSchema);

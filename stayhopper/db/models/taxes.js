@@ -6,6 +6,11 @@ const taxesSchema = new db.Schema({
     value: {
         type: Number,
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 taxesModel = db.model('taxes', taxesSchema);

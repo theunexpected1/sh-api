@@ -37,6 +37,11 @@ const bookingLogSchema = new db.Schema({
         ref:"userbookings",
         default:null
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 bookingLogSchema.pre('save', function (next) {

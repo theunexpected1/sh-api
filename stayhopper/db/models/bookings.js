@@ -35,6 +35,11 @@ const bookingSchema = new db.Schema({
         required : [true,'Date is required']
     },
     slots : [slotSchema]
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 bookingModel = db.model('bookings', bookingSchema);

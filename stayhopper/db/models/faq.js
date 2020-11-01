@@ -6,6 +6,11 @@ const faqSchema = new db.Schema({
     description: {
         type: String,
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 faqModel = db.model('faq', faqSchema);

@@ -22,6 +22,15 @@ const selections = '';
 const populations = [
   {
     path: "user"
+  },
+  {
+    path: "room.room",
+    populate: {
+      path: "room_name"
+    }
+  },
+  {
+    path: "property"
   }
 ];
 
@@ -133,7 +142,7 @@ const list = async (req, res) => {
         sort[req.query.orderBy] = req.query.order === 'asc' ? 1 : -1;
       }
 
-      let resources = await ModuleModel.find(where).sort(sort).limit(100).populate(populations).exec()
+      let resources = await ModuleModel.find(where).sort(sort).populate(populations).exec()
       const isAsc = req.query.order === 'asc';
       if (req.query.orderBy === 'property') {
         resources = resources

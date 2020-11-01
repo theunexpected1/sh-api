@@ -8,6 +8,11 @@ const servicesSchema = new db.Schema({
     image: {
         type: String
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 servicesModel = db.model('services', servicesSchema);

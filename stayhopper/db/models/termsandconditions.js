@@ -3,6 +3,11 @@ const termsandconditionsSchema = new db.Schema({
     description: {
         type: String,
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 termsandconditionsModel = db.model('termsandconditions', termsandconditionsSchema);

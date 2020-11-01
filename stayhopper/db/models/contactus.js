@@ -13,6 +13,11 @@ const contactUsSchema = new db.Schema({
         type: Date,
         default: Date.now
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 contactUsModel = db.model('contactus', contactUsSchema);

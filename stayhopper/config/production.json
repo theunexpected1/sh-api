@@ -8,7 +8,9 @@
     "cheapestProperties": 10,
     "searchProperties": 10
   },
-  
+  "countryId": {
+    "UAE": "5b87b5e26ebfc73aed2589f7"
+  },
   "bookingFee": {
     "5b87b5e26ebfc73aed2589f7": [{
       "commentsForAdmin": "UAE / AED / hourly",
@@ -33,5 +35,6 @@
       "bookingType": "monthly",
       "fee": 450
     }]
-  }
+  },
+  "payment_mode": "live"
 }

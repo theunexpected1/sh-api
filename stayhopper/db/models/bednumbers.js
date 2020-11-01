@@ -11,6 +11,11 @@ const bedNumbersSchema = new db.Schema({
   image: {
     type: String
   }
+}, {
+  timestamps: {
+      createdAt: 'createdAt',
+      updatedAt: 'updatedAt'
+  }
 });
 
 bedNumbersModel = db.model("bed_numbers", bedNumbersSchema);

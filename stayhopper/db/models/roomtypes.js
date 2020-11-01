@@ -8,6 +8,11 @@ const roomTypesSchema = new db.Schema({
     image: {
         type: String,
     }
+}, {
+    timestamps: {
+        createdAt: 'createdAt',
+        updatedAt: 'updatedAt'
+    }
 });
 
 roomTypesModel = db.model('room_types', roomTypesSchema);
