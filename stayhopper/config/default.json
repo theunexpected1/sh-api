@@ -6,7 +6,7 @@
     "website_admin_from_email":"noreply@stayhopper.com",
     "website_admin_contactus_email":"support@stayhopper.com",
     "website_admin_bcc_email":"stayhopper@gmail.com",
-    "invoice_email": "rahul.vagadiya@gmail.com",
+    "invoice_email": "renjith@stayhopper.com",
     "unpaid": "unpaid@stayhopper.com",
     "sendgrid_api":"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",
     "telr_api":"T9Pq^FFt4z~rKjB7",
@@ -26,6 +26,10 @@
     "mailchimp_admin_list_id":"6958d4a180",
     "mailchimp_android_id":"a4d538b935",
     "mailchimp_ios_id":"5326dec6fe",
+    "commission": {
+      "hourly": 15,
+      "monthly": 15
+    },
     "permissions": {
       "SHOW_DASHBOARD": "SHOW_DASHBOARD",
       "SHOW_FULL_DASHBOARD": "SHOW_FULL_DASHBOARD",

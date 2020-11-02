@@ -546,7 +546,7 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
           });
         }
 
-        console.log('Response from initiating payment', JSON.parse(body));
+        console.log('Response from initiating payment', body);
         let obj = JSON.parse(body);
         if (typeof obj.order != "undefined") {
           return_url = obj.order.url;

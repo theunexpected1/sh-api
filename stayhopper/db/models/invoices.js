@@ -51,10 +51,19 @@ const invoiceSchema = new db.Schema({
     type: db.Schema.Types.ObjectId,
     ref: "currencies"
   },
+  amountToProperty: {
+    type: Number,
+    default: 0
+  },
+  amountFromProperty: {
+    type: Number,
+    default: 0
+  },
+  commissionHourly: Number,
+  commissionMonthly: Number,
   amount: {
     type: Number,
-    default: 0,
-    required: [true, "Amount is required"]
+    default: 0
   }
 }, {
   timestamps: {

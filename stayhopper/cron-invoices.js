@@ -42,6 +42,8 @@ let invoicesCtrl = {
       properties
         // DEBUG: Uncomment below line to limit only to DARUS HOTEL as test property
         // .filter(property => property._id.toString() === '5def593b13234106c605b1d7')
+        // DEBUG: Uncomment below line to limit only to Chelsea Plaza Hotel as test property
+        // .filter(property => property._id.toString() === '5c3edabdcfdc5b72e21f5435')
         .map(async property => await invoicesCtrl.generateInvoiceForProperty(property._id, invoiceForDate))
     );
 
@@ -96,6 +98,8 @@ let invoicesCtrl = {
     console.log(`1. Generating invoice for ${property.name.trim()} for ${startDateMoment.format("MMMM YYYY")}`);
 
     let amount = 0;
+    let amountFromProperty = 0;
+    let amountToProperty = 0;
     let totalBookingsCount = 0;
     let userBookingsIds = [];
     let completedBookingsIds = [];
@@ -107,7 +111,7 @@ let invoicesCtrl = {
       property.currency
     ) {
       const bookingFeesForCountry = config.bookingFee[property.contactinfo.country._id];
-      const bookingFeeForCurrency = bookingFeesForCountry.find(bf => bf.currency === property.currency._id.toString())
+      const bookingFeeForCurrency = bookingFeesForCountry.find(bf => bf.currency === property.currency._id.toString());
       if (bookingFeeForCurrency) {
         bookingFeeForProperty = bookingFeeForCurrency.fee;
       }
@@ -124,16 +128,19 @@ let invoicesCtrl = {
             $gte: startDateMoment.toDate(),
             $lt: endDateMoment.toDate()
           },
-          paid: true
+          paid: true,
+          cancel_approval: {$ne: 1}
         }
       }, {
         $project: {
-          "_id": 1,
-          "total_amt": 1
+          _id: 1,
+          bookingType: 1,
+          total_amt: 1
         }
       }, {
         $group: {
-          _id: 'userBookings',
+          _id: '$bookingType',
+          bookingType: {$first: '$bookingType'},
           ids: {
             $push: '$_id'
           },
@@ -143,19 +150,13 @@ let invoicesCtrl = {
         }
       }
     ];
-    const propertyUserBookings = await UserBooking.aggregate(userBookingsAggregate);
-    // console.log('userBookingsAggregate', userBookingsAggregate);
-    // console.log('propertyUserBookings', propertyUserBookings);
 
     // 2. Completed bookings - get IDS and total amount
     const completedBookingsAggregate = [
       {
         $match: {
           'propertyInfo.id': property._id,
-          paid: true
-        }
-      }, {
-        $match: {
+          paid: true,
           date_booked: {
             $gte: startDateMoment.toDate(),
             $lt: endDateMoment.toDate()
@@ -167,12 +168,14 @@ let invoicesCtrl = {
           date_booked: 1,
           userbookings: 1,
           propertyInfo: 1,
+          bookingType: 1,
           ub_id: 1,
           total_amt: 1
         }
       }, {
         $group: {
-          _id: 'completedBookings',
+          _id: '$bookingType',
+          bookingType: {$first: '$bookingType'},
           ids: {
             $push: '$_id'
           },
@@ -182,25 +185,86 @@ let invoicesCtrl = {
         }
       }
     ];
-    const propertyCompletedBookings = await CompletedBooking.aggregate(completedBookingsAggregate);
+
+    const ubBookingTypes = await UserBooking.aggregate(userBookingsAggregate);
+    // console.log('userBookingsAggregate', userBookingsAggregate);
+    // console.log('ubBookingTypes', ubBookingTypes);
+
+    const cbBookingTypes = await CompletedBooking.aggregate(completedBookingsAggregate);
     // console.log('completedBookingsAggregate', completedBookingsAggregate);
-    // console.log('propertyCompletedBookings', propertyCompletedBookings);
-    completedBookingsIds = propertyCompletedBookings.length ? propertyCompletedBookings[0].ids : [];
+    // console.log('cbBookingTypes', cbBookingTypes);
+
+    let categorizedCommissions = {};
 
     // 3. calculate from results
-    if (propertyUserBookings.length) {
-      userBookingsIds = propertyUserBookings[0].ids;
-      amount += (propertyUserBookings[0].ids.length * bookingFeeForProperty);
-      totalBookingsCount += propertyUserBookings[0].ids.length;
-    }
-    if (propertyCompletedBookings.length) {
-      completedBookingsIds = propertyCompletedBookings[0].ids;
-      amount += (propertyCompletedBookings[0].ids.length * bookingFeeForProperty);
-      totalBookingsCount += propertyCompletedBookings[0].ids.length;
+    // 3.1 From User Bookings (active bookings)
+    if (ubBookingTypes.length) {
+      ubBookingTypes.map(ubBookingType => {
+        userBookingsIds = userBookingsIds.concat(ubBookingType.ids);
+        // amount += (ubBookingTypes[0].ids.length * bookingFeeForProperty);
+        // If we have a commission defined for the specific booking type, calculate it
+        // config.commission.hourly, and config.commission.monthly
+        if (config.commission && config.commission[ubBookingType.bookingType]) {
+          const commissionAmt = (ubBookingType.total_amt * (config.commission[ubBookingType.bookingType] / 100));
+          amountFromProperty += commissionAmt;
+
+          // Debug: for logging and comparing figures
+          categorizedCommissions[ubBookingType.bookingType] = categorizedCommissions[ubBookingType.bookingType] || 0;
+          categorizedCommissions[ubBookingType.bookingType] += commissionAmt;
+        }
+
+        // In case of hourly booking, we don't owe anything to the property
+        if (ubBookingType.bookingType === 'hourly') {
+          amountToProperty += 0;
+        } else if (ubBookingType.bookingType === 'monthly') {
+          // In case of monthly booking, we owe the full amount to the property as we are collecting the whole amount on their behalf
+          amountToProperty += ubBookingType.total_amt;
+        }
+        totalBookingsCount += ubBookingType.ids.length;
+      })
     }
 
+    // 3.2 From Completed Bookings (completed bookings)
+    if (cbBookingTypes.length) {
+      cbBookingTypes.map(cbBookingType => { 
+        completedBookingsIds = completedBookingsIds.concat(cbBookingType.ids);
+        // amount += (cbBookingTypes[0].ids.length * bookingFeeForProperty);
+        // If we have a commission defined for the specific booking type, calculate it
+        // config.commission.hourly, and config.commission.monthly
+        if (config.commission && config.commission[cbBookingType.bookingType]) {
+          const commissionAmt = (cbBookingType.total_amt * (config.commission[cbBookingType.bookingType] / 100));
+          amountFromProperty += commissionAmt;
+
+          // Debug: for logging and comparing figures
+          categorizedCommissions[cbBookingType.bookingType] = categorizedCommissions[cbBookingType.bookingType] || 0;
+          categorizedCommissions[cbBookingType.bookingType] += commissionAmt;
+        }
+
+        // In case of hourly booking, we don't owe anything to the property
+        if (cbBookingType.bookingType === 'hourly') {
+          amountToProperty += 0;
+        } else if (cbBookingType.bookingType === 'monthly') {
+          // In case of monthly booking, we owe the full amount to the property as we are collecting the whole amount on their behalf
+          amountToProperty += cbBookingType.total_amt;
+        }
+        totalBookingsCount += cbBookingType.ids.length;
+      })
+    }
+
+    // Property owes us, we owe them
+    // Get the balance of their owing to us (it may just be so that we have to pay them)
+    amountFromProperty = parseFloat(amountFromProperty.toFixed(2));
+    amountToProperty = parseFloat(amountToProperty.toFixed(2));
+    amount = parseFloat((amountFromProperty - amountToProperty).toFixed(2));
+
+    // console.log('userBookingsIds', userBookingsIds, 'totalBookingsCount', totalBookingsCount);
+    // console.log('completedBookingsIds', completedBookingsIds, 'totalBookingsCount', totalBookingsCount);
+    console.log('Amount from Property:', property.currency.code, amountFromProperty.toFixed(2), '. Breakdown:', categorizedCommissions);
+    console.log('Amount to Property:', property.currency.code, amountToProperty.toFixed(2));
+    console.log('Total Amount from Property:', property.currency.code, amount.toFixed(2));
 
     if (amount) {
+
       // Unique invoice number based on year-month-propertyID
       // If invoice exists for this date/property combination, keep appending '-{nexNumber}' (eg: '-1')
       let invoiceNo = ['SH', startDateMoment.format("YYYY-MM"), property._id].join('-');
@@ -217,11 +281,15 @@ let invoicesCtrl = {
         // invoiceSentToSuperAdmin: false,
         invoiceSentToProperty: false,
         completedBookings: completedBookingsIds,
+        commissionHourly: config.commission.hourly,
+        commissionMonthly: config.commission.monthly,
         userBookings: userBookingsIds,
-        paymentUrl: 'https://extranet.stayhopper.com/payment/invoice/test',
+        paymentUrl: '',
         property: property._id,
         currency: property.currency,
-        amount: amount,
+        amountFromProperty,
+        amountToProperty,
+        amount,
         totalBookingsCount
       };
 
@@ -261,12 +329,20 @@ let invoicesCtrl = {
       html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
       html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
+      // TODO: Enable Emails for production
       msg = {
-        to: adminEmail,
+        // NEW
+        // to: adminEmail,
         // bcc: [
-        //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
+
+        // TESTING
+        to: 'rahul.vagadiya+invoice@gmail.com',
+        bcc: [
+          { email: adminEmail }
+        ],
+
         from: {
           email: config.website_admin_from_email,
           name: config.fromname
@@ -294,14 +370,20 @@ let invoicesCtrl = {
       html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
       html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
+      // TODO: Enable Emails for production
       msg = {
-        to: adminEmail,
-        // TODO: Production: Send to the property, and enable BCC for admin
+        // NEW
         // to: propertyEmail,
         // bcc: [
-        //   { email: "saleeshprakash@gmail.com" },
+        //   { email: adminEmail },
         //   { email: config.website_admin_bcc_email }
         // ],
+
+        // TESTING
+        to: 'rahul.vagadiya+invoiceproperty@gmail.com',
+        bcc: [
+          { email: adminEmail }
+        ],
         from: {
           email: config.website_admin_from_email,
           name: config.fromname
@@ -337,13 +419,20 @@ let invoicesCtrl = {
           ? `${invoices.length} property`
           : `${invoices.length} properties`
         );
-    
+
+        // TODO: Enable Emails for production
         msg = {
-          to: adminEmail,
+          // NEW
+          // to: adminEmail,
           // bcc: [
-          //   { email: "saleeshprakash@gmail.com" },
           //   { email: config.website_admin_bcc_email }
           // ],
+
+          // TESTING
+          to: 'rahul.vagadiya+invoice@gmail.com',
+          bcc: [
+            { email: adminEmail }
+          ],
           from: {
             email: config.website_admin_from_email,
             name: config.fromname
@@ -407,15 +496,20 @@ let invoicesCtrl = {
           html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
           html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
+          // TODO: Enable Emails for production
           msg = {
-            to: adminEmail,
-            // TODO: Production: Send to the property, and enable BCC for admin
+            // NEW
             // to: propertyEmail,
-
             // bcc: [
-            //   { email: "saleeshprakash@gmail.com" },
+            //   { email: adminEmail },
             //   { email: config.website_admin_bcc_email }
             // ],
+
+            // TESTING
+            to: 'rahul.vagadiya+invoiceproperty@gmail.com',
+            bcc: [
+              { email: adminEmail }
+            ],
             from: {
               email: config.website_admin_from_email,
               name: config.fromname
@@ -451,15 +545,19 @@ let invoicesCtrl = {
       );
       html_body = html_body.replace(/\{\{INVOICES_URL\}\}/g, invoicesUrl);
 
+      // TODO: Enable Emails for production
       msg = {
-        to: adminEmail,
-        // TODO: Production: Send to the property, and enable BCC for admin
-        // to: propertyEmail,
-
+        // NEW
+        // to: adminEmail,
         // bcc: [
-        //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
+
+        // TESTING
+        to: 'rahul.vagadiya+invoice@gmail.com',
+        bcc: [
+          { email: adminEmail }
+        ],
         from: {
           email: config.website_admin_from_email,
           name: config.fromname
@@ -513,15 +611,20 @@ let invoicesCtrl = {
           html_body = html_body.replace(/\{\{PAYMENT_AMOUNT\}\}/g, paymentAmount);
           html_body = html_body.replace(/\{\{INVOICE_URL\}\}/g, invoiceUrl);
 
+          // TODO: Enable Emails for production
           msg = {
-            to: adminEmail,
-            // TODO: Production: Send to the property, and enable BCC for admin
+            // NEW
             // to: propertyEmail,
-
             // bcc: [
-            //   { email: "saleeshprakash@gmail.com" },
+            //   { email: adminEmail }
             //   { email: config.website_admin_bcc_email }
             // ],
+
+            // TESTING
+            to: 'rahul.vagadiya+invoiceproperty@gmail.com',
+            bcc: [
+              { email: adminEmail }
+            ],
             from: {
               email: config.website_admin_from_email,
               name: config.fromname
@@ -558,15 +661,19 @@ let invoicesCtrl = {
       );
       html_body = html_body.replace(/\{\{INVOICES_URL\}\}/g, invoicesUrl);
 
+      // TODO: Enable Emails for production
       msg = {
-        to: adminEmail,
-        // TODO: Production: Send to the property, and enable BCC for admin
-        // to: propertyEmail,
-
+        // NEW
+        // to: adminEmail,
         // bcc: [
-        //   { email: "saleeshprakash@gmail.com" },
         //   { email: config.website_admin_bcc_email }
         // ],
+
+        // TESTING
+        to: 'rahul.vagadiya+invoice@gmail.com',
+        bcc: [
+          { email: adminEmail }
+        ],
         from: {
           email: config.website_admin_from_email,
           name: config.fromname
@@ -592,7 +699,7 @@ let invoicesCtrl = {
 
 
 // Manually Generate Invoices - for a specific date? or previous month?
-// invoicesCtrl.generateInvoices(new Date('06/01/2020'));
+// invoicesCtrl.generateInvoices(new Date('11/01/2020'));
 // previous month? leave empty
 // specific date? pass as argument
 
