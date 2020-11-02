@@ -1,19 +1,20 @@
 const express = require("express");
 const router = express.Router();
-const multer = require("multer");
-const pify = require("pify");
-const path = require("path");
 const paginate = require("express-paginate");
 const config = require("config");
 const moment = require("moment");
 
-const db = require("../../../db/mongodb");
+const Booking = require("../../../db/models/bookings");
+const BookLog = require("../../../db/models/bookinglogs");
 const UserBookings = require("../../../db/models/userbookings");
 const CompletedBookings = require("../../../db/models/completedbookings");
 const Property = require("../../../db/models/properties");
+const UserBooking = require("../../../db/models/userbookings");
 const User = require("../../../db/models/users");
 const jwtMiddleware = require("../../../middleware/jwt");
-
+const sgMail = require("@sendgrid/mail");
+sgMail.setApiKey(config.sendgrid_api);
+const fs = require("fs");
 
 // START: Customize
 const ModuleTitle = "Bookings";
@@ -25,9 +26,14 @@ const populations = [
   },
   {
     path: "room.room",
-    populate: {
-      path: "room_name"
-    }
+    populate: [
+      {
+        path: "room_name"
+      },
+      {
+        path: "room_type"
+      }
+    ]
   },
   {
     path: "property"
@@ -63,7 +69,7 @@ const prepareQueryForListing = async (req) => {
   const date = req.query.date;
   const status = req.query.status;
 
-  // Filter: User's Invoices - Restrict to logged in user viewing their own Invoices if they dont have access to all
+  // Filter: User's Bookings - Restrict to logged in user viewing their own Bookings if they dont have access to all
   if (hasOwnBookingsAccess && !hasAllBookingsAccess) {
     where['$and'] = where['$and'] || [];
     const uniqueOrQuery = [];
@@ -81,16 +87,29 @@ const prepareQueryForListing = async (req) => {
       ]
     });
 
-    uniqueOrQuery.push({'propertyInfo.id': {
-      $in: propertiesWithAccess.map(p => p._id)
-    }});
+    if (status === 'active') {
+      uniqueOrQuery.push({property: {
+        $in: propertiesWithAccess.map(p => p._id)
+      }});
+    } else {
+      uniqueOrQuery.push({'propertyInfo.id': {
+        $in: propertiesWithAccess.map(p => p._id)
+      }});
+    }
 
     where['$and'].push({$or: uniqueOrQuery});
+
+    // Restrict only to paid bookings
+    where['paid'] = true;
   }
 
   // Filter: Property
   if (property) {
-    where['propertyInfo.id'] = property;
+    if (status === 'active') {
+      where['property'] = property;
+    } else {
+      where['propertyInfo.id'] = property;
+    }
   }
 
   // Filter: User
@@ -340,10 +359,286 @@ const remove = async (req, res) => {
 }
 **/
 
+const cancel = async (req, res) => {
+
+  let id = req.body.id;
+  let userbooking = await UserBooking.findOne({_id:id}).populate('property').populate({path:'room.room',populate:{path:'room_type'}});
+  let hotel_name = userbooking.property.name;
+  let guest_name = userbooking.guestinfo.title+". "+userbooking.guestinfo.first_name+" "+userbooking.guestinfo.last_name;
+  let book_id = userbooking.book_id;
+  let date = userbooking.checkin_date+" "+userbooking.checkin_time;
+  let user_mobile = userbooking.guestinfo.mobile;
+  let booked_property = hotel_name;
+  let booked_property_address = userbooking.property.contactinfo.location;
+  let booked_property_email = userbooking.property.contactinfo.email;
+  let booked_property_phone = userbooking.property.contactinfo.mobile;
+  let booked_room_types = "";
+  let rooms = userbooking.room;
+  for(var i=0;i<rooms.length;i++){
+    booked_room_types += rooms[i].room.room_type.name;
+  }
+  if(booked_room_types){
+    booked_room_types = booked_room_types.replace(/,\s*$/, "");
+  }
+  date = moment(date).format('dddd YYYY-MM-DD HH:mm');
+  let booked_date = date;
+  if(userbooking){
+    userbooking.cancel_request = 1;
+    const STAY_DURATION = userbooking.stayDuration;
+    // Capitalize first letter
+    let BOOKING_TYPE = userbooking.bookingType
+      ? userbooking.bookingType.charAt(0).toUpperCase() + userbooking.bookingType.substring(1)
+      : ''
+    ;
+    await userbooking.save();
+    let html_body = fs.readFileSync('public/order_cancel_request.html', 'utf8');
+    
+    html_body = html_body.replace(/{{USERNAME}}/g, guest_name);
+    html_body = html_body.replace(/{{HOTEL_NAME}}/g, hotel_name);
+    html_body = html_body.replace(/{{BOOKID}}/g, book_id);
+    html_body = html_body.replace(/{{DATE}}/g, date);
+    html_body = html_body.replace(/{{USER_MOBILE}}/g, user_mobile);
+    html_body = html_body.replace(/{{BOOKED_PROPERTY}}/g, booked_property);
+    html_body = html_body.replace(/{{BOOKED_PROPERTY_ADDRESS}}/g, booked_property_address);
+    html_body = html_body.replace(/{{BOOKED_PROPERTY_PHONE}}/g, booked_property_phone);
+    html_body = html_body.replace(/{{STAY_DURATION}}/g, STAY_DURATION);
+    html_body = html_body.replace(/{{BOOKING_TYPE}}/g,  BOOKING_TYPE);
+    html_body = html_body.replace(/{{BOOKED_ROOM_TYPES}}/g, booked_room_types);
+    html_body = html_body.replace(/{{BOOKED_DATE}}/g, booked_date);
+    html_body = html_body.replace(/{{HOTEL_CONTACT_NUMBER}}/g, booked_property_phone);
+    html_body = html_body.replace(/{{HOTEL_EMAIL}}/g, booked_property_email);
+
+    // TODO: Enable Emails for production
+    msg = {
+      // NEW
+      // to: config.website_cancellation_email,
+      // bcc: [{ email: config.website_admin_bcc_email}],
+
+      // TESTING
+      to: 'rahul.vagadiya+shcancellation@gmail.com',
+      // bcc: [{ email: config.website_admin_bcc_email}],
+      from: {
+        email: config.website_admin_from_email,
+        name: config.fromname
+      },
+      subject: "STAYHOPPER: Booking cancellation request",
+      text:
+        "Booking cancellation request",
+      html: html_body
+    };
+
+    sgMail.send(msg).catch(e => console.log('error in mailing SH for cancellation', e));
+
+    return res.status(200).json({message:'Booking Cancellation Request sent successfully!'})
+  } else {
+    return res.status(500).json({message:'Could not cancel booking'})
+  }
+}
+
+const remove = async (req, res) => {
+  try {
+    let id = req.params.id;
+    let userbooking = await UserBooking.findOne({ _id: id })
+      .populate("property")
+      .populate({ path: "room.room", populate: { path: "room_type" } });
+    let hotel_name = userbooking.property.name;
+    let guest_name = `${userbooking.guestinfo.title}. ${userbooking.guestinfo.first_name} ${userbooking.guestinfo.last_name}`;
+    let book_id = userbooking.book_id;
+    let date = userbooking.checkin_date + " " + userbooking.checkin_time;
+    let booked_property_address = userbooking.property.contactinfo.location;
+    let booked_property_phone = userbooking.property.contactinfo.mobile;
+    let booked_room_types = "";
+    let rooms = userbooking.room;
+    let guest_email = userbooking.guestinfo.email;
+    for (var i = 0; i < rooms.length; i++) {
+      booked_room_types += rooms[i].room.room_type.name;
+    }
+    if (booked_room_types) {
+      booked_room_types = booked_room_types.replace(/,\s*$/, "");
+    }
+    date = moment(date).format("dddd YYYY-MM-DD hh:mm A");
+
+    if (userbooking) {
+      await Booking.update(
+        {},
+        { $pull: { slots: { userbooking: id } } },
+        { multi: true }
+      );
+      await BookLog.deleteMany({ userbooking: id });
+      userbooking.cancel_approval = 1;
+      const STAY_DURATION = userbooking.stayDuration;
+
+      // Capitalize first letter
+      const BOOKING_TYPE = userbooking.bookingType
+        ? userbooking.bookingType.charAt(0).toUpperCase() + userbooking.bookingType.substring(1)
+        : ''
+      ;
+
+      await userbooking.save();
+      
+      let html_body = fs.readFileSync('public/order_cancelled.html', 'utf8');
+
+      html_body = html_body.replace(/{{USER_NAME}}/g, guest_name);
+      html_body = html_body.replace(/{{HOTEL_NAME}}/g, hotel_name);
+      html_body = html_body.replace(/{{BOOK_ID}}/g, book_id);
+      html_body = html_body.replace(/{{DATE}}/g, date);
+      html_body = html_body.replace(/{{ADDRESS}}/g, booked_property_address);
+      html_body = html_body.replace(/{{HOTEL_PHONE}}/g, booked_property_phone);
+      html_body = html_body.replace(/{{STAY_DURATION}}/g, STAY_DURATION);
+      html_body = html_body.replace(/{{BOOKING_TYPE}}/g, BOOKING_TYPE);
+      html_body = html_body.replace(/{{ROOM_TYPE}}/g, booked_room_types);
+      html_body = html_body.replace(/{{DATE}}/g, date);
+
+      // TODO: Enable Emails for production
+      msg = {
+        // NEW
+        // to: guest_email,
+        // bcc: [{ email: config.website_admin_bcc_email}],//config.website_admin_bcc_email
+
+        // TESTING
+        to: guest_email,
+        bcc: [{ email: 'rahul.vagadiya+guest@gmail.com'}],
+        from: {
+          email: config.website_admin_from_email,
+          name: config.fromname
+        },
+        subject: "STAYHOPPER: Booking cancellation request",
+        text:
+          "Booking cancellation request",
+        html: html_body
+      };
+
+      sgMail.send(msg);
+
+      return res.status(200).json({
+        message: "Booking deleted successfully!"
+      });
+    } else {
+      return res.status(500).json({
+        message: "Booking could not be deleted!"
+      });
+    }
+  } catch (e) {
+    console.log('e', e);
+    return res.status(500).json({
+      message: "Booking could not be deleted!"
+    });
+  }
+}
+
+const rejectCancellation = async (req, res) => {
+  try {
+    let id = req.params.id;
+    //fetch mail details
+    let userbooking = await UserBooking.findOne({_id:id}).populate('property').populate({path:'room.room',populate:{path:'room_type'}});
+    let hotel_name = userbooking.property.name;
+    let guest_name = userbooking.guestinfo.title+". "+userbooking.guestinfo.first_name+" "+userbooking.guestinfo.last_name;
+    let book_id = userbooking.book_id;
+    let date = userbooking.checkin_date+" "+userbooking.checkin_time;
+    let user_mobile = userbooking.guestinfo.mobile;
+    let booked_property = hotel_name;
+    let booked_property_address = userbooking.property.contactinfo.location;
+    let booked_property_phone = userbooking.property.contactinfo.mobile;
+    let booked_room_types = "";
+    let rooms = userbooking.room;
+    for(var i=0;i<rooms.length;i++){
+      booked_room_types += rooms[i].room.room_type.name;
+    }
+    if(booked_room_types){
+      booked_room_types = booked_room_types.replace(/,\s*$/, "");
+    }
+    date = moment(date).format('dddd YYYY-MM-DD hh:mm A');
+    let booked_date = date;
+    //end 
+
+    if (userbooking) {
+      const primaryReservationEmail = userbooking.property.primaryReservationEmail;
+      const secondaryReservationEmails = userbooking.property.secondaryReservationEmails;
+      userbooking.cancel_approval = 2;
+      const STAY_DURATION = userbooking.stayDuration;
+
+      // Capitalize first letter
+      const BOOKING_TYPE = userbooking.bookingType
+        ? userbooking.bookingType.charAt(0).toUpperCase() + userbooking.bookingType.substring(1)
+        : ''
+      ;
+
+      await userbooking.save();
+
+      let html_body = fs.readFileSync('public/order_cancel_request_rejected.html', 'utf8');
+
+      html_body = html_body.replace(/{{GUEST_NAME}}/g, guest_name);
+      html_body = html_body.replace(/{{HOTEL_NAME}}/g, hotel_name);
+      html_body = html_body.replace(/{{BOOK_ID}}/g, book_id);
+      html_body = html_body.replace(/{{DATE}}/g, date);
+      html_body = html_body.replace(/{{GUEST_PHONE}}/g, user_mobile);
+      html_body = html_body.replace(/{{PROPERTY_NAME}}/g, booked_property);
+      html_body = html_body.replace(/{{PROPERTY_ADDRESS}}/g, booked_property_address);
+      html_body = html_body.replace(/{{PROPERTY_PHONE}}/g, booked_property_phone);
+      html_body = html_body.replace(/{{STAY_DURATION}}/g, STAY_DURATION);
+      html_body = html_body.replace(/{{BOOKING_TYPE}}/g, BOOKING_TYPE);
+      html_body = html_body.replace(/{{PROPERTY_ROOMS}}/g, booked_room_types);
+      html_body = html_body.replace(/{{DATE}}/g, date);
+
+      if (primaryReservationEmail) {
+        const bcc = [];
+        if (secondaryReservationEmails && secondaryReservationEmails.length) {
+          secondaryReservationEmails
+            .split(',')
+            .forEach(em => {
+              bcc.push({email: em.trim()})
+            })
+          ;
+        }
+
+        // TODO: Enable Emails for production
+        msg = {
+          // NEW
+          // to: primaryReservationEmail,
+          // bcc: [
+          //   { email: config.website_admin_bcc_email },
+          //   ...bcc
+          // ],
+
+          // TESTING
+          to: 'rahul.vagadiya+shcancelreject@gmail.com',
+          // bcc: [
+          //   { email: config.website_admin_bcc_email },
+          //   ...bcc
+          // ],
+
+          from: {
+            email: config.website_admin_from_email,
+            name: config.fromname
+          },
+          subject: "STAYHOPPER: booking cancellation request rejected!",
+          text: "Your booking cancellation request has been rejected",
+          html:html_body
+        };
+        sgMail.send(msg);
+      }
+    }
+
+    return res.status(200).json({
+      message: "Cancellation request rejected by admin"
+    });
+  } catch (e) {
+    console.log('e', e);
+    return res.status(500).json({
+      message: "Cancellation request could not be rejected"
+    });
+  }
+}
+
 router.get("/", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), list);
-router.get("/:id/:status", jwtMiddleware.administratorAuthenticationRequired, paginate.middleware(10, 100), single);
+router.post("/cancel", jwtMiddleware.administratorAuthenticationRequired, cancel);
+router.post("/reject-cancellation/:id", jwtMiddleware.administratorAuthenticationRequired, rejectCancellation);
+router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
+router.get("/:id/:status", jwtMiddleware.administratorAuthenticationRequired, single);
 // router.post("/", jwtMiddleware.administratorAuthenticationRequired, create);
 // router.put("/:id", jwtMiddleware.administratorAuthenticationRequired, modify);
 // router.delete("/:id", jwtMiddleware.administratorAuthenticationRequired, remove);
+
+
 
 module.exports = router;

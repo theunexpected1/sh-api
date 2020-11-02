@@ -464,7 +464,7 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
           bookinglog.property = bookingSlots[i].property;
           bookinglog.room = bookingSlots[i].room;
           bookinglog.date = bookingSlots[i].date;
-          const slotRecord = allSlots.find(s => s._id.toString() === bookingSlots[i].slots[j].toString());
+          const slotRecord = allSlots.find(s => s._id.toString() === bookingSlots[i].slots[j].slot.toString());
           const slotLabel = slotRecord ? slotRecord.label : '00:00';
           bookinglog.slotStartTime = moment(`${bookingSlots[i].date} ${slotLabel}`, 'YYYY-MM-DD HH:mm').toDate();
           bookinglog.timestamp = moment(bookinglog.date, 'YYYY-MM-DD').toDate();
@@ -647,11 +647,11 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
                 // ],
 
                 // TESTING
-                to: "unpaid@stayhopper.com",
+                // to: "unpaid@stayhopper.com",
+                to: 'rahul.vagadiya+shunpaid@gmail.com',
                 bcc: [
-                  { email: config.unpaid },
-                  { email: config.website_admin_bcc_email },
-                  { email: 'rahul.vagadiya+shunpaid@gmail.com' }
+                  // { email: config.unpaid },
+                  // { email: config.website_admin_bcc_email }
                 ],
                 from: {
                   email: config.website_admin_from_email,
@@ -662,7 +662,7 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
                 html: html_body
               };
 
-              sgMail.send(msg);
+              sgMail.send(msg).catch(e => console.log('error in mailing SH for unpaid', e));
             }
 
             ///////////////////

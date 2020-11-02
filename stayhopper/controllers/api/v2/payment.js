@@ -12,13 +12,11 @@ const Room = require('../../../db/models/rooms');
 const config = require("config");
 const sgMail = require("@sendgrid/mail");
 const fs = require('fs');
-const { property } = require("underscore");
 
 
 sgMail.setApiKey(config.sendgrid_api);
 
 router.get('/success', async (req, res) => {
-    console.log('req.query', req.query);
     let booking_id = req.query.booking_id;
     let status = 0;
     try {
@@ -29,6 +27,7 @@ router.get('/success', async (req, res) => {
           return res.json({'status':0});
         }
         UB.paid = 1;
+        UB.cancel_request = 0;
         UB.save();
         status = 1;
          //send mail
@@ -166,7 +165,7 @@ router.get('/success', async (req, res) => {
            text: "Stayhopper booking success",
            html: html_body
          };
-         sgMail.send(msg);
+         sgMail.send(msg).catch(e => console.log('error in mailing the guest', e));
               
          //send to hotel admin
          html_body = fs.readFileSync("public/order_complete_hotel.html", "utf8");
@@ -235,7 +234,7 @@ router.get('/success', async (req, res) => {
             text: "Sconfigtayhopper New Hotel Booking",
             html: html_body
         };
-        sgMail.send(msg);
+        sgMail.send(msg).catch(e => console.log('error in mailing the hotel', e));
         return res.json({status});
     } catch(error) {
       console.log('error', error)

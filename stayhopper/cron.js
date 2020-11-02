@@ -83,17 +83,26 @@ cron.schedule("* * * * *", async () => {
         tmp_room.type = room_det.room_type.name;
         completedBooking.roomsInfo.push(tmp_room);
       });
+      completedBooking.bookingType = book.bookingType;
+      completedBooking.trip_type = book.trip_type;
       completedBooking.no_of_adults = book.no_of_adults;
       completedBooking.no_of_children = book.no_of_children;
       completedBooking.selected_hours = book.selected_hours;
+      completedBooking.stayDuration = book.stayDuration;
       completedBooking.checkin_time = book.checkin_time;
       completedBooking.checkin_date = book.checkin_date;
+      completedBooking.checkout_time = book.checkout_time;
+      completedBooking.checkout_date = book.checkout_date;
       completedBooking.date_checkin = book.date_checkin;
       completedBooking.date_checkout = book.date_checkout;
       completedBooking.date_booked = book.date_booked;
       completedBooking.tax = book.tax;
+      completedBooking.ref = book.ref;
+      completedBooking.bookingFee = book.bookingFee;
+      completedBooking.currencyCode = book.currencyCode;
       completedBooking.discount = book.discount;
       completedBooking.total_amt = book.total_amt;
+      completedBooking.paymentAmt = book.paymentAmt;
       completedBooking.cancel_approval = book.cancel_approval;
       if (book.property)
         completedBooking.latlng = book.property.contactinfo.latlng;
@@ -295,7 +304,6 @@ cron.schedule("*/30 * * * *", async () => {
 
 //delete booking
 cron.schedule("* * * * *", async () => {
-  // return;
   let booking = await UserBooking.aggregate([
     {
       $match: {
@@ -325,8 +333,10 @@ cron.schedule("* * * * *", async () => {
   // console.log("delete unpaid booking");
 });
 
-//rebooking
+//rebooking (disabled)
 cron.schedule("*/30 * * * *", async () => { 
+  return;
+
   const start = moment();
   const remainder = 30 - (start.minute() % 30);
   const dateTime = moment(start).add(remainder, "minutes");

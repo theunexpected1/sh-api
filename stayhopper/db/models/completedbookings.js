@@ -54,6 +54,9 @@ const completedBookingsSchema = new db.Schema({
   no_of_children: Number,
   checkin_time: String,
   checkin_date: String,
+  checkout_time: String,
+  checkout_date: String,
+  stayDuration: String,
   date_checkin: Date,
   date_checkout: Date,
   date_booked: Date,
@@ -61,10 +64,18 @@ const completedBookingsSchema = new db.Schema({
     type: String,
     default: 'AED'
   },
+  bookingType: {
+    type: String,
+    enum: ['hourly', 'monthly'],
+    default: 'hourly'
+  },
   bookingFee: Number,
   tax: Number,
   discount: Number,
+  paymentAmt: Number,
   total_amt: Number,
+  trip_type: String,
+  ref: String,
   latlng: {
     type: [Number]
   },
