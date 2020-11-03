@@ -152,18 +152,21 @@ router.get('/success', async (req, res) => {
 
          // TODO: Enable Emails for production
          let msg = {
-           to: ub.guestinfo.email,
-            //  NET
+            //  NEW
+            to: ub.guestinfo.email,
             // bcc: [{email:config.website_admin_bcc_email},{email:"b2cbookings@stayhopper.com"}],
             // TESTING
-             bcc: [{email:'rahul.vagadiya+shguest@gmail.com'}],
-           from: {
-            email: config.website_admin_from_email,
-            name: config.fromname
-           },
-           subject: "Stayhopper:Booking success",
-           text: "Stayhopper booking success",
-           html: html_body
+            bcc: [
+              { email:'rahul.vagadiya+shguest@gmail.com' },
+              { email: config.website_admin_bcc_email }
+            ],
+            from: {
+              email: config.website_admin_from_email,
+              name: config.fromname
+            },
+            subject: "Stayhopper:Booking success",
+            text: "Stayhopper booking success",
+            html: html_body
          };
          sgMail.send(msg).catch(e => console.log('error in mailing the guest', e));
               
@@ -231,7 +234,7 @@ router.get('/success', async (req, res) => {
               name: config.fromname
             },
             subject: "Stayhopper:New Booking",
-            text: "Sconfigtayhopper New Hotel Booking",
+            text: "Stayhopper New Hotel Booking",
             html: html_body
         };
         sgMail.send(msg).catch(e => console.log('error in mailing the hotel', e));

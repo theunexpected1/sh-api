@@ -651,7 +651,7 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
                 to: 'rahul.vagadiya+shunpaid@gmail.com',
                 bcc: [
                   // { email: config.unpaid },
-                  // { email: config.website_admin_bcc_email }
+                  { email: config.website_admin_bcc_email }
                 ],
                 from: {
                   email: config.website_admin_from_email,
