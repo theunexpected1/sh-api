@@ -699,7 +699,7 @@ let invoicesCtrl = {
 
 
 // Manually Generate Invoices - for a specific date? or previous month?
-// invoicesCtrl.generateInvoices(new Date('11/01/2020'));
+invoicesCtrl.generateInvoices(new Date('11/01/2020'));
 // previous month? leave empty
 // specific date? pass as argument
 
