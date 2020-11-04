@@ -148,7 +148,7 @@ const service = {
         if (daysDiff < 30) {
           value = checkoutDateMoment.diff(checkinDateMoment, 'days') + 1;
           unit = 'days';
-          label = `${value} ${label}`;
+          label = `${value} ${genericService.pluralize(value, 'Day', 'Days')}`;
         } else if (daysDiff < 31) {
           value = 1;
           unit = 'months';
