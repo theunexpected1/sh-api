@@ -4,10 +4,11 @@ const router = express.Router();
 
 const Rating = require("../../db/models/userratings");
 const Property = require("../../db/models/properties");
+const jwtMiddleware = require('../../middleware/jwt');
 
-router.post("/", async (req, res) => {
+router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
   rating = new Rating();
-  rating.user = req.body.user;
+  rating.user = req.user._id;
   rating.property = req.body.property;
   rating.comment = req.body.comment;
   rating.ub_id  = req.body.ub_id;

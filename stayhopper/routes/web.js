@@ -1,6 +1,24 @@
 const express = require("express");
 const app = new express.Router();
 
+const printController = require('../print');
+app.use('/print', printController);
+
+app.get("/", (req, res) => {
+  res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  res.header("Expires", "-1");
+  res.header("Pragma", "no-cache");
+  res.status(200).send({status: 'ok'})
+});
+
+module.exports = app;
+// Disable old Extranet Hotelier Admin
+return;
+
+
+
+
+
 const requireLogin = require("../middleware/requiresLogin");
 
 const loginController = require("../controllers/login");
@@ -38,7 +56,6 @@ const notificationController = require('../controllers/notifications')
 const resetpasswordController = require('../controllers/resetpassword');
 const dashboardController = require('../controllers/dashboard');
 const promoCodeController = require('../controllers/promocode');
-const printController = require('../print');
 
 app.get("/", (req, res) => {
   res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
@@ -94,6 +111,5 @@ app.use('/faq', requireLogin, faqController);
 app.use('/resetpassword', requireLogin, resetpasswordController);
 app.use('/notifications', requireLogin, notificationController);
 app.use('/promocodes', requireLogin, promoCodeController);
-app.use('/print', printController);
 
 module.exports = app;

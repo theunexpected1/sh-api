@@ -1,6 +1,15 @@
 const express = require("express");
 const app = new express.Router();
 
+app.get("/", (req, res) => {
+  res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
+  res.header("Expires", "-1");
+  res.header("Pragma", "no-cache");
+  res.status(200).send({status: 'ok'})
+});
+
+/**
+// Disable old Extranet Admin
 const requireLogin = require("../../middleware/requiresLogin2");
 
 const loginController = require("../controllers/login");
@@ -40,6 +49,7 @@ const dashboardController = require('../controllers/dashboard');
 const promoCodeController = require('../controllers/promocode');
 const cancelBookingController = require('../controllers/cancelbookings');
 const userReviewsController = require('../controllers/userreviews');
+
 
 app.get("/", (req, res) => {
   res.header("Cache-Control", "private, no-cache, no-store, must-revalidate");
@@ -100,6 +110,7 @@ app.use('/promocodes', requireLogin, promoCodeController);
 app.use('/cancelbookings', requireLogin, cancelBookingController);
 app.use('/userreviews', requireLogin, userReviewsController);
 
+**/
 /** Sh 2.0 */
 const authControllerV2 = require('../controllers/v2/auth');
 const administratorsControllerV2 = require('../controllers/v2/administrators');
