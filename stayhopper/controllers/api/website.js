@@ -33,7 +33,7 @@ router.post("/register", async (req, res) => {
     "/public/img/StayhopperLogoRedWHite.png";
   let msg = {
     to: config.website_admin_email,
-    bcc: [{ email: "ewaantech.projects@gmail.com" }],
+    bcc: [{ email: config.website_admin_bcc_email }],
     from: config.website_admin_from_email,
     subject: "STAYHOPPER: New property created from website",
     text: "New property created from website, see details below:",
@@ -145,7 +145,7 @@ router.post("/register", async (req, res) => {
 
   msg = {
     to: req.body.email_address,
-    bcc: [{ email: "ewaantech.projects@gmail.com" }],
+    bcc: [{ email: config.website_admin_bcc_email }],
     from: config.website_admin_from_email,
     subject: "STAYHOPPER: Thank you for registering property with us!",
     text:
@@ -240,7 +240,7 @@ router.post("/contact", async (req, res) => {
     "/public/img/StayhopperLogoRedWHite.png";
   let msg = {
     to: config.website_admin_email,
-    bcc: [{ email: "ewaantech.projects@gmail.com" }],
+    bcc: [{ email: config.website_admin_bcc_email }],
     from: config.website_admin_from_email,
     subject: "STAYHOPPER: Contact form enquiry from website",
     text: "Contact form enquiry from website, see details below:",
@@ -352,7 +352,9 @@ router.post("/contact", async (req, res) => {
 
   msg = {
     to: req.body.email_address,
-    bcc: [{ email: "ewaantech.projects@gmail.com" }],
+    bcc: [{ 
+      email: config.website_admin_bcc_email
+    }],
     from: config.website_admin_from_email,
     subject: "STAYHOPPER: Thank you for contacting us!",
     text:
@@ -449,18 +451,18 @@ router.post("/subscribe", async (req, res) => {
     .then(function(result) {
       if (result.errors.length > 0) {
         if (result.errors[0].error == "Please provide a valid email address.")
-          return res.json({
+          return res.status(500).json({
             status: 0,
             message: "Please provide a valid email address."
           });
         else
-          return res.json({
+          return res.status(409).json({
             status: 0,
             message:
               result.errors[0].email_address + " is already exists in our list"
           });
       } else {
-        return res.json({
+        return res.status(200).json({
           status: 1,
           message:
             "Your newsletter subscription has been confirmed. You've been added to our list and will hear from us soon."
@@ -469,11 +471,12 @@ router.post("/subscribe", async (req, res) => {
     })
     .catch(function(err) {
       console.log(err);
-      return res.json({
+      return res.status(500).json({
         status: 0,
-        message: "Could not add to news letter, Please check later"
+        message: "Could not subscribe to newsletter, Please check later."
       });
-    });
+    })
+  ;
 });
 
 router.get("/propertysearch", async (req, res) => {});

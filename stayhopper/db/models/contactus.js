@@ -1,5 +1,8 @@
 const db = require('../mongodb');
 const contactUsSchema = new db.Schema({
+    name: {
+        type: String,
+    },
     email: {
         type: String,
     },
