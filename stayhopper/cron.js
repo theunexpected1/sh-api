@@ -899,166 +899,166 @@ const send_fcm_review = async (
 };
 
 //@desc block slots bulk
-cron.schedule("* * * * *", async () => {
-  let blockslots = await blockSlotsModel
-    .find({ status: 0, block_type: "BLOCK" })
-    .limit(5);
-  if (blockslots.length > 0) {
-    for (m = 0; m < blockslots.length; m++) {
-      //get date range
-      let from_date = blockslots[m].from_date;
-      let to_date = blockslots[m].to_date;
-      var from = new Date(from_date);
-      var to = new Date(to_date);
-      var timeDiff = Math.abs(to.getTime() - from.getTime());
-      var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
+// cron.schedule("* * * * *", async () => {
+//   let blockslots = await blockSlotsModel
+//     .find({ status: 0, block_type: "BLOCK" })
+//     .limit(5);
+//   if (blockslots.length > 0) {
+//     for (m = 0; m < blockslots.length; m++) {
+//       //get date range
+//       let from_date = blockslots[m].from_date;
+//       let to_date = blockslots[m].to_date;
+//       var from = new Date(from_date);
+//       var to = new Date(to_date);
+//       var timeDiff = Math.abs(to.getTime() - from.getTime());
+//       var diffDays = Math.ceil(timeDiff / (1000 * 3600 * 24));
 
-      let dates = [];
-      let startDate = moment(new Date(from)).format("YYYY-MM-DD");
-      dates.push(startDate);
-      for (var i = 1; i <= diffDays; i++) {
-        let date = moment(new Date(from))
-          .add(i, "days")
-          .format("YYYY-MM-DD");
-        dates.push(date);
-      }
-      //block range
-      console.log({ slots: blockslots[m] });
-      let room = blockslots[m].room;
-      let property = blockslots[m].property;
-      let from_slot = blockslots[m].from_slot;
-      let to_slot = blockslots[m].to_slot;
+//       let dates = [];
+//       let startDate = moment(new Date(from)).format("YYYY-MM-DD");
+//       dates.push(startDate);
+//       for (var i = 1; i <= diffDays; i++) {
+//         let date = moment(new Date(from))
+//           .add(i, "days")
+//           .format("YYYY-MM-DD");
+//         dates.push(date);
+//       }
+//       //block range
+//       console.log({ slots: blockslots[m] });
+//       let room = blockslots[m].room;
+//       let property = blockslots[m].property;
+//       let from_slot = blockslots[m].from_slot;
+//       let to_slot = blockslots[m].to_slot;
 
-      from_slot = await Slot.findOne({ _id: from_slot }).sort({ _id: 1 });
-      to_slot = await Slot.findOne({ _id: to_slot }).sort({ _id: 1 });
-      let skip = parseInt(from_slot.no);
-      let limit = parseInt(to_slot.no);
-      let select_slots = await Slot.find()
-        .skip(skip - 1)
-        .limit(limit - skip + 1)
-        .sort({ _id: 1 });
-      let select_slot_ids = [];
-      select_slots.forEach(slot => {
-        select_slot_ids.push(slot._id.toString());
-      });
+//       from_slot = await Slot.findOne({ _id: from_slot }).sort({ _id: 1 });
+//       to_slot = await Slot.findOne({ _id: to_slot }).sort({ _id: 1 });
+//       let skip = parseInt(from_slot.no);
+//       let limit = parseInt(to_slot.no);
+//       let select_slots = await Slot.find()
+//         .skip(skip - 1)
+//         .limit(limit - skip + 1)
+//         .sort({ _id: 1 });
+//       let select_slot_ids = [];
+//       select_slots.forEach(slot => {
+//         select_slot_ids.push(slot._id.toString());
+//       });
 
-      //check room is provided and get all rooms
-      let rooms = [];
-      if (room) {
-        let room_det = await Room.findOne({ _id: room });
-        rooms.push(room_det);
-      } else {
-        let property_details = await Property.findOne({
-          _id: property
-        }).populate("rooms");
-        rooms = property_details.rooms;
-      }
-      if (rooms.length <= 0) {
-        continue;
-      }
-      let bookinglogs = [];
-      for (l = 0; l < rooms.length; l++) {
-        let room = rooms[l]._id;
-        // console.log({ room: room });
-        for (var j = 0; j < dates.length; j++) {
-          // console.log({ date: dates[j] });
-          for (var k = 1; k <= rooms[l].number_rooms; k++) {
-            // console.log({ room_no: k });
-            let booking = await Booking.findOne({ room, date: dates[j] });
-            if (!booking) {
-              booking = new Booking();
-              booking.property = property;
-              booking.room = room;
-              booking.date = dates[j];
-              booking.slots = [];
-              for (var i = 0; i < select_slot_ids.length; i++) {
-                booking.slots.push({
-                  status: "BLOCKED",
-                  slot: select_slot_ids[i],
-                  number: k
-                });
-                const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
-                const slotLabel = slotRecord ? slotRecord.label : '00:00';
-                const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
-                bookinglogs.push({
-                  property: property,
-                  room: room,
-                  slot: select_slot_ids[i],
-                  number: k,
-                  date: dates[j],
-                  timestamp: new Date(
-                    moment(new Date(dates[j])).format("YYYY-MM-DD")
-                  )
-                });
-              }
-            } else {
-              other_slots = [];
-              for (var i = 0; i < booking.slots.length; i++) {
-                if (
-                  booking.slots[i].status != "BLOCKED" &&
-                  booking.slots[i].number == k
-                ) {
-                  other_slots.push(booking.slots[i].slot.toString());
-                }
-              }
-              for (var i = 0; i < select_slot_ids.length; i++) {
-                if (!_.contains(other_slots, select_slot_ids[i].toString())) {
-                  booking.slots.push({
-                    status: "BLOCKED",
-                    slot: select_slot_ids[i],
-                    number: k
-                  });
-                  const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
-                  const slotLabel = slotRecord ? slotRecord.label : '00:00';
-                  const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
-                  bookinglogs.push({
-                    property: property,
-                    room: room,
-                    slot: select_slot_ids[i],
-                    number: k,
-                    date: dates[j],
-                    slotStartTime,
-                    timestamp: new Date(
-                      moment(new Date(dates[j])).format("YYYY-MM-DD")
-                    )
-                  });
-                }
-              }
-            }
-            await booking.save();
-            // console.log({bookinglogs,booking});
-          }
-        }
-      }
-      await BookLog.insertMany(bookinglogs);
-      await blockSlotsModel.updateOne(
-        { _id: blockslots[m]._id },
-        { $set: { status: true } }
-      );
-      if(blockslots[m].is_last){  
-        let html_body = fs.readFileSync("public/slotblockcompleted.html","utf8");
-          msg = {
-            to:blockslots[m].user_email, 
-            bcc: [
-              { email: "saleeshprakash@gmail.com" },
-              { email: config.website_admin_bcc_email }
-            ],
-            from: {
-              email: config.website_admin_from_email,
-              name: config.fromname
-            },
-            subject: "STAYHOPPER: Your inventory update is live now",
-            text: "Your inventory update is live now",
-            html: html_body
-          };
-        sgMail.send(msg); 
-      }
+//       //check room is provided and get all rooms
+//       let rooms = [];
+//       if (room) {
+//         let room_det = await Room.findOne({ _id: room });
+//         rooms.push(room_det);
+//       } else {
+//         let property_details = await Property.findOne({
+//           _id: property
+//         }).populate("rooms");
+//         rooms = property_details.rooms;
+//       }
+//       if (rooms.length <= 0) {
+//         continue;
+//       }
+//       let bookinglogs = [];
+//       for (l = 0; l < rooms.length; l++) {
+//         let room = rooms[l]._id;
+//         // console.log({ room: room });
+//         for (var j = 0; j < dates.length; j++) {
+//           // console.log({ date: dates[j] });
+//           for (var k = 1; k <= rooms[l].number_rooms; k++) {
+//             // console.log({ room_no: k });
+//             let booking = await Booking.findOne({ room, date: dates[j] });
+//             if (!booking) {
+//               booking = new Booking();
+//               booking.property = property;
+//               booking.room = room;
+//               booking.date = dates[j];
+//               booking.slots = [];
+//               for (var i = 0; i < select_slot_ids.length; i++) {
+//                 booking.slots.push({
+//                   status: "BLOCKED",
+//                   slot: select_slot_ids[i],
+//                   number: k
+//                 });
+//                 const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+//                 const slotLabel = slotRecord ? slotRecord.label : '00:00';
+//                 const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
+//                 bookinglogs.push({
+//                   property: property,
+//                   room: room,
+//                   slot: select_slot_ids[i],
+//                   number: k,
+//                   date: dates[j],
+//                   timestamp: new Date(
+//                     moment(new Date(dates[j])).format("YYYY-MM-DD")
+//                   )
+//                 });
+//               }
+//             } else {
+//               other_slots = [];
+//               for (var i = 0; i < booking.slots.length; i++) {
+//                 if (
+//                   booking.slots[i].status != "BLOCKED" &&
+//                   booking.slots[i].number == k
+//                 ) {
+//                   other_slots.push(booking.slots[i].slot.toString());
+//                 }
+//               }
+//               for (var i = 0; i < select_slot_ids.length; i++) {
+//                 if (!_.contains(other_slots, select_slot_ids[i].toString())) {
+//                   booking.slots.push({
+//                     status: "BLOCKED",
+//                     slot: select_slot_ids[i],
+//                     number: k
+//                   });
+//                   const slotRecord = select_slots.find(s => s._id.toString() === select_slot_ids[i].toString());
+//                   const slotLabel = slotRecord ? slotRecord.label : '00:00';
+//                   const slotStartTime = moment(`${dates[j]} ${slotLabel}`, 'YYYY-MM-DD HH:mm');
+//                   bookinglogs.push({
+//                     property: property,
+//                     room: room,
+//                     slot: select_slot_ids[i],
+//                     number: k,
+//                     date: dates[j],
+//                     slotStartTime,
+//                     timestamp: new Date(
+//                       moment(new Date(dates[j])).format("YYYY-MM-DD")
+//                     )
+//                   });
+//                 }
+//               }
+//             }
+//             await booking.save();
+//             // console.log({bookinglogs,booking});
+//           }
+//         }
+//       }
+//       await BookLog.insertMany(bookinglogs);
+//       await blockSlotsModel.updateOne(
+//         { _id: blockslots[m]._id },
+//         { $set: { status: true } }
+//       );
+//       if(blockslots[m].is_last){  
+//         let html_body = fs.readFileSync("public/slotblockcompleted.html","utf8");
+//           msg = {
+//             to:blockslots[m].user_email, 
+//             bcc: [
+//               { email: "saleeshprakash@gmail.com" },
+//               { email: config.website_admin_bcc_email }
+//             ],
+//             from: {
+//               email: config.website_admin_from_email,
+//               name: config.fromname
+//             },
+//             subject: "STAYHOPPER: Your inventory update is live now",
+//             text: "Your inventory update is live now",
+//             html: html_body
+//           };
+//         sgMail.send(msg); 
+//       }
 
-    }
-  } else {
-    // console.log("Nothing to block");
-  }
-});
+//     }
+//   } else {
+//     // console.log("Nothing to block");
+//   }
+// });
 
 // cron.schedule('* * * * *',async()=>{
 //   let html_body = fs.readFileSync("public/slotblockcompleted.html","utf8");
