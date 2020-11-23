@@ -934,7 +934,7 @@ const service = {
               type: "Point",
               coordinates: [parseFloat(lng),parseFloat(lat)]
             },
-            key: "property.location",
+            key: "location",
             spherical: true,
             distanceMultiplier: 0.001,
             distanceField: "distance"
