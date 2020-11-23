@@ -695,7 +695,8 @@ const service = {
     ) {
       const bookingFeeForCountry = config.bookingFee[property.contactinfo.country._id].find(bf => bf.bookingType === bookingType);
       bookingFee.amount = bookingFeeForCountry.fee;
-      bookingFee.currency = await Currency.findOne({_id: bookingFeeForCountry.currency});
+      // bookingFee.currency = await Currency.findOne({_id: bookingFeeForCountry.currency});
+      bookingFee.currency = property.currency;
     }
 
     // Taxes
@@ -731,11 +732,15 @@ const service = {
       payNow: {
         label: "Now you pay",
         currency: bookingFee.currency,
-        amount: bookingFee.amount
+        amount: bookingType === 'hourly'
+          ? bookingFee.amount
+          : base.amount + bookingFee.amount
       },
       payAtHotel: {
         label: "Pay at the hotel",
-        amount: base.amount
+        amount: bookingType === 'hourly'
+          ? base.amount
+          : 0
       }
     }
     return room;
