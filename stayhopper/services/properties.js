@@ -560,7 +560,7 @@ const service = {
         if (!customRate) {
           const isRecurring = roomRate.recurring;
           const customRateDateFromMoment = moment(roomRate.dateFrom, 'DD/MM/YYYY');
-          const customRateDateToMoment = moment(roomRate.dateTo, 'DD/MM/YYYY');
+          const customRateDateToMoment = moment(roomRate.dateTo, 'DD/MM/YYYY').add(1, 'days');
           // Recurring date ? Check if date is present in the date range, across {maxRecurringYears || 10} years
           if (isRecurring) {
             // Look across 0th year (first of definition) untill {maxRecurringYears || 10} occurances
