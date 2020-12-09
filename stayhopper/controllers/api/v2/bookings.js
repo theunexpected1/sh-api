@@ -511,6 +511,7 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
         url: 'https://secure.telr.com/gateway/order.json',
         form: {
           ivp_method: "create",
+          ivp_framed: 1,
           ivp_store: config.telr_store_id,
           ivp_authkey: config.telr_api,
           ivp_cart: ts,
