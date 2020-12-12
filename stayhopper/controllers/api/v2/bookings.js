@@ -99,6 +99,9 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
   });
   console.log('BOOKING: rooms', rooms);
 
+  // Platform (Web or App)
+  const platform = data.platform || 'app'; // 'web' or 'app'
+
   // User Info
   let userinfo = {
     title: data.title,
@@ -527,9 +530,9 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
           bill_country: "AE",
           bill_email: userinfo.email,
           phone: userinfo.mobile,
-          return_auth: `${config.api_url}api/payment/success?booking_id=${UB._id}`,
-          return_can: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode="${promocode}`,
-          return_decl: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode=${promocode}`
+          return_auth: `${config.api_url}api/payment/success?booking_id=${UB._id}&platform=${platform}`,
+          return_can: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode=${promocode}&platform=${platform}`,
+          return_decl: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode=${promocode}&platform=${platform}`
         }
       }, async (e, resp, body) => {
         if (e) {
@@ -1276,10 +1279,32 @@ router.post("/extendedbooking", async (req, res) => {
 });
 */
 
-router.get("/booking_det", async (req, res) => {
-  let book_id = req.query.book_id;
-  let booking_details = await UserBooking.findOne({ _id: book_id })
-    .populate("property")
+router.get("/:id", async (req, res) => {
+  let book_id = req.params.id;
+  const populations = [
+    {
+      path: "user"
+    },
+    {
+      path: "room.room",
+      select: '-price -rates',
+      populate: [
+        {
+          path: "room_name"
+        },
+        {
+          path: "room_type"
+        }
+      ]
+    },
+    {
+      path: "property"
+    }
+  ];
+
+  let booking_details = await UserBooking
+    .findOne({ book_id: book_id })
+    .populate(populations)
     .lean()
     .exec();
   if (!booking_details) {

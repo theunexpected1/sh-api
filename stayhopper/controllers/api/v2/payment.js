@@ -18,6 +18,7 @@ sgMail.setApiKey(config.sendgrid_api);
 
 router.get('/success', async (req, res) => {
     let booking_id = req.query.booking_id;
+    let platform = req.query.platform || 'app'; // 'web' or 'app'
     let status = 0;
     try {
         UB = await UserBooking.findOne({
@@ -238,18 +239,34 @@ router.get('/success', async (req, res) => {
             html: html_body
         };
         sgMail.send(msg).catch(e => console.log('error in mailing the hotel', e));
-        return res.json({status});
+        if (platform === 'web') {
+          res.writeHead(301, {
+            Location: `${config.website_url}payment/?status=success&booking_id=${ub.book_id}`
+          });
+          res.end();
+        } else {
+          return res.json({status});
+        }
     } catch(error) {
       console.log('error', error)
-      return res.json({error});
+      if (platform === 'web') {
+        console.log('error in payment', error);
+        res.writeHead(301, {
+          Location: `${config.website_url}payment/?status=failed&booking_id=${ub.book_id}`
+        });
+        res.end();
+      } else {
+        return res.json({error});
+      }
     }
 });
 
 router.get('/failed', async (req, res) => {
     let booking_id = req.query.booking_id;
+    let platform = req.query.platform || 'app'; // 'web' or 'app'
     let promocode = req.query.promocode;
     UB = await UserBooking.findOne({
-        _id:booking_id
+      _id: booking_id
     });
     let status = 0;
     try{
@@ -267,9 +284,25 @@ router.get('/failed', async (req, res) => {
         await BookLog.deleteMany({userbooking:UB._id});
         // await UB.remove();
         status = 1;
-    }catch(error){
-        console.log(error);
+        if (platform === 'web') {
+          res.writeHead(301, {
+            Location: `${config.website_url}payment/?status=failed&booking_id=${UB.book_id}`
+          });
+          res.end();
+        } else {
+          return res.json({status});
+        }
+    } catch(error) {
+      console.log('error', error)
+      if (platform === 'web') {
+        console.log('error in payment', error);
+        res.writeHead(301, {
+          Location: `${config.website_url}payment/?status=failed&booking_id=${UB.book_id}`
+        });
+        res.end();
+      } else {
+        return res.json({error});
+      }
     }
-    return res.json({'status':status});
 });
 module.exports = router;

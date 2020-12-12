@@ -91,7 +91,7 @@ router.get("/filters", async (req, res) => {
 })
 
 // Get Property detail
-router.get("/:id", async (req, res) => {
+router.post("/:id", async (req, res) => {
   const body = req.body;
   const params = req.params;
   const timezone = req.timezone;
@@ -207,6 +207,7 @@ router.get("/:id", async (req, res) => {
         type: 1,
         policies: 1,
         services: 1,
+        charges: 1,
         nearby: 1,
         userRatings: 1
       }
