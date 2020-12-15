@@ -509,6 +509,21 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
   }
 
   try {
+    let return_auth = `${config.api_url}api/payment/success?booking_id=${UB._id}`;
+    let return_can = `${config.api_url}api/payment/failed?booking_id=${UB._id}`;
+    let return_decl = `${config.api_url}api/payment/failed?booking_id=${UB._id}`;
+
+    if (platform) {
+      return_auth += `&platform=${platform}`;
+      return_can += `&platform=${platform}`;
+      return_decl += `&platform=${platform}`;
+    }
+
+    if (promocode) {
+      return_can += `&promocode=${promocode}`;
+      return_decl += `&promocode=${promocode}`;
+    }
+
     return request
       .post({
         url: 'https://secure.telr.com/gateway/order.json',
@@ -530,9 +545,9 @@ router.post("/", jwtMiddleware.userAuthenticationRequired, async (req, res) => {
           bill_country: "AE",
           bill_email: userinfo.email,
           phone: userinfo.mobile,
-          return_auth: `${config.api_url}api/payment/success?booking_id=${UB._id}&platform=${platform}`,
-          return_can: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode=${promocode}&platform=${platform}`,
-          return_decl: `${config.api_url}api/payment/failed?booking_id=${UB._id}&promocode=${promocode}&platform=${platform}`
+          return_auth,
+          return_can,
+          return_decl
         }
       }, async (e, resp, body) => {
         if (e) {
