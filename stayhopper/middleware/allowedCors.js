@@ -15,6 +15,7 @@ module.exports = function (req, res, next) {
 		// SH Staging Extranet
 		'https://www.extranet-staging.stayhopper.com',
 		'https://extranet-staging.stayhopper.com',
+ 		'https://stayhopper.vercel.app',
 		// SH Staging Website
 		'https://www.staging.stayhopper.com',
 		'https://staging.stayhopper.com',
