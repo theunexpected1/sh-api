@@ -241,7 +241,7 @@ router.get('/success', async (req, res) => {
         sgMail.send(msg).catch(e => console.log('error in mailing the hotel', e));
         if (platform === 'web') {
           res.writeHead(301, {
-            Location: `${config.website_url}payment/?status=success&booking_id=${ub.book_id}`
+            Location: `${config.payment_website_url}payment/?status=success&booking_id=${ub.book_id}`
           });
           res.end();
         } else {
@@ -252,7 +252,7 @@ router.get('/success', async (req, res) => {
       if (platform === 'web') {
         console.log('error in payment', error);
         res.writeHead(301, {
-          Location: `${config.website_url}payment/?status=failed&booking_id=${ub.book_id}`
+          Location: `${config.payment_website_url}payment/?status=failed&booking_id=${ub.book_id}`
         });
         res.end();
       } else {
@@ -286,7 +286,7 @@ router.get('/failed', async (req, res) => {
         status = 1;
         if (platform === 'web') {
           res.writeHead(301, {
-            Location: `${config.website_url}payment/?status=failed&booking_id=${UB.book_id}`
+            Location: `${config.payment_website_url}payment/?status=failed&booking_id=${UB.book_id}`
           });
           res.end();
         } else {
@@ -297,7 +297,7 @@ router.get('/failed', async (req, res) => {
       if (platform === 'web') {
         console.log('error in payment', error);
         res.writeHead(301, {
-          Location: `${config.website_url}payment/?status=failed&booking_id=${UB.book_id}`
+          Location: `${config.payment_website_url}payment/?status=failed&booking_id=${UB.book_id}`
         });
         res.end();
       } else {

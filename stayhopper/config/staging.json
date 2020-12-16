@@ -3,6 +3,7 @@
   "api_url":"https://api-staging.stayhopper.com/",
   "extranet_url":"https://www.extranet-staging.stayhopper.com/",
   "website_url":"https://www.staging.stayhopper.com/",
+  "payment_website_url":"https://stayhopper.vercel.app/",
   "pageSize": {
     "popularProperties": 10,
     "cheapestProperties": 10,
