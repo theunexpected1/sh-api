@@ -199,8 +199,7 @@ const service = {
         };
       } else {
         return {
-          list: [],
-          query: originalQuery
+          list: []
         };
       }
     } catch (e) {
