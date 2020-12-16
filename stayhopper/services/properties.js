@@ -198,7 +198,10 @@ const service = {
           query: originalQuery
         };
       } else {
-        return {};
+        return {
+          list: [],
+          query: originalQuery
+        };
       }
     } catch (e) {
       console.log('e', e);
@@ -282,77 +285,84 @@ const service = {
       amenities
     });
 
-    console.log('- ', moment().tz(timezone).format('DD MMM YYYY hh:mm a'));
-    let list = await Room.aggregate(aggregateQuery);
-    // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
-    // console.log('list', JSON.stringify(list));
+    try {
+      console.log('- ', moment().tz(timezone).format('DD MMM YYYY hh:mm a'));
+      console.log('aggregateQuery', JSON.stringify(aggregateQuery));
 
-    // 3. Populate Properties' Rooms' Pricing
-    // - Filters Phase 2: Also, send pricing filters (Can filter price only after aggregation as pricing is a separate process)
-    list = await service.populatePropertiesPricing(list, {
-      bookingType,
-      datesAndHoursParams,
-      priceMin,
-      priceMax
-    });
+      let list = await Room.aggregate(aggregateQuery);
+      // console.log('aggregateQuery', JSON.stringify(aggregateQuery));
+      // console.log('list', JSON.stringify(list));
 
-    // 4. Populate Properties' User Ratings
-    list = await Promise.all(list.map(service.getPropertyRating));
+      // 3. Populate Properties' Rooms' Pricing
+      // - Filters Phase 2: Also, send pricing filters (Can filter price only after aggregation as pricing is a separate process)
+      list = await service.populatePropertiesPricing(list, {
+        bookingType,
+        datesAndHoursParams,
+        priceMin,
+        priceMax
+      });
 
-    // 5. Sort and paginate list (Defaults will be handled by sortAndPaginateProperties method, so don't decide default here)
-    const limit = params && params.limit
-      ? params.limit
-      : options && options.limit
-    ;
-    // veto: Specify distance as a default if there is location provided, otherwise let the method do it's job
-    const sort = params && params.sort
-      ? (params.sort === 'distance' && !location ? '' : params.sort)
-      : options && options.sort
-        ? (options.sort === 'distance' && !location ? '' : options.sort)
-        : !location ? '' : 'distance'
-    ;
-    const orderBy = params && params.orderBy
-      ? params.orderBy
-      : options && options.orderBy
-    ;
-    const page = params && params.page
-      ? params.page
-      : options && options.page
-        ? options && options.page
-        : 1
-    ;
+      // 4. Populate Properties' User Ratings
+      list = await Promise.all(list.map(service.getPropertyRating));
 
-    const sortedPaginatedResult = await service.sortAndPaginateProperties(list, page, sort, orderBy, limit);
-    const { count, totalPages } = sortedPaginatedResult;
-    list = sortedPaginatedResult.list;
+      // 5. Sort and paginate list (Defaults will be handled by sortAndPaginateProperties method, so don't decide default here)
+      const limit = params && params.limit
+        ? params.limit
+        : options && options.limit
+      ;
+      // veto: Specify distance as a default if there is location provided, otherwise let the method do it's job
+      const sort = params && params.sort
+        ? (params.sort === 'distance' && !location ? '' : params.sort)
+        : options && options.sort
+          ? (options.sort === 'distance' && !location ? '' : options.sort)
+          : !location ? '' : 'distance'
+      ;
+      const orderBy = params && params.orderBy
+        ? params.orderBy
+        : options && options.orderBy
+      ;
+      const page = params && params.page
+        ? params.page
+        : options && options.page
+          ? options && options.page
+          : 1
+      ;
 
-    // Append stay duration information
-    const stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
-    list.map(p => {
-      p.stayDuration = stayDuration;
-      return p;
-    });
+      const sortedPaginatedResult = await service.sortAndPaginateProperties(list, page, sort, orderBy, limit);
+      const { count, totalPages } = sortedPaginatedResult;
+      list = sortedPaginatedResult.list;
 
-    // 6. Provide the original query back to the frontend // Or provide the generated property detail URL
-    let bookingTypeForQuery = bookingType || 'hourly';
+      // Append stay duration information
+      const stayDuration = checkinService.getStayDuration({ checkinDate, checkoutDate, checkinTime, checkoutTime });
+      list.map(p => {
+        p.stayDuration = stayDuration;
+        return p;
+      });
 
-    const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType: bookingTypeForQuery};
-    if (cityId) {
-      originalQuery.cityId = cityId;
+      // 6. Provide the original query back to the frontend // Or provide the generated property detail URL
+      let bookingTypeForQuery = bookingType || 'hourly';
+
+      const originalQuery = {checkinDate, checkoutDate, checkinTime, checkoutTime, numberAdults, numberChildren, numberRooms, bookingType: bookingTypeForQuery};
+      if (cityId) {
+        originalQuery.cityId = cityId;
+      }
+      if (countryId) {
+        originalQuery.countryId = countryId;
+      }
+      if (properties && properties.length) {
+        originalQuery.properties = properties;
+      }
+      return {
+        list,
+        count,
+        page,
+        totalPages,
+        query: originalQuery
+      };
+    } catch (e) {
+      console.log('e in service.getProperties', e);
+      throw new Error(e.message)
     }
-    if (countryId) {
-      originalQuery.countryId = countryId;
-    }
-    if (properties && properties.length) {
-      originalQuery.properties = properties;
-    }
-    return {
-      list,
-      count,
-      page,
-      totalPages,
-      query: originalQuery
-    };
   },
 
   sortAndPaginateProperties: async (list, page, sort, orderBy, limit) => {
