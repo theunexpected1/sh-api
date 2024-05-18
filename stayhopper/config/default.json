@@ -9,7 +9,7 @@
     "payment_website_url":"https://www.staging.stayhopper.com/",
     "invoice_email": "renjith@stayhopper.com",
     "unpaid": "unpaid@stayhopper.com",
-    "sendgrid_api":"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",
+    "sendgrid_api":"",
     "telr_api":"T9Pq^FFt4z~rKjB7",
     "telr_store_id":"21005",
     "app_url":"https://staging.extranet.stayhopper.com/",
